@@ -26,10 +26,16 @@ export default function Welcome({
         </p>
         <div className="flex gap-4 justify-center">
           <button 
-            onClick={() => setIsVisible(false)}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            onClick={() => window.location.href = '/auth'}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
           >
-            Comenzar
+            Iniciar Sesión
+          </button>
+          <button 
+            onClick={() => setIsVisible(false)}
+            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+          >
+            Explorar
           </button>
         </div>
       </div>
