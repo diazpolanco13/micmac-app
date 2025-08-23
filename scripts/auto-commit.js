@@ -34,8 +34,9 @@ async function autoCommit() {
     // Crear mensaje de commit automático
     const commitMessage = generateCommitMessage(commitInfo);
     
-    // Hacer commit
-    execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
+    // Hacer commit (escapar comillas)
+    const escapedMessage = commitMessage.replace(/"/g, '\\"');
+    execSync(`git commit -m "${escapedMessage}"`, { stdio: 'inherit' });
     console.log(`✅ Commit creado: ${commitMessage}`);
     
     // Actualizar métricas de automatización
