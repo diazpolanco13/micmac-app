@@ -4,17 +4,20 @@
  * 📊 Dashboard Page - Panel principal con gestión de proyectos
  */
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { mockProjects, getFilteredProjects } from '@/lib/mockData'
 import { Project } from '@/types/project'
 import { Button } from '@/components/ui'
+import CreateProjectModal from '@/components/projects/CreateProjectModal'
+import AppLayout from '@/components/layout/AppLayout'
 
 export default function DashboardPage() {
-  const { user, loading, signOut } = useAuth()
+  const { user, loading, signOut } = useMockAuth()
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [filter, setFilter] = useState({ status: [], search: '', tags: [] })
 
@@ -39,6 +42,10 @@ export default function DashboardPage() {
     }
   }, [filter, user])
 
+  const handleProjectCreated = (newProject: Project) => {
+    setProjects(prev => [newProject, ...prev])
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-micmac-dark flex items-center justify-center">
@@ -61,45 +68,19 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-micmac-dark">
-      {/* Header */}
-      <div className="border-b border-dark-bg-tertiary bg-dark-bg-secondary/50 backdrop-blur-sm">
-        <div className="container-app py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gradient mb-2">
-                Dashboard MIC MAC Pro
-              </h1>
-              <p className="text-dark-text-secondary">
-                Bienvenido, <span className="text-dark-text-primary font-medium">{user.name || user.email}</span>
-              </p>
-              <div className="mt-1 text-sm">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-micmac-primary-500/20 text-micmac-primary-300">
-                  {user.role === 'MODERATOR' ? '📊 Moderador' : '🧑‍🔬 Experto'}
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex gap-3">
-              {user.role === 'MODERATOR' && (
-                <Button color="primary">
-                  + Nuevo Proyecto
-                </Button>
-              )}
-              <Button
-                onClick={signOut}
-                ghost
-              >
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
+    <AppLayout onNewProject={() => setIsCreateModalOpen(true)}>
+      <div className="w-full max-w-7xl mx-auto">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gradient mb-2">
+            Dashboard MIC MAC Pro
+          </h1>
+          <p className="text-dark-text-secondary">
+            Bienvenido, <span className="text-dark-text-primary font-medium">{user.name || user.email}</span>
+          </p>
         </div>
-      </div>
-
-      <div className="container-app py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="card p-6">
             <div className="flex items-center">
               <div className="p-2 bg-micmac-primary-500/20 rounded-lg">
@@ -187,7 +168,14 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Modal de Crear Proyecto */}
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onProjectCreated={handleProjectCreated}
+      />
+    </AppLayout>
   )
 }
 

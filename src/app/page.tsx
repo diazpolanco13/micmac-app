@@ -1,12 +1,12 @@
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Welcome from '@/components/Welcome'
 
 export default function Home() {
-  const { user, loading } = useAuth()
+  const { user, loading } = useMockAuth()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 

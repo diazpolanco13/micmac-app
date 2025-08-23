@@ -202,5 +202,41 @@ export function getFilteredProjects(filter: {
   return filtered
 }
 
+// Función para crear un nuevo proyecto
+export const createProject = (data: {
+  name: string
+  description: string
+  type: ProjectType
+  expectedExperts: number
+}): Project => {
+  const newProject: Project = {
+    id: `proj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name: data.name,
+    description: data.description,
+    type: data.type,
+    status: 'setup',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    createdBy: 'current-user', // En implementación real vendría del contexto de auth
+    moderatorId: 'current-user',
+    expectedExperts: data.expectedExperts,
+    currentExperts: 0,
+    variables: [],
+    experts: [],
+    settings: {
+      allowSelfRegistration: true,
+      maxExperts: data.expectedExperts,
+      votingTimeLimit: 300, // 5 minutos por defecto
+      matrixVisibility: 'private'
+    },
+    results: null,
+    tags: []
+  }
+  
+  // En implementación real, esto haría una llamada a la API
+  mockProjects.unshift(newProject) // Agregar al inicio del array
+  return newProject
+}
+
 // Función para simular delay de API
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))

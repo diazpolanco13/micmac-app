@@ -6,8 +6,8 @@
  */
 
 import { useState } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import { UserRole } from '@/lib/supabase'
+import { useMockAuth } from '@/contexts/MockAuthContext'
+import { UserRole } from '@/contexts/MockAuthContext'
 
 interface LoginFormProps {
   onToggleMode: () => void
@@ -15,7 +15,7 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onToggleMode, className = '' }: LoginFormProps) {
-  const { signIn, loading } = useAuth()
+  const { signIn, loading } = useMockAuth()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
