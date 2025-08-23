@@ -2,22 +2,142 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 🎨 MIC MAC Pro - Sistema de diseño global */
+
 @layer base {
+  /* Variables CSS para modo oscuro por defecto */
+  :root {
+    --micmac-primary: 59 130 246;
+    --micmac-secondary: 16 185 129;
+    --micmac-accent: 245 158 11;
+    --micmac-bg-primary: 15 23 42;
+    --micmac-bg-secondary: 30 41 59;
+    --micmac-text-primary: 248 250 252;
+    --micmac-text-secondary: 203 213 225;
+  }
+
+  /* Configuración global del documento */
   html {
     scroll-behavior: smooth;
   }
   
+  html.dark {
+    color-scheme: dark;
+  }
+  
   body {
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    @apply bg-micmac-dark text-dark-text-primary antialiased;
+    @apply transition-colors duration-300;
+    font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04';
+  }
+
+  /* Scrollbar personalizada */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-bg-secondary;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-micmac-primary-600 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-micmac-primary-500;
   }
 }
 
 @layer components {
+  /* 🔘 Botones interactivos con efectos */
   .btn-primary {
-    @apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors;
+    @apply px-6 py-3 bg-gradient-to-r from-micmac-primary-600 to-micmac-primary-700;
+    @apply text-white font-semibold rounded-xl;
+    @apply transform transition-all duration-300 ease-out;
+    @apply hover:scale-105 hover:shadow-xl hover:shadow-micmac-primary-500/25;
+    @apply active:scale-95 focus:outline-none focus:ring-4 focus:ring-micmac-primary-500/50;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-dark-bg-secondary border-2 border-micmac-secondary-500;
+    @apply text-micmac-secondary-400 font-semibold rounded-xl;
+    @apply transform transition-all duration-300 ease-out;
+    @apply hover:bg-micmac-secondary-500/10 hover:scale-105 hover:shadow-lg;
+    @apply active:scale-95 focus:outline-none focus:ring-4 focus:ring-micmac-secondary-500/50;
+  }
+
+  .btn-ghost {
+    @apply px-6 py-3 bg-transparent border border-dark-text-muted;
+    @apply text-dark-text-secondary font-medium rounded-xl;
+    @apply transition-all duration-300;
+    @apply hover:bg-dark-bg-tertiary hover:border-dark-text-secondary;
+    @apply focus:outline-none focus:ring-2 focus:ring-dark-text-muted;
+  }
+
+  /* 📦 Cards y contenedores */
+  .card {
+    @apply bg-dark-bg-secondary/80 backdrop-blur-sm border border-dark-bg-tertiary;
+    @apply rounded-2xl shadow-xl transition-all duration-300;
+    @apply hover:shadow-2xl hover:shadow-micmac-primary-500/10;
+  }
+
+  .card-glow {
+    @apply card relative overflow-hidden;
   }
   
-  .card {
-    @apply bg-white rounded-lg shadow-lg p-6;
+  .card-glow::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-micmac-primary-500/20 to-micmac-secondary-500/20;
+    @apply opacity-0 transition-opacity duration-500;
+  }
+  
+  .card-glow:hover::before {
+    @apply opacity-100;
+  }
+
+  /* 🎯 Estados de carga y animaciones */
+  .loading-pulse {
+    @apply animate-pulse-slow;
+  }
+
+  .status-indicator {
+    @apply w-3 h-3 rounded-full animate-pulse-slow;
+  }
+
+  .status-active {
+    @apply bg-micmac-secondary-500 shadow-lg shadow-micmac-secondary-500/50;
+  }
+
+  .status-inactive {
+    @apply bg-gray-500;
+  }
+
+  /* 📱 Responsive utilities */
+  .container-app {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* 🎨 Efectos visuales */
+  .glow-effect {
+    @apply relative;
+  }
+  
+  .glow-effect::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-micmac-primary-500 to-micmac-secondary-500;
+    @apply blur-xl opacity-30 -z-10 animate-glow;
+  }
+}
+
+@layer utilities {
+  /* Utilidades personalizadas */
+  .text-gradient {
+    @apply bg-gradient-to-r from-micmac-primary-400 to-micmac-secondary-400 bg-clip-text text-transparent;
+  }
+
+  .border-gradient {
+    @apply border-2 border-transparent bg-gradient-to-r from-micmac-primary-500 to-micmac-secondary-500 bg-clip-border;
   }
 }

@@ -128,26 +128,9 @@ function analyzeChanges(status) {
 function generateCommitMessage(commitInfo) {
   const { type, scope, added, modified, deleted, linearIssue } = commitInfo;
   
-  // Generar descripción automática
-  let description = '';
-  
-  if (added.length > 0) {
-    const key = added[0];
-    if (key.includes('automation')) description = 'implement automation system';
-    else if (key.includes('test')) description = 'add comprehensive testing';
-    else if (key.includes('component')) description = 'create new components';
-    else if (key.includes('schema')) description = 'setup database schema';
-    else if (key.includes('config')) description = 'setup project configuration';
-    else description = `add ${added.length} new files`;
-  } else if (modified.length > 0) {
-    const key = modified[0];
-    if (key.includes('README')) description = 'update documentation';
-    else if (key.includes('package')) description = 'update dependencies';
-    else if (key.includes('test')) description = 'improve test coverage';
-    else description = `update ${modified.length} files`;
-  } else if (deleted.length > 0) {
-    description = `remove ${deleted.length} files`;
-  }
+  // Analizar archivos para generar mensaje descriptivo
+  const allFiles = [...added, ...modified];
+  let description = generateSmartDescription(allFiles, added, modified, deleted);
   
   // Formato: tipo(scope): descripción (Linear: ISSUE)
   let message = `${type}(${scope}): ${description}`;
@@ -157,6 +140,82 @@ function generateCommitMessage(commitInfo) {
   }
   
   return message;
+}
+
+function generateSmartDescription(allFiles, added, modified, deleted) {
+  const achievements = [];
+  
+  // Detectar logros específicos basados en archivos
+  if (allFiles.some(f => f.includes('tailwind.config.js') || f.includes('globals.css'))) {
+    if (allFiles.some(f => f.includes('postcss.config.js'))) {
+      achievements.push('implement complete dark mode design system');
+    } else {
+      achievements.push('enhance design system styling');
+    }
+  }
+  
+  if (allFiles.some(f => f.includes('Welcome.tsx') && f.includes('components'))) {
+    achievements.push('redesign welcome page with premium UI effects');
+  }
+  
+  if (allFiles.some(f => f.includes('auth') && f.includes('page.tsx'))) {
+    achievements.push('update authentication pages with modern design');
+  }
+  
+  if (allFiles.some(f => f.includes('LoginForm') || f.includes('RegisterForm'))) {
+    achievements.push('enhance auth forms with interactive elements');
+  }
+  
+  if (allFiles.some(f => f.includes('jest.setup.js') || f.includes('.test.'))) {
+    achievements.push('improve testing infrastructure and suppress warnings');
+  }
+  
+  if (allFiles.some(f => f.includes('page.tsx') && f.includes('app'))) {
+    achievements.push('fix hydration errors and optimize SSR rendering');
+  }
+  
+  if (allFiles.some(f => f.includes('layout.tsx'))) {
+    achievements.push('enable dark mode by default in layout');
+  }
+  
+  if (allFiles.some(f => f.includes('supabase') || f.includes('AuthContext'))) {
+    achievements.push('implement Supabase authentication system');
+  }
+  
+  if (allFiles.some(f => f.includes('automation') || f.includes('scripts'))) {
+    achievements.push('setup automation infrastructure');
+  }
+  
+  if (allFiles.some(f => f.includes('linear') || f.includes('roadmap'))) {
+    achievements.push('configure Linear project tracking');
+  }
+  
+  // Si no hay logros específicos detectados, generar descripción genérica
+  if (achievements.length === 0) {
+    if (added.length > 0) {
+      const key = added[0];
+      if (key.includes('component')) return 'create new components';
+      else if (key.includes('config')) return 'setup project configuration';
+      else return `add ${added.length} new files`;
+    } else if (modified.length > 0) {
+      const key = modified[0];
+      if (key.includes('README')) return 'update documentation';
+      else if (key.includes('package')) return 'update dependencies';
+      else return `update ${modified.length} files`;
+    } else if (deleted.length > 0) {
+      return `remove ${deleted.length} files`;
+    }
+    return 'misc updates';
+  }
+  
+  // Combinar logros en una descripción coherente
+  if (achievements.length === 1) {
+    return achievements[0];
+  } else if (achievements.length === 2) {
+    return `${achievements[0]} and ${achievements[1]}`;
+  } else {
+    return `${achievements.slice(0, -1).join(', ')}, and ${achievements[achievements.length - 1]}`;
+  }
 }
 
 async function updateAutomationMetrics(commitInfo) {

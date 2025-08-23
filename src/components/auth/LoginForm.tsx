@@ -47,25 +47,25 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
 
   return (
     <div className={`w-full max-w-md mx-auto ${className}`}>
-      <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+      <div className="card p-6 md:p-8">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-dark-text-primary">
             Iniciar Sesión
           </h2>
-          <p className="text-gray-600 mt-2">
+          <p className="text-dark-text-secondary mt-2">
             Accede a MIC MAC Pro
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-dark-text-secondary mb-1">
               Email
             </label>
             <input
@@ -75,14 +75,14 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-xl text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 focus:border-transparent transition-all"
               placeholder="tu@email.com"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-dark-text-secondary mb-1">
               Contraseña
             </label>
             <input
@@ -92,7 +92,7 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
               required
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-xl text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 focus:border-transparent transition-all"
               placeholder="••••••••"
               disabled={loading}
             />
@@ -101,10 +101,10 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-primary w-full"
           >
             {loading ? (
-              <div className="flex items-center">
+              <div className="flex items-center justify-center">
                 <div className="animate-spin -ml-1 mr-3 h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
                 Iniciando sesión...
               </div>
@@ -118,7 +118,7 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
           <button
             type="button"
             onClick={onToggleMode}
-            className="text-blue-600 hover:text-blue-500 text-sm font-medium transition-colors"
+            className="text-micmac-primary-400 hover:text-micmac-primary-300 text-sm font-medium transition-colors"
             disabled={loading}
           >
             ¿No tienes cuenta? Regístrate
@@ -126,9 +126,9 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
         </div>
 
         {/* Demo users para testing */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-md">
-          <p className="text-xs text-gray-600 mb-2 font-medium">Demo Users:</p>
-          <div className="space-y-1 text-xs text-gray-500">
+        <div className="mt-6 p-4 bg-dark-bg-tertiary/30 rounded-xl border border-dark-bg-tertiary">
+          <p className="text-xs text-dark-text-secondary mb-2 font-medium">Demo Users:</p>
+          <div className="space-y-1 text-xs text-dark-text-muted">
             <div>📊 Moderador: mod@micmac.com / demo123</div>
             <div>👨‍🔬 Experto: expert@micmac.com / demo123</div>
           </div>
