@@ -5,7 +5,7 @@
  * Página de autenticación con login/register
  */
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import LoginForm from '@/components/auth/LoginForm'
 import RegisterForm from '@/components/auth/RegisterForm'
 
