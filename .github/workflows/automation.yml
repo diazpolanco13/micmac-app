@@ -1,0 +1,322 @@
+name: 🤖 MIC MAC Pro - Automation Workflow
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+jobs:
+  # 🧪 @CursorTesting - Testing Automático
+  testing-automation:
+    name: 🧪 Testing Automation
+    runs-on: ubuntu-latest
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percentage }}
+      
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 📚 Install dependencies
+        run: npm ci
+        
+      - name: 🧪 Run tests with coverage
+        run: |
+          npm run test:coverage
+          echo "COVERAGE=$(cat coverage/lcov-report/index.html | grep -o 'headerCovTableEntryLo[^>]*>[^<]*' | head -1 | sed 's/.*>//')" >> $GITHUB_OUTPUT
+        id: coverage
+        
+      - name: 📊 Update Linear Testing Issue (API-8)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const coverage = '${{ steps.coverage.outputs.coverage }}';
+            const linearUpdate = await fetch('https://api.linear.app/graphql', {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ${{ env.LINEAR_API_KEY }}',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                query: `
+                  mutation {
+                    issueUpdate(
+                      id: "4d61557e-db0a-4cfd-94c4-7a316169eb8b"
+                      input: {
+                        description: "## 🤖 @CursorTesting Status\\n\\n✅ **Coverage Actual**: ${coverage}%\\n✅ **Tests Ejecutados**: ${{ github.run_number }}\\n✅ **Última Actualización**: $(date)\\n\\n[Ver detalles completos](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+                      }
+                    ) {
+                      issue {
+                        id
+                        title
+                      }
+                    }
+                  }
+                `
+              })
+            });
+            console.log('Linear testing issue updated with coverage:', coverage);
+
+  # 📝 @CursorGit - Git Automation  
+  git-automation:
+    name: 📝 Git Automation
+    runs-on: ubuntu-latest
+    needs: testing-automation
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: 🔍 Analyze commits
+        id: commits
+        run: |
+          COMMITS=$(git log --oneline -n 10 --pretty=format:"%h %s")
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+      - name: 📊 Update Linear Git Issue (API-9)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commits = `${{ steps.commits.outputs.commits }}`;
+            const linearUpdate = await fetch('https://api.linear.app/graphql', {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ${{ env.LINEAR_API_KEY }}',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                query: `
+                  mutation {
+                    commentCreate(
+                      input: {
+                        issueId: "141bee97-817c-45eb-86b0-871551061618"
+                        body: "## 🤖 @CursorGit Auto-Update\\n\\n✅ **Commits Procesados**: ${{ github.run_number }}\\n✅ **Branch**: ${{ github.ref_name }}\\n\\n### Últimos Commits:\\n\`\`\`\\n${commits}\\n\`\`\`\\n\\n[Ver en GitHub](https://github.com/${{ github.repository }}/commit/${{ github.sha }})"
+                      }
+                    ) {
+                      comment {
+                        id
+                      }
+                    }
+                  }
+                `
+              })
+            });
+            console.log('Linear git issue updated with commits');
+
+  # 📊 @CursorLinear - Progress Sync
+  linear-automation:
+    name: 📊 Linear Automation  
+    runs-on: ubuntu-latest
+    needs: [testing-automation, git-automation]
+    if: always()
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📊 Calculate project progress
+        id: progress
+        run: |
+          # Simulamos cálculo de progreso basado en archivos
+          TOTAL_FILES=$(find src -name "*.tsx" -o -name "*.ts" | wc -l || echo "0")
+          TEST_FILES=$(find src -name "*.test.tsx" -o -name "*.test.ts" | wc -l || echo "0")
+          if [ $TOTAL_FILES -gt 0 ]; then
+            PROGRESS=$(( (TEST_FILES * 100) / TOTAL_FILES ))
+          else
+            PROGRESS=0
+          fi
+          echo "progress=$PROGRESS" >> $GITHUB_OUTPUT
+          echo "total_files=$TOTAL_FILES" >> $GITHUB_OUTPUT
+          echo "test_files=$TEST_FILES" >> $GITHUB_OUTPUT
+          
+      - name: 📊 Update Linear Progress Issue (API-10)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const progress = '${{ steps.progress.outputs.progress }}';
+            const totalFiles = '${{ steps.progress.outputs.total_files }}';
+            const testFiles = '${{ steps.progress.outputs.test_files }}';
+            const coverage = '${{ needs.testing-automation.outputs.coverage }}' || '0';
+            
+            const linearUpdate = await fetch('https://api.linear.app/graphql', {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ${{ env.LINEAR_API_KEY }}',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                query: `
+                  mutation {
+                    issueUpdate(
+                      id: "7ca64858-9a30-4c2b-b92f-ad6a1c8f47e5"
+                      input: {
+                        description: "## 🤖 @CursorLinear Dashboard\\n\\n### 📊 Métricas Automáticas\\n- **Progreso General**: ${progress}%\\n- **Test Coverage**: ${coverage}%\\n- **Archivos Totales**: ${totalFiles}\\n- **Archivos con Tests**: ${testFiles}\\n- **Última Sync**: $(date)\\n\\n### 🎯 Estado del Proyecto\\n- **Workflow**: ${{ github.workflow }}\\n- **Run**: #${{ github.run_number }}\\n- **Commit**: [\`${{ github.sha }}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})\\n\\n[Ver Dashboard Completo](https://github.com/${{ github.repository }}/actions)"
+                      }
+                    ) {
+                      issue {
+                        id
+                        title
+                      }
+                    }
+                  }
+                `
+              })
+            });
+            console.log('Linear progress updated:', {progress, coverage, totalFiles, testFiles});
+
+  # 📚 @CursorDocs - Documentation Automation
+  docs-automation:
+    name: 📚 Documentation Automation
+    runs-on: ubuntu-latest
+    needs: linear-automation
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📚 Generate automatic documentation
+        run: |
+          # Crear/actualizar README.md automáticamente
+          cat > README.md << 'EOF'
+          # 🚀 MIC MAC Pro - Plataforma de Análisis Prospectivos
+          
+          > Generado automáticamente por @CursorDocs - $(date)
+          
+          ## 📋 Descripción
+          Plataforma web colaborativa para análisis prospectivos con metodología MIC MAC.
+          MVP con cronómetro por variable, mobile-first design y testing automático.
+          
+          ## 🚀 Quick Start
+          \`\`\`bash
+          # Clonar repositorio
+          git clone https://github.com/${{ github.repository }}.git
+          cd micmac-app
+          
+          # Instalar dependencias
+          npm install
+          
+          # Configurar variables de entorno
+          cp .env.example .env.local
+          
+          # Ejecutar en desarrollo
+          npm run dev
+          \`\`\`
+          
+          ## 🧪 Testing
+          \`\`\`bash
+          # Ejecutar tests
+          npm test
+          
+          # Coverage report
+          npm run test:coverage
+          \`\`\`
+          
+          ## 📊 Estado del Proyecto
+          - **Coverage**: ${{ needs.testing-automation.outputs.coverage }}%
+          - **Última Build**: ✅ Exitosa
+          - **Deploy**: 🚀 Automático
+          
+          ## 🤖 Automatización
+          Este proyecto utiliza agentes especializados:
+          - 🧪 @CursorTesting - Tests automáticos
+          - 📝 @CursorGit - Commits y PRs
+          - 📊 @CursorLinear - Tracking de progreso
+          - 📚 @CursorDocs - Documentación
+          
+          ## 📚 Documentación Completa
+          - [Setup Detallado](./SETUP.md)
+          - [Arquitectura](./ARQUITECTURA.md)
+          - [API Reference](./API.md)
+          - [Testing Guide](./TESTING.md)
+          
+          ---
+          *Actualizado automáticamente: $(date)*
+          EOF
+          
+      - name: 📊 Update Linear Docs Issue (API-11)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const linearUpdate = await fetch('https://api.linear.app/graphql', {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ${{ env.LINEAR_API_KEY }}',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                query: `
+                  mutation {
+                    commentCreate(
+                      input: {
+                        issueId: "95cbb5a3-fb10-4436-a55f-44ba4fd1c66b"
+                        body: "## 🤖 @CursorDocs Auto-Update\\n\\n✅ **README.md actualizado automáticamente**\\n✅ **Timestamp**: $(date)\\n✅ **Coverage incluido**: ${{ needs.testing-automation.outputs.coverage }}%\\n\\n### 📚 Documentos Actualizados:\\n- README.md\\n- Métricas de proyecto\\n- Links automáticos\\n\\n[Ver README](https://github.com/${{ github.repository }}/blob/main/README.md)"
+                      }
+                    ) {
+                      comment {
+                        id
+                      }
+                    }
+                  }
+                `
+              })
+            });
+            console.log('Linear docs issue updated');
+            
+      - name: 💾 Commit documentation updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "@CursorDocs"
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No documentation changes to commit"
+          else
+            git commit -m "docs(readme): auto-update documentation (Linear: API-11)"
+            git push
+          fi
+
+  # 🔔 Notifications
+  notifications:
+    name: 🔔 Notifications
+    runs-on: ubuntu-latest
+    needs: [testing-automation, git-automation, linear-automation, docs-automation]
+    if: always()
+    
+    steps:
+      - name: 📊 Prepare summary
+        id: summary
+        run: |
+          echo "## 🤖 Automation Summary - Run #${{ github.run_number }}" >> summary.md
+          echo "" >> summary.md
+          echo "### 📊 Results:" >> summary.md
+          echo "- 🧪 **Testing**: ${{ needs.testing-automation.result }}" >> summary.md
+          echo "- 📝 **Git**: ${{ needs.git-automation.result }}" >> summary.md  
+          echo "- 📊 **Linear**: ${{ needs.linear-automation.result }}" >> summary.md
+          echo "- 📚 **Docs**: ${{ needs.docs-automation.result }}" >> summary.md
+          echo "" >> summary.md
+          echo "### 🎯 Metrics:" >> summary.md
+          echo "- **Coverage**: ${{ needs.testing-automation.outputs.coverage }}%" >> summary.md
+          echo "- **Commit**: [\`${{ github.sha }}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})" >> summary.md
+          echo "" >> summary.md
+          echo "**Automatizado por**: 🤖 Agentes MIC MAC Pro" >> summary.md
+          
+      - name: 📝 Job Summary
+        run: cat summary.md >> $GITHUB_STEP_SUMMARY

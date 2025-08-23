@@ -1,0 +1,151 @@
+// 🚀 MIC MAC Pro - Prisma Schema
+// Generado automáticamente por @CursorDocs
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Usuarios (integrado con Supabase Auth)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      UserRole @default(EXPERT)
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  createdProjects Project[]           @relation("ProjectCreator")
+  projectExperts  ProjectExpert[]
+  evaluations     Evaluation[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  MODERATOR
+  EXPERT
+}
+
+// Proyectos MIC MAC
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(DRAFT)
+  creatorId   String        @map("creator_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // Relaciones
+  creator        User            @relation("ProjectCreator", fields: [creatorId], references: [id])
+  variables      Variable[]
+  projectExperts ProjectExpert[]
+  evaluations    Evaluation[]
+
+  @@map("projects")
+}
+
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  VOTING
+  COMPLETED
+  ARCHIVED
+}
+
+// Variables del sistema
+model Variable {
+  id          String  @id @default(uuid())
+  projectId   String  @map("project_id")
+  name        String
+  description String?
+  order       Int     @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  project           Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  evaluationsAsA    Evaluation[] @relation("VariableA")
+  evaluationsAsB    Evaluation[] @relation("VariableB")
+
+  @@unique([projectId, order])
+  @@map("variables")
+}
+
+// Expertos del sistema
+model Expert {
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  organization   String?
+  expertiseAreas String[] @map("expertise_areas")
+  avatar         String?
+  yearsExperience Int?    @map("years_experience")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  projectExperts ProjectExpert[]
+  evaluations    Evaluation[]
+
+  @@map("experts")
+}
+
+// Relación many-to-many: Proyectos <-> Expertos
+model ProjectExpert {
+  id        String                @id @default(uuid())
+  projectId String                @map("project_id")
+  expertId  String                @map("expert_id")
+  userId    String?               @map("user_id") // Link a User si está registrado
+  status    ProjectExpertStatus   @default(INVITED)
+  invitedAt DateTime              @default(now()) @map("invited_at")
+  updatedAt DateTime              @updatedAt @map("updated_at")
+
+  // Relaciones
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  expert  Expert  @relation(fields: [expertId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, expertId])
+  @@map("project_experts")
+}
+
+enum ProjectExpertStatus {
+  INVITED
+  ACCEPTED
+  VOTING
+  COMPLETED
+  DECLINED
+}
+
+// Evaluaciones/Votos de la matriz MIC MAC
+model Evaluation {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  expertId    String   @map("expert_id")
+  userId      String?  @map("user_id")
+  variableAId String   @map("variable_a_id")
+  variableBId String   @map("variable_b_id")
+  value       Int      // Escala 0-3
+  confidence  Int?     // Nivel de confianza 1-5
+  timeSpent   Int?     @map("time_spent") // Segundos gastados en esta evaluación
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  expert    Expert   @relation(fields: [expertId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+  variableA Variable @relation("VariableA", fields: [variableAId], references: [id])
+  variableB Variable @relation("VariableB", fields: [variableBId], references: [id])
+
+  @@unique([projectId, expertId, variableAId, variableBId])
+  @@map("evaluations")
+}

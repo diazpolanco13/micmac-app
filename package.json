@@ -1,0 +1,72 @@
+{
+  "name": "micmac-pro",
+  "version": "0.1.0",
+  "description": "🚀 MIC MAC Pro - Plataforma de Análisis Prospectivos con Automatización",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "automation:test": "npm run test:coverage && node scripts/update-linear-testing.js",
+    "automation:git": "node scripts/auto-commit.js",
+    "automation:linear": "node scripts/sync-linear-progress.js",
+    "automation:docs": "node scripts/generate-docs.js",
+    "automation:all": "npm run automation:test && npm run automation:git && npm run automation:linear && npm run automation:docs",
+    "setup": "npm install && npm run automation:docs",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.6.0",
+    "@supabase/ssr": "^0.0.10",
+    "@supabase/supabase-js": "^2.38.0",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "next": "14.0.0",
+    "postcss": "^8",
+    "prisma": "^5.6.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "recharts": "^2.8.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/jest": "^29.5.8",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.4.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu-usuario/micmac-app.git"
+  },
+  "keywords": [
+    "micmac",
+    "prospectiva",
+    "análisis",
+    "automation",
+    "nextjs",
+    "supabase",
+    "linear"
+  ],
+  "author": "Carlos Diaz <diazpolanco13@gmail.com>",
+  "license": "MIT"
+}
