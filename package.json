@@ -13,10 +13,10 @@
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "automation:test": "npm run test:coverage && node scripts/update-linear-testing.js",
-    "automation:git": "node scripts/auto-commit.js",
+
     "automation:linear": "node scripts/sync-linear-progress.js",
     "automation:docs": "node scripts/generate-docs.js",
-    "automation:all": "npm run automation:test && npm run automation:git && npm run automation:linear && npm run automation:docs",
+    "automation:all": "npm run automation:test && npm run automation:linear && npm run automation:docs",
     "setup": "npm install && npm run automation:docs",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
