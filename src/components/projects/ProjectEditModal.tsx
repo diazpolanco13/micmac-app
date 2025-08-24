@@ -268,10 +268,10 @@ export default function ProjectEditModal({
 
   return (
     <Dialog open={isOpen} onClose={handleClose} size="4xl">
-      <div className="w-full max-h-[90vh] overflow-y-auto">
+      <div className="flex flex-col max-h-[calc(100vh-7rem)]">
             
             {/* Header */}
-            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+            <div className="flex-shrink-0 bg-dark-bg-secondary border-b border-dark-bg-tertiary/50 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-micmac-primary-500/10">
@@ -280,10 +280,10 @@ export default function ProjectEditModal({
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-dark-text-primary">
                       Editar Proyecto
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-dark-text-secondary">
                       {project.name}
                     </p>
                   </div>
@@ -316,8 +316,8 @@ export default function ProjectEditModal({
                     onClick={() => setActiveTab(tab.key as any)}
                     className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === tab.key
-                        ? 'border-micmac-primary-500 text-micmac-primary-600 dark:text-micmac-primary-400'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                        ? 'border-micmac-primary-500 text-micmac-primary-400'
+                        : 'border-transparent text-dark-text-secondary hover:text-dark-text-primary'
                     }`}
                   >
                     <span>{tab.icon}</span>
@@ -328,12 +328,12 @@ export default function ProjectEditModal({
             </div>
 
             {/* Content */}
-            <div className="px-6 py-6">
+            <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0">
               {activeTab === 'general' && (
                 <div className="space-y-6">
                   {/* Nombre del Proyecto */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
                       Nombre del Proyecto *
                     </label>
                     <Input
@@ -352,7 +352,7 @@ export default function ProjectEditModal({
 
                   {/* Descripción */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
                       Descripción *
                     </label>
                     <textarea
@@ -458,7 +458,7 @@ export default function ProjectEditModal({
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex-shrink-0 bg-dark-bg-secondary px-6 py-4 border-t border-dark-bg-tertiary/50">
               <div className="flex items-center justify-between">
                 {/* Botón de eliminar */}
                 <div>

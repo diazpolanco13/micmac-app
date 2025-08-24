@@ -63,6 +63,32 @@ ETAPA 4.5: MEJORAS UX Y SIMULACIÓN - ✅ COMPLETADA
 ✅ Proyecto geopolítico para testing realista
 ✅ Asignación completa de expertos a proyecto
 
+ETAPA 4.6: SISTEMA MIC MAC DE 2 FASES - ✅ COMPLETADA
+✅ 4.6.1 Tipos TypeScript para 2 Fases - COMPLETADO
+✅ Definir VotingPhase = 'INFLUENCE' | 'DEPENDENCE'
+✅ Expandir VotingResponse con campo phase
+✅ Crear VotingSession para control de fases
+✅ 4.6.2 VotingMatrix con 2 Fases - COMPLETADO
+✅ Implementar navegación automática entre fases
+✅ Preguntas dinámicas según fase actual
+✅ Progreso calculado para 40 comparaciones totales
+✅ Etiquetas adaptativas (influencia/dependencia)
+✅ 4.6.3 Transición Visual Sutil - COMPLETADO
+✅ Modal de transición elegante entre fases
+✅ Barra de progreso cambia color por fase
+✅ Palabras clave destacadas en preguntas
+✅ Ayuda contextual adaptativa
+✅ 4.6.4 Simulación de 2 Fases - COMPLETADO
+✅ Generar votos para ambas fases automáticamente
+✅ Lógica geopolítica específica por fase
+✅ 320 votos totales (8 expertos × 40 votos c/u)
+✅ Algoritmo inteligente diferenciado por fase
+✅ 4.6.5 Optimizaciones Finales - COMPLETADO
+✅ Botón simulación condicional (solo desarrollo/moderadores)
+✅ Modal responsive sin elementos redundantes
+✅ Colores elegantes y sutiles
+✅ UX optimizada para evitar confusión entre fases
+
 ETAPA 5: CÁLCULOS MIC MAC ⏱️ ~30 min
 ✅ 5.1 Motor de Cálculo
 [ ] Crear src/utils/micmacCalculations.ts

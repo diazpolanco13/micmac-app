@@ -35,15 +35,16 @@ export function Dialog({
         className="fixed inset-0 flex w-screen justify-center overflow-y-auto bg-black/50 px-2 py-2 transition duration-300 focus:outline-0 data-[closed]:opacity-0 data-[enter]:ease-out data-[leave]:ease-in sm:px-6 sm:py-8 lg:px-8 lg:py-16 backdrop-blur-sm"
       />
 
-      <div className="fixed inset-0 w-screen overflow-y-auto pt-6 sm:pt-0">
-        <div className="grid min-h-full grid-rows-[1fr_auto] justify-items-center sm:grid-rows-[1fr_auto_3fr] sm:p-4">
+      <div className="fixed inset-0 w-screen overflow-y-auto pt-20 pb-4">
+        <div className="flex min-h-full items-center justify-center px-4">
           <Headless.DialogPanel
             transition
             className={clsx(
               className,
               sizes[size],
-              'row-start-2 w-full min-w-0 rounded-t-3xl bg-dark-bg-secondary p-6 shadow-2xl ring-1 ring-dark-bg-tertiary sm:mb-auto sm:rounded-2xl border border-dark-bg-tertiary/50',
-              'transition duration-300 will-change-transform data-[closed]:translate-y-12 data-[closed]:opacity-0 data-[enter]:ease-out data-[leave]:ease-in sm:data-[closed]:translate-y-0 sm:data-[closed]:data-[enter]:scale-95'
+              'w-full bg-dark-bg-secondary rounded-2xl shadow-2xl ring-1 ring-dark-bg-tertiary border border-dark-bg-tertiary/50',
+              'transition duration-300 will-change-transform data-[closed]:translate-y-12 data-[closed]:opacity-0 data-[enter]:ease-out data-[leave]:ease-in data-[closed]:data-[enter]:scale-95',
+              'max-h-[calc(100vh-7rem)] overflow-hidden'
             )}
           >
             {children}

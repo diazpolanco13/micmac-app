@@ -331,6 +331,99 @@ export const mockProjects: Project[] = [
         changedAt: '2024-01-10T09:00:00Z'
       }
     ]
+  },
+  {
+    id: 'proj-geopolitico',
+    name: 'Análisis de Escenarios Geopolíticos',
+    description: 'Posibles escenarios de intervención militar de EE.UU. en Venezuela - Ejercicio modelo para validación del sistema MIC MAC.',
+    type: 'STRATEGIC',
+    status: 'ACTIVE',
+    expectedExperts: 8,
+    tags: ['geopolitica', 'venezuela', 'eeuu', 'militar'],
+    isPublic: false,
+    creatorId: 'user-1',
+    createdAt: '2024-01-25T10:00:00Z',
+    updatedAt: '2024-01-25T14:30:00Z',
+    creator: { name: 'Usuario Demo', email: 'demo@micmac.com' },
+    variables: [
+      {
+        id: 'esc-1',
+        name: 'ESC1 - INVASIÓN MILITAR',
+        description: 'Despliegue de una cabeza de playa por parte del cuerpo de infantería de marina de los EEUU en costas venezolanas, para derrocar al GB. "Esquema Panamá".',
+        projectId: 'proj-geopolitico',
+        createdBy: 'user-1',
+        createdAt: '2024-01-25T10:00:00Z',
+        updatedAt: '2024-01-25T10:00:00Z',
+        order: 1
+      },
+      {
+        id: 'esc-2',
+        name: 'ESC2 - CUARENTENA NAVAL',
+        description: 'Bloqueo naval por parte de la armada de los EE.UU., a las costas venezolanas para generar asfixia económica y controlar el tráfico marítimo hacia Venezuela.',
+        projectId: 'proj-geopolitico',
+        createdBy: 'user-1',
+        createdAt: '2024-01-25T10:00:00Z',
+        updatedAt: '2024-01-25T10:00:00Z',
+        order: 2
+      },
+      {
+        id: 'esc-3',
+        name: 'ESC3 - OPERACIÓN QUIRÚRGICA',
+        description: 'Acción mercenaria con el empleo de operadores de fuerzas especiales y el apoyo logístico del dispositivo naval desplegado por los EE.UU.',
+        projectId: 'proj-geopolitico',
+        createdBy: 'user-1',
+        createdAt: '2024-01-25T10:00:00Z',
+        updatedAt: '2024-01-25T10:00:00Z',
+        order: 3
+      },
+      {
+        id: 'esc-4',
+        name: 'ESC4 - OPERACIÓN PSICOLÓGICA',
+        description: 'Uso de fake-news y guerra cognitiva para quebrar la moral de los funcionarios del aparato de seguridad del estado venezolano.',
+        projectId: 'proj-geopolitico',
+        createdBy: 'user-1',
+        createdAt: '2024-01-25T10:00:00Z',
+        updatedAt: '2024-01-25T10:00:00Z',
+        order: 4
+      },
+      {
+        id: 'esc-5',
+        name: 'ESC5 - ATAQUE DE FALSA BANDERA',
+        description: 'Los buques de la Armada de EE.UU. simularían un ataque de fuerzas navales venezolanas, similar al "Incidente de Tonkín".',
+        projectId: 'proj-geopolitico',
+        createdBy: 'user-1',
+        createdAt: '2024-01-25T10:00:00Z',
+        updatedAt: '2024-01-25T10:00:00Z',
+        order: 5
+      }
+    ],
+    projectExperts: sampleExperts.map(expert => ({
+      id: `pe-geo-${expert.id}`,
+      projectId: 'proj-geopolitico',
+      expertId: expert.id,
+      userId: null,
+      status: 'ACTIVE',
+      invitedAt: '2024-01-25T09:00:00Z',
+      invitedBy: 'user-1',
+      respondedAt: '2024-01-25T10:30:00Z',
+      lastActivity: '2024-01-25T14:30:00Z',
+      expert: expert,
+      notes: 'Experto asignado para análisis geopolítico Venezuela-EEUU'
+    })),
+    statusHistory: [
+      {
+        status: 'DRAFT',
+        reason: 'Proyecto creado',
+        notes: 'Estado inicial del proyecto',
+        changedAt: '2024-01-25T10:00:00Z'
+      },
+      {
+        status: 'ACTIVE',
+        reason: 'Proyecto activado para votación',
+        notes: 'Ejercicio modelo geopolítico listo para simulación',
+        changedAt: '2024-01-25T10:30:00Z'
+      }
+    ]
   }
 ]
 

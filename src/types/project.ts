@@ -233,15 +233,32 @@ export interface VotingMatrix {
   deadline?: string
 }
 
+// Tipos para las 2 fases de MIC MAC
+export type VotingPhase = 'INFLUENCE' | 'DEPENDENCE'
+
 export interface VotingResponse {
   expertId: string
   variableAId: string
   variableBId: string
+  phase: VotingPhase // NUEVA: Fase de votación
   value: number // 0-3: Sin influencia, Débil, Moderada, Fuerte
   confidence?: number // 1-5: Nivel de confianza
   timeSpent?: number // Segundos gastados
   createdAt: string
   updatedAt: string
+}
+
+// Sesión de votación con control de fases
+export interface VotingSession {
+  expertId: string
+  projectId: string
+  currentPhase: VotingPhase
+  phase1Complete: boolean
+  phase2Complete: boolean
+  totalPairs: number
+  completedPairs: number
+  startedAt: string
+  lastActivity: string
 }
 
 // Utilidades para el sistema de estados

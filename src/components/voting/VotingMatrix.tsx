@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { Button } from '@/components/ui'
-import { Variable, VotingResponse } from '@/types/project'
+import { Variable, VotingResponse, VotingPhase } from '@/types/project'
 
 interface VariablePair {
   variableA: Variable
@@ -17,9 +17,18 @@ interface VotingMatrixProps {
 }
 
 export default function VotingMatrix({ variables, onVoteComplete, expertId, projectId }: VotingMatrixProps) {
+  // Estados de navegación
   const [currentPairIndex, setCurrentPairIndex] = useState(0)
   const [votes, setVotes] = useState<VotingResponse[]>([])
   const [isStarted, setIsStarted] = useState(false)
+  
+  // Estados de fases MIC MAC
+  const [currentPhase, setCurrentPhase] = useState<VotingPhase>('INFLUENCE')
+  const [phase1Complete, setPhase1Complete] = useState(false)
+  const [phase2Complete, setPhase2Complete] = useState(false)
+  const [showPhaseTransition, setShowPhaseTransition] = useState(false)
+  
+  // Estados del timer
   const [timerDuration, setTimerDuration] = useState(30) // 30 segundos por defecto
   const [timerActive, setTimerActive] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(30)
@@ -43,7 +52,11 @@ export default function VotingMatrix({ variables, onVoteComplete, expertId, proj
 
   const variablePairs = generateVariablePairs(variables)
   const currentPair = variablePairs[currentPairIndex]
-  const progress = variablePairs.length > 0 ? Math.round(((currentPairIndex + 1) / variablePairs.length) * 100) : 0
+  
+  // Calcular progreso considerando las 2 fases
+  const totalPairs = variablePairs.length * 2 // 2 fases
+  const completedPairs = (phase1Complete ? variablePairs.length : 0) + currentPairIndex + (currentPhase === 'DEPENDENCE' ? 1 : 0)
+  const progress = Math.round((completedPairs / totalPairs) * 100)
   const isCompleted = currentPairIndex >= variablePairs.length
 
   // Funciones del cronómetro integrado
@@ -77,6 +90,15 @@ export default function VotingMatrix({ variables, onVoteComplete, expertId, proj
   const handleTimerDurationChange = (newDuration: number) => {
     setTimerDuration(newDuration)
     setTimeRemaining(newDuration)
+  }
+
+  // Función para continuar a la Fase 2
+  const handleContinueToPhase2 = () => {
+    setCurrentPhase('DEPENDENCE')
+    setCurrentPairIndex(0) // Reiniciar pares para Fase 2
+    setShowPhaseTransition(false)
+    setTimerActive(true) // Reactivar timer para Fase 2
+    console.log('🚀 Iniciando Fase 2: Análisis de Dependencia')
   }
 
   // Lógica del cronómetro
@@ -120,6 +142,7 @@ export default function VotingMatrix({ variables, onVoteComplete, expertId, proj
       expertId,
       variableAId: currentPair.variableA.id,
       variableBId: currentPair.variableB.id,
+      phase: currentPhase, // NUEVO: Incluir fase actual
       value,
       confidence: 3, // Por defecto
       timeSpent: Math.round(timeSpent),
@@ -130,25 +153,47 @@ export default function VotingMatrix({ variables, onVoteComplete, expertId, proj
     const updatedVotes = [...votes, newVote]
     setVotes(updatedVotes)
 
-    // Avanzar al siguiente par
+    // Avanzar al siguiente par o cambiar de fase
     if (currentPairIndex + 1 < variablePairs.length) {
       setCurrentPairIndex(currentPairIndex + 1)
     } else {
-      // Votación completada
-      setTimerActive(false)
-      console.log('🎉 Votación completada! Total votos:', updatedVotes.length)
-      onVoteComplete(updatedVotes)
+      // Fase completada
+      if (currentPhase === 'INFLUENCE' && !phase1Complete) {
+        // Completar Fase 1 y mostrar transición
+        setPhase1Complete(true)
+        setTimerActive(false)
+        setShowPhaseTransition(true)
+        console.log('🎯 Fase 1 (Influencia) completada! Preparando Fase 2 (Dependencia)')
+      } else {
+        // Ambas fases completadas
+        setPhase2Complete(true)
+        setTimerActive(false)
+        console.log('🎉 Votación MIC MAC completada! Total votos:', updatedVotes.length)
+        console.log('📊 Fase 1 votos:', updatedVotes.filter(v => v.phase === 'INFLUENCE').length)
+        console.log('📊 Fase 2 votos:', updatedVotes.filter(v => v.phase === 'DEPENDENCE').length)
+        onVoteComplete(updatedVotes)
+      }
     }
   }
 
   const getVotingValueLabel = (value: number): string => {
-    const labels = {
-      0: 'Sin influencia',
-      1: 'Influencia débil',
-      2: 'Influencia moderada', 
-      3: 'Influencia fuerte'
+    if (currentPhase === 'INFLUENCE') {
+      const labels = {
+        0: 'Sin influencia',
+        1: 'Influencia débil',
+        2: 'Influencia moderada', 
+        3: 'Influencia fuerte'
+      }
+      return labels[value as keyof typeof labels] || 'Valor inválido'
+    } else {
+      const labels = {
+        0: 'Sin dependencia',
+        1: 'Dependencia débil',
+        2: 'Dependencia moderada',
+        3: 'Dependencia fuerte'
+      }
+      return labels[value as keyof typeof labels] || 'Valor inválido'
     }
-    return labels[value as keyof typeof labels] || 'Valor inválido'
   }
 
   if (!isStarted) {
@@ -228,7 +273,11 @@ export default function VotingMatrix({ variables, onVoteComplete, expertId, proj
       {/* Barra de progreso */}
       <div className="w-full bg-dark-bg-tertiary rounded-full h-2">
         <div 
-          className="bg-micmac-primary-500 h-2 rounded-full transition-all duration-300"
+          className={`h-2 rounded-full transition-all duration-500 ${
+            currentPhase === 'INFLUENCE' 
+              ? 'bg-micmac-primary-500' 
+              : 'bg-purple-500'
+          }`}
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -236,6 +285,10 @@ export default function VotingMatrix({ variables, onVoteComplete, expertId, proj
       {/* Información del progreso */}
       <div className="text-center">
         <div className="text-sm text-dark-text-secondary mb-2">
+          <span className="font-medium text-micmac-primary-400">
+            Fase {currentPhase === 'INFLUENCE' ? '1' : '2'} de 2: {currentPhase === 'INFLUENCE' ? 'Análisis de Influencia' : 'Análisis de Dependencia'}
+          </span>
+          <br />
           Comparación {currentPairIndex + 1} de {variablePairs.length}
         </div>
         <div className="text-2xl font-bold text-micmac-primary-400">
@@ -250,7 +303,11 @@ export default function VotingMatrix({ variables, onVoteComplete, expertId, proj
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
             <div className="text-center lg:text-left flex-1">
               <h2 className="text-lg md:text-xl font-semibold text-white leading-relaxed">
-                ¿Qué tanto influye <span className="text-blue-400 font-bold">{currentPair.variableA.name}</span> sobre <span className="text-emerald-400 font-bold">{currentPair.variableB.name}</span>?
+                {currentPhase === 'INFLUENCE' ? (
+                  <>¿Qué tanto <span className="text-yellow-400 font-bold">INFLUYE</span> <span className="text-blue-400 font-bold">{currentPair.variableA.name}</span> sobre <span className="text-emerald-400 font-bold">{currentPair.variableB.name}</span>?</>
+                ) : (
+                  <>¿Qué tanto <span className="text-yellow-400 font-bold">DEPENDE</span> <span className="text-blue-400 font-bold">{currentPair.variableA.name}</span> de <span className="text-emerald-400 font-bold">{currentPair.variableB.name}</span>?</>
+                )}
               </h2>
             </div>
             
@@ -409,12 +466,46 @@ export default function VotingMatrix({ variables, onVoteComplete, expertId, proj
           <div className="text-center">
             <div className="text-xs text-slate-400">
               <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
-                <span><strong className="text-slate-300">0:</strong> Sin influencia</span>
-                <span><strong className="text-amber-400">1:</strong> Débil</span>
-                <span><strong className="text-orange-400">2:</strong> Moderada</span>
-                <span><strong className="text-red-400">3:</strong> Fuerte</span>
+                <span><strong className="text-slate-300">0:</strong> Sin {currentPhase === 'INFLUENCE' ? 'influencia' : 'dependencia'}</span>
+                <span><strong className="text-amber-400">1:</strong> {currentPhase === 'INFLUENCE' ? 'Influencia' : 'Dependencia'} débil</span>
+                <span><strong className="text-orange-400">2:</strong> {currentPhase === 'INFLUENCE' ? 'Influencia' : 'Dependencia'} moderada</span>
+                <span><strong className="text-red-400">3:</strong> {currentPhase === 'INFLUENCE' ? 'Influencia' : 'Dependencia'} fuerte</span>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Transición Sutil */}
+      {showPhaseTransition && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-dark-bg-secondary rounded-2xl p-6 max-w-md mx-4 text-center shadow-2xl border border-dark-bg-tertiary">
+            {/* Icono simple */}
+            <div className="w-16 h-16 mx-auto mb-4 bg-purple-500/20 rounded-full flex items-center justify-center">
+              <div className="text-3xl">🔄</div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-dark-text-primary mb-3">
+              Fase 1 Completada
+            </h3>
+            
+            <p className="text-dark-text-secondary mb-4">
+              Ahora analizaremos <strong className="text-purple-400">dependencia</strong> entre variables
+            </p>
+
+            <div className="bg-dark-bg-tertiary rounded-lg p-3 mb-4">
+              <div className="text-sm text-dark-text-secondary mb-1">Nueva pregunta:</div>
+              <div className="text-dark-text-primary font-medium">
+                "¿Qué tanto <span className="text-purple-400">depende</span> A de B?"
+              </div>
+            </div>
+            
+            <button
+              onClick={handleContinueToPhase2}
+              className="w-full px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors duration-200"
+            >
+              Continuar
+            </button>
           </div>
         </div>
       )}

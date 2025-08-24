@@ -920,12 +920,30 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
       // Crear patrones de votación inteligentes basados en expertise
       const expertVotes: VotingResponse[] = []
       
+      // FASE 1: INFLUENCIA
       for (const pair of pairs) {
-        const vote = generateIntelligentVote(expert, pair.variableA, pair.variableB)
+        const vote = generateIntelligentVote(expert, pair.variableA, pair.variableB, 'INFLUENCE')
         expertVotes.push({
           expertId,
           variableAId: pair.variableA.id,
           variableBId: pair.variableB.id,
+          phase: 'INFLUENCE', // NUEVO: Fase 1
+          value: vote.value,
+          confidence: vote.confidence,
+          timeSpent: vote.timeSpent,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+      }
+      
+      // FASE 2: DEPENDENCIA
+      for (const pair of pairs) {
+        const vote = generateIntelligentVote(expert, pair.variableA, pair.variableB, 'DEPENDENCE')
+        expertVotes.push({
+          expertId,
+          variableAId: pair.variableA.id,
+          variableBId: pair.variableB.id,
+          phase: 'DEPENDENCE', // NUEVO: Fase 2
           value: vote.value,
           confidence: vote.confidence,
           timeSpent: vote.timeSpent,
@@ -974,27 +992,45 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   }
 
   // Función para generar votos inteligentes basados en expertise
-  function generateIntelligentVote(expert: Expert, variableA: Variable, variableB: Variable) {
+  function generateIntelligentVote(expert: Expert, variableA: Variable, variableB: Variable, phase: 'INFLUENCE' | 'DEPENDENCE') {
     // Mapeo inteligente basado en contenido de las variables
     let baseInfluence = 1 // Por defecto influencia débil
     
-    // Lógica específica para el proyecto de digitalización de salud
     const aName = variableA.name.toLowerCase()
     const bName = variableB.name.toLowerCase()
     
-    // Patrones de influencia realistas
-    if (aName.includes('inteligencia artificial') && bName.includes('telemedicina')) {
-      baseInfluence = 2 // IA puede potenciar telemedicina
-    } else if (aName.includes('inteligencia artificial') && bName.includes('expedientes')) {
-      baseInfluence = 3 // IA necesita datos digitales
-    } else if (aName.includes('telemedicina') && bName.includes('expedientes')) {
-      baseInfluence = 3 // Telemedicina necesita acceso a expedientes
-    } else if (aName.includes('expedientes') && bName.includes('telemedicina')) {
-      baseInfluence = 2 // Expedientes facilitan telemedicina
-    } else if (aName.includes('expedientes') && bName.includes('inteligencia artificial')) {
-      baseInfluence = 2 // Expedientes proporcionan datos para IA
-    } else if (aName.includes('telemedicina') && bName.includes('inteligencia artificial')) {
-      baseInfluence = 1 // Telemedicina puede demandar IA
+    // Lógica específica para proyecto geopolítico
+    if (aName.includes('invasión') || aName.includes('militar')) {
+      if (bName.includes('cuarentena') || bName.includes('naval')) baseInfluence = 3
+      if (bName.includes('quirúrgica') || bName.includes('especiales')) baseInfluence = 2
+      if (bName.includes('psicológica') || bName.includes('fake-news')) baseInfluence = 2
+      if (bName.includes('falsa bandera') || bName.includes('tonkín')) baseInfluence = 3
+    } else if (aName.includes('cuarentena') || aName.includes('naval')) {
+      if (bName.includes('invasión') || bName.includes('militar')) baseInfluence = 2
+      if (bName.includes('quirúrgica')) baseInfluence = 3
+      if (bName.includes('psicológica')) baseInfluence = 1
+      if (bName.includes('falsa bandera')) baseInfluence = 2
+    } else if (aName.includes('quirúrgica') || aName.includes('especiales')) {
+      if (bName.includes('invasión')) baseInfluence = 1
+      if (bName.includes('cuarentena')) baseInfluence = 2
+      if (bName.includes('psicológica')) baseInfluence = 2
+      if (bName.includes('falsa bandera')) baseInfluence = 3
+    } else if (aName.includes('psicológica') || aName.includes('fake-news')) {
+      if (bName.includes('invasión')) baseInfluence = 1
+      if (bName.includes('cuarentena')) baseInfluence = 1
+      if (bName.includes('quirúrgica')) baseInfluence = 1
+      if (bName.includes('falsa bandera')) baseInfluence = 2
+    } else if (aName.includes('falsa bandera') || aName.includes('tonkín')) {
+      if (bName.includes('invasión')) baseInfluence = 3
+      if (bName.includes('cuarentena')) baseInfluence = 2
+      if (bName.includes('quirúrgica')) baseInfluence = 2
+      if (bName.includes('psicológica')) baseInfluence = 1
+    }
+    
+    // Ajustar según la fase (DEPENDENCE tiende a ser inversa a INFLUENCE)
+    if (phase === 'DEPENDENCE') {
+      // En dependencia, los patrones pueden ser diferentes
+      baseInfluence = Math.max(0, Math.min(3, baseInfluence + Math.round(Math.random() * 2 - 1)))
     }
     
     // Ajustar según expertise del experto
