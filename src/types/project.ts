@@ -2,14 +2,18 @@
  * 📊 Types para Proyectos MIC MAC
  */
 
+export type ProjectType = 'strategic' | 'technological' | 'environmental' | 'social' | 'economic'
+
 export interface Project {
   id: string
   name: string
   description: string
+  type: ProjectType
   status: 'draft' | 'active' | 'completed' | 'archived'
   createdBy: string
   createdAt: string
   updatedAt: string
+  expectedExperts: number
   
   // Configuración MIC MAC
   variables: Variable[]
@@ -25,9 +29,10 @@ export interface Variable {
   id: string
   name: string
   description: string
-  category: 'motriz' | 'dependiente' | 'enlace' | 'autonoma'
-  color: string
-  position: { x: number; y: number }
+  order: number
+  category?: 'motriz' | 'dependiente' | 'enlace' | 'autonoma'
+  color?: string
+  position?: { x: number; y: number }
 }
 
 export interface Expert {

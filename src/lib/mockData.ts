@@ -3,7 +3,7 @@
  * Datos de prueba para proyectos MIC MAC
  */
 
-import { Project, Variable, Expert } from '@/types/project'
+import { Project, Variable, Expert, ProjectType } from '@/types/project'
 
 // Variables de ejemplo para análisis prospectivos
 const sampleVariables: Variable[] = [
@@ -11,6 +11,7 @@ const sampleVariables: Variable[] = [
     id: 'var-1',
     name: 'Tecnología Emergente',
     description: 'Adopción de nuevas tecnologías en el sector',
+    order: 0,
     category: 'motriz',
     color: '#3B82F6',
     position: { x: 100, y: 100 }
@@ -19,6 +20,7 @@ const sampleVariables: Variable[] = [
     id: 'var-2',
     name: 'Regulación Gubernamental',
     description: 'Políticas y regulaciones del gobierno',
+    order: 1,
     category: 'motriz',
     color: '#EF4444',
     position: { x: 200, y: 150 }
@@ -27,6 +29,7 @@ const sampleVariables: Variable[] = [
     id: 'var-3',
     name: 'Demanda del Mercado',
     description: 'Necesidades y preferencias del consumidor',
+    order: 2,
     category: 'dependiente',
     color: '#10B981',
     position: { x: 300, y: 200 }
@@ -35,6 +38,7 @@ const sampleVariables: Variable[] = [
     id: 'var-4',
     name: 'Competencia Internacional',
     description: 'Presión competitiva de mercados globales',
+    order: 3,
     category: 'enlace',
     color: '#F59E0B',
     position: { x: 150, y: 250 }
@@ -77,10 +81,12 @@ export const mockProjects: Project[] = [
     id: 'proj-1',
     name: 'Futuro del Transporte Urbano 2030',
     description: 'Análisis prospectivo sobre la evolución del transporte urbano hacia 2030, considerando vehículos eléctricos, transporte público y movilidad compartida.',
+    type: 'strategic',
     status: 'active',
     createdBy: 'user-1',
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-20T14:30:00Z',
+    expectedExperts: 8,
     variables: sampleVariables,
     experts: sampleExperts,
     tags: ['transporte', 'urbano', 'sostenibilidad'],
@@ -90,15 +96,18 @@ export const mockProjects: Project[] = [
     id: 'proj-2',
     name: 'Digitalización del Sector Salud',
     description: 'Estudio sobre el impacto de la digitalización en el sector salud, incluyendo telemedicina, IA diagnóstica y expedientes electrónicos.',
+    type: 'technological',
     status: 'draft',
     createdBy: 'user-1',
     createdAt: '2024-01-10T09:00:00Z',
     updatedAt: '2024-01-18T16:45:00Z',
+    expectedExperts: 5,
     variables: [
       {
         id: 'var-health-1',
         name: 'Inteligencia Artificial Médica',
         description: 'Adopción de IA en diagnósticos médicos',
+        order: 0,
         category: 'motriz',
         color: '#8B5CF6',
         position: { x: 120, y: 80 }
@@ -107,9 +116,19 @@ export const mockProjects: Project[] = [
         id: 'var-health-2',
         name: 'Privacidad de Datos',
         description: 'Regulaciones sobre privacidad de datos médicos',
+        order: 1,
         category: 'enlace',
         color: '#EC4899',
         position: { x: 180, y: 160 }
+      },
+      {
+        id: 'var-health-3',
+        name: 'Costo de Implementación',
+        description: 'Inversión necesaria para digitalizar el sector',
+        order: 2,
+        category: 'dependiente',
+        color: '#F59E0B',
+        position: { x: 150, y: 200 }
       }
     ],
     experts: sampleExperts.slice(0, 2),
@@ -120,15 +139,18 @@ export const mockProjects: Project[] = [
     id: 'proj-3',
     name: 'Energías Renovables 2035',
     description: 'Análisis de escenarios futuros para la adopción masiva de energías renovables y su impacto en la matriz energética nacional.',
+    type: 'environmental',
     status: 'completed',
     createdBy: 'user-2',
     createdAt: '2023-12-01T08:00:00Z',
     updatedAt: '2024-01-05T12:00:00Z',
+    expectedExperts: 10,
     variables: [
       {
         id: 'var-energy-1',
         name: 'Costos de Tecnología Solar',
         description: 'Evolución de costos de paneles solares',
+        order: 0,
         category: 'motriz',
         color: '#F59E0B',
         position: { x: 90, y: 120 }
@@ -137,6 +159,7 @@ export const mockProjects: Project[] = [
         id: 'var-energy-2',
         name: 'Políticas Energéticas',
         description: 'Incentivos gubernamentales para energías limpias',
+        order: 1,
         category: 'motriz',
         color: '#10B981',
         position: { x: 210, y: 90 }
@@ -145,6 +168,7 @@ export const mockProjects: Project[] = [
         id: 'var-energy-3',
         name: 'Demanda Energética',
         description: 'Crecimiento de la demanda energética nacional',
+        order: 2,
         category: 'dependiente',
         color: '#EF4444',
         position: { x: 150, y: 200 }
@@ -214,23 +238,15 @@ export const createProject = (data: {
     name: data.name,
     description: data.description,
     type: data.type,
-    status: 'setup',
+    status: 'draft',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createdBy: 'current-user', // En implementación real vendría del contexto de auth
-    moderatorId: 'current-user',
     expectedExperts: data.expectedExperts,
-    currentExperts: 0,
     variables: [],
     experts: [],
-    settings: {
-      allowSelfRegistration: true,
-      maxExperts: data.expectedExperts,
-      votingTimeLimit: 300, // 5 minutos por defecto
-      matrixVisibility: 'private'
-    },
-    results: null,
-    tags: []
+    tags: [],
+    isPublic: false
   }
   
   // En implementación real, esto haría una llamada a la API

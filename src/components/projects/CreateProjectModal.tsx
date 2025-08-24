@@ -126,10 +126,8 @@ export default function CreateProjectModal({
   }
 
   return (
-    <Dialog open={isOpen} onClose={handleClose}>
-      <div className="fixed inset-0 z-50 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
-          <div className="relative transform overflow-hidden rounded-xl bg-white dark:bg-gray-900 px-6 pb-6 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-8">
+    <Dialog open={isOpen} onClose={handleClose} size="2xl">
+      <div className="space-y-6">
             
             {/* Header */}
             <div className="mb-6">
@@ -151,7 +149,7 @@ export default function CreateProjectModal({
                 </div>
                 
                 <Button 
-                  variant="ghost" 
+                  ghost
                   onClick={handleClose}
                   disabled={isSubmitting}
                   className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -270,7 +268,7 @@ export default function CreateProjectModal({
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
-                  variant="ghost"
+                  ghost
                   onClick={handleClose}
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
@@ -293,8 +291,6 @@ export default function CreateProjectModal({
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
       </div>
     </Dialog>
   )

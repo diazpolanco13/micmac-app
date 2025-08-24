@@ -11,6 +11,7 @@ import { mockProjects, getFilteredProjects } from '@/lib/mockData'
 import { Project } from '@/types/project'
 import { Button } from '@/components/ui'
 import CreateProjectModal from '@/components/projects/CreateProjectModal'
+import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import AppLayout from '@/components/layout/AppLayout'
 
 export default function DashboardPage() {
@@ -18,6 +19,8 @@ export default function DashboardPage() {
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [filter, setFilter] = useState({ status: [], search: '', tags: [] })
 
@@ -44,6 +47,21 @@ export default function DashboardPage() {
 
   const handleProjectCreated = (newProject: Project) => {
     setProjects(prev => [newProject, ...prev])
+  }
+
+  const handleProjectUpdated = (updatedProject: Project) => {
+    setProjects(prev => prev.map(p => 
+      p.id === updatedProject.id ? updatedProject : p
+    ))
+  }
+
+  const handleProjectDeleted = (projectId: string) => {
+    setProjects(prev => prev.filter(p => p.id !== projectId))
+  }
+
+  const handleEditProject = (project: Project) => {
+    setSelectedProject(project)
+    setIsEditModalOpen(true)
   }
 
   if (loading) {
@@ -131,11 +149,13 @@ export default function DashboardPage() {
             loading={projectsLoading}
             filter={filter}
             setFilter={setFilter}
+            onEditProject={handleEditProject}
           />
         ) : (
           <ExpertContent 
             projects={projects}
             loading={projectsLoading}
+            onEditProject={handleEditProject}
           />
         )}
 
@@ -175,15 +195,28 @@ export default function DashboardPage() {
         onClose={() => setIsCreateModalOpen(false)}
         onProjectCreated={handleProjectCreated}
       />
+
+      {/* Modal de Editar Proyecto */}
+      <ProjectEditModal
+        project={selectedProject}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedProject(null)
+        }}
+        onProjectUpdated={handleProjectUpdated}
+        onProjectDeleted={handleProjectDeleted}
+      />
     </AppLayout>
   )
 }
 
-function ModeratorContent({ projects, loading, filter, setFilter }: {
+function ModeratorContent({ projects, loading, filter, setFilter, onEditProject }: {
   projects: Project[]
   loading: boolean
   filter: any
   setFilter: any
+  onEditProject: (project: Project) => void
 }) {
   return (
     <div className="card p-6">
@@ -225,7 +258,11 @@ function ModeratorContent({ projects, loading, filter, setFilter }: {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard 
+              key={project.id} 
+              project={project}
+              onEdit={() => onEditProject(project)}
+            />
           ))}
         </div>
       )}
@@ -233,9 +270,10 @@ function ModeratorContent({ projects, loading, filter, setFilter }: {
   )
 }
 
-function ExpertContent({ projects, loading }: {
+function ExpertContent({ projects, loading, onEditProject }: {
   projects: Project[]
   loading: boolean
+  onEditProject: (project: Project) => void
 }) {
   // Filtrar proyectos donde el usuario actual es experto
   const myProjects = projects.filter(p => p.experts.some(e => e.email === 'expert@micmac.com'))
@@ -269,7 +307,11 @@ function ExpertContent({ projects, loading }: {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {myProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard 
+                key={project.id} 
+                project={project}
+                onEdit={() => onEditProject(project)}
+              />
             ))}
           </div>
         )}
@@ -278,7 +320,10 @@ function ExpertContent({ projects, loading }: {
   )
 }
 
-function ProjectCard({ project }: { project: Project }) {
+function ProjectCard({ project, onEdit }: { 
+  project: Project
+  onEdit?: () => void 
+}) {
   const statusColors = {
     draft: 'bg-gray-500/20 text-gray-400',
     active: 'bg-micmac-primary-500/20 text-micmac-primary-300',
@@ -294,7 +339,10 @@ function ProjectCard({ project }: { project: Project }) {
   }
 
   return (
-    <div className="card-glow p-6 cursor-pointer transition-all duration-300 hover:scale-105">
+    <div 
+      className="card-glow p-6 cursor-pointer transition-all duration-300 hover:scale-105"
+      onClick={onEdit}
+    >
       <div className="flex justify-between items-start mb-4">
         <h3 className="font-semibold text-dark-text-primary line-clamp-2">
           {project.name}
