@@ -7,7 +7,6 @@
 
 import { useState } from 'react'
 import { useMockAuth } from '@/contexts/MockAuthContext'
-import { UserRole } from '@/contexts/MockAuthContext'
 
 interface LoginFormProps {
   onToggleMode: () => void

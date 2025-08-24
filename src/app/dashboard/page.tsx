@@ -4,14 +4,14 @@
  * 📊 Dashboard Page - Panel principal con gestión de proyectos
  */
 
-import { useAuth } from '@/contexts/SupabaseAuthContext'
-import { useData } from '@/contexts/DataContext'
+import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui'
 import CreateProjectModal from '@/components/projects/CreateProjectModal'
 import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import AppLayout from '@/components/layout/AppLayout'
+import { mockProjects } from '@/lib/mockData'
 
 // Tipos locales para el dashboard
 interface Project {
@@ -34,17 +34,11 @@ interface Project {
 }
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth()
-  const { 
-    projects, 
-    loadingProjects, 
-    setCurrentProject,
-    refreshProjects 
-  } = useData()
+  const { user, loading } = useMockAuth()
   const router = useRouter()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [selectedProject, setSelectedProject] = useState<any>(null)
   const [filter, setFilter] = useState({ 
     status: [] as string[], 
     search: '', 
@@ -58,24 +52,20 @@ export default function DashboardPage() {
   }, [user, loading, router])
 
   const handleProjectCreated = () => {
-    refreshProjects()
     setIsCreateModalOpen(false)
   }
 
   const handleProjectUpdated = () => {
-    refreshProjects()
     setIsEditModalOpen(false)
     setSelectedProject(null)
   }
 
   const handleProjectDeleted = () => {
-    refreshProjects()
     setIsEditModalOpen(false)
     setSelectedProject(null)
   }
 
-  const handleEditProject = (project: Project) => {
-    setCurrentProject(project)
+  const handleEditProject = (project: any) => {
     setSelectedProject(project)
     setIsEditModalOpen(true)
   }
@@ -95,8 +85,12 @@ export default function DashboardPage() {
     return null // Se redirigirá a /auth
   }
 
+  // Usar mock projects localmente
+  const projects = mockProjects
+  const loadingProjects = false
+
   // Filtrar proyectos localmente
-  const filteredProjects = projects.filter(project => {
+  const filteredProjects = projects.filter((project: any) => {
     const statusMatch = filter.status.length === 0 || filter.status.includes(project.status.toLowerCase())
     const searchMatch = !filter.search || 
       project.name.toLowerCase().includes(filter.search.toLowerCase()) ||
@@ -108,9 +102,9 @@ export default function DashboardPage() {
   })
 
   const stats = {
-    active: projects.filter(p => p.status === 'ACTIVE').length,
-    completed: projects.filter(p => p.status === 'COMPLETED').length,
-    experts: projects.reduce((total, p) => total + (p._count?.projectExperts || p.projectExperts.length), 0)
+    active: projects.filter((p: any) => p.status === 'ACTIVE').length,
+    completed: projects.filter((p: any) => p.status === 'COMPLETED').length,
+    experts: projects.reduce((total: number, p: any) => total + (p._count?.projectExperts || p.projectExperts.length), 0)
   }
 
   return (

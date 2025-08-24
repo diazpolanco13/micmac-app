@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { SupabaseAuthProvider } from '@/contexts/SupabaseAuthContext';
-import { DataProvider } from '@/contexts/DataContext';
+import { MockAuthProvider } from '@/contexts/MockAuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import './globals.css';
 
@@ -21,11 +20,9 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className={inter.className}>
         <ToastProvider>
-          <SupabaseAuthProvider>
-            <DataProvider>
-              {children}
-            </DataProvider>
-          </SupabaseAuthProvider>
+          <MockAuthProvider>
+            {children}
+          </MockAuthProvider>
         </ToastProvider>
       </body>
     </html>

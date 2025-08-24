@@ -48,7 +48,7 @@ export default function RegisterForm({ onToggleMode, className = '' }: RegisterF
     const { error: signUpError } = await signUp(
       formData.email,
       formData.password,
-      formData.role,
+      formData.role as UserRole,
       formData.name
     )
     

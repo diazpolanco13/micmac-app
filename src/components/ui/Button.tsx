@@ -77,7 +77,7 @@ type ButtonProps = (
   | Omit<React.ComponentPropsWithoutRef<'a'>, 'className'>
 )
 
-export const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
+export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(function Button(
   { color = 'primary', outline, ghost, size = 'md', className, children, ...props },
   ref
 ) {
@@ -99,7 +99,7 @@ export const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
       <TouchTarget>{children}</TouchTarget>
     </a>
   ) : (
-    <Headless.Button {...props} className={classes} ref={ref}>
+    <Headless.Button {...(props as any)} className={classes} ref={ref as React.ForwardedRef<HTMLButtonElement>}>
       <TouchTarget>{children}</TouchTarget>
     </Headless.Button>
   )
