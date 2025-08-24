@@ -109,8 +109,10 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       
       {/* Sidebar */}
       <div className={classNames(
-        'fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out',
-        'lg:static lg:inset-0 lg:pt-16',
+        'fixed left-0 z-40 flex flex-col transition-all duration-300 ease-in-out',
+        'lg:static lg:h-full',
+        // Mobile: full height from top, Desktop: from top-0 (navbar is separate)
+        'top-16 bottom-0 lg:top-0',
         isCollapsed 
           ? 'w-16 lg:w-16' 
           : 'w-64 lg:w-64',
@@ -122,10 +124,13 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       )}>
         
         {/* Sidebar content */}
-        <div className="relative flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 h-full lg:h-full">
+        <div className="relative flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 h-full">
           
-          {/* Logo */}
-          <div className="relative flex h-16 shrink-0 items-center px-6 border-b border-gray-200 dark:border-gray-700">
+          {/* Logo - solo visible en móvil cuando el sidebar está expandido */}
+          <div className={classNames(
+            "relative flex h-16 shrink-0 items-center px-6 border-b border-gray-200 dark:border-gray-700 lg:hidden",
+            isCollapsed ? "hidden" : "flex"
+          )}>
             {isCollapsed ? (
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">MM</span>
@@ -147,7 +152,10 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           
           {/* Navigation */}
           <nav className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex-1 px-6 py-6 overflow-y-auto">
+            <div className={classNames(
+              "flex-1 py-6 overflow-y-auto",
+              isCollapsed ? "px-2" : "px-6"
+            )}>
               <ul role="list" className="space-y-1">
                 {navigation.map((item) => (
                   <li key={item.name}>
@@ -236,8 +244,10 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             {/* User section */}
             <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700">
               <div className={classNames(
-                'flex items-center gap-x-4 px-6 py-4 text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors',
-                isCollapsed ? 'justify-center px-2' : ''
+                'flex items-center text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors',
+                isCollapsed 
+                  ? 'justify-center px-2 py-4' 
+                  : 'gap-x-4 px-6 py-4'
               )}>
                 <div className="size-8 rounded-full bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center outline outline-1 -outline-offset-1 outline-black/5 dark:outline-white/10">
                   <span className="text-white font-semibold text-sm">

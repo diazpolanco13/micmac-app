@@ -28,26 +28,27 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
 
   return (
     <>
-      {/* Clean Navbar with Search */}
+      {/* Fixed Navbar with Search */}
       <Popover
         as="header"
-        className="relative bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 data-[open]:fixed data-[open]:inset-0 data-[open]:z-40 data-[open]:overflow-y-auto lg:overflow-y-visible data-[open]:lg:overflow-y-visible"
+        className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 data-[open]:fixed data-[open]:inset-0 data-[open]:z-40 data-[open]:overflow-y-auto lg:overflow-y-visible data-[open]:lg:overflow-y-visible"
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative flex justify-between lg:gap-8 xl:grid xl:grid-cols-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="relative flex justify-between lg:gap-8 xl:grid xl:grid-cols-12 h-16">
             
             {/* Logo + Sidebar Toggle */}
-            <div className="flex items-center space-x-4 md:absolute md:inset-y-0 md:left-0 lg:static xl:col-span-3">
-              {/* Desktop Sidebar Toggle */}
+            <div className="flex items-center md:absolute md:inset-y-0 md:left-0 lg:static xl:col-span-3">
+              {/* Desktop Sidebar Toggle - alineado con iconos del sidebar */}
               <button
                 onClick={onToggleSidebar}
                 className="hidden lg:flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                style={{ marginLeft: '24px' }}
               >
                 <Bars3Icon className="h-5 w-5" />
               </button>
               
               {/* Logo */}
-              <div className="flex items-center space-x-3 min-w-0">
+              <div className="flex items-center space-x-3 min-w-0 ml-4 px-4 sm:px-6 lg:px-0">
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold text-sm">MM</span>
                 </div>

@@ -36,33 +36,33 @@ export default function AppLayout({ children, onNewProject }: AppLayoutProps) {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-micmac-dark flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-bg-primary flex items-center justify-center">
         <div className="animate-pulse-slow rounded-full h-12 w-12 bg-micmac-primary-500"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-micmac-dark">
-      {/* Clean Navbar */}
+    <div className="h-screen overflow-hidden bg-gray-50 dark:bg-dark-bg-primary">
+      {/* Fixed Navbar */}
       <Navbar 
         onNewProject={onNewProject} 
         onToggleSidebar={toggleSidebar}
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      <div className="flex h-screen lg:pt-16">
+      {/* Layout container - ajustado para navbar fijo */}
+      <div className="flex h-screen pt-16">
         {/* Sidebar */}
         <Sidebar 
           isCollapsed={sidebarCollapsed} 
           onToggle={toggleSidebar}
         />
         
-        {/* Main content */}
-        <div className="flex-1 min-w-0 overflow-auto">
+        {/* Main content area - sin margin left ya que sidebar es static en desktop */}
+        <div className="flex-1 overflow-auto">
           <main className="h-full">
-            {/* Page content */}
-            <div className="px-4 py-8 sm:px-6 lg:px-8">
+            <div className="p-4 sm:p-6 lg:p-8 max-w-full">
               {children}
             </div>
           </main>
