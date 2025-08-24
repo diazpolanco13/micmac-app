@@ -23,11 +23,16 @@ import type {
   ProjectType,
   ExpertFormData,
   ExpertFilter,
-  ExpertStats
+  ExpertStats,
+  VotingResponse,
+  VotingMatrix
 } from '@/types/project'
 
 // Estado global para expertos mock (para persistir entre renders)
 let globalMockExperts: Expert[] = []
+
+// Estado global para votos mock (persistir entre renders)
+let globalMockVotes: VotingResponse[] = []
 
 interface MockDataContextType {
   // Proyectos
@@ -83,6 +88,18 @@ interface MockDataContextType {
   getAllExpertiseTags: () => string[]
   addExpertiseTag: (tag: string) => void
   removeExpertiseTag: (tag: string) => void
+  
+  // ============ SISTEMA DE VOTACIÓN ============
+  // Métodos para manejar votación MIC MAC
+  saveVote: (projectId: string, expertId: string, vote: VotingResponse) => Promise<{ success: boolean; error?: string }>
+  getVotingProgress: (projectId: string, expertId: string) => { completedPairs: number; totalPairs: number; percentage: number }
+  getProjectVotes: (projectId: string) => VotingResponse[]
+  getExpertVotes: (projectId: string, expertId: string) => VotingResponse[]
+  clearVotes: (projectId: string, expertId?: string) => Promise<{ success: boolean; error?: string }>
+  
+  // Sistema de simulación de expertos
+  simulateExpertVoting: (projectId: string, expertId: string) => Promise<{ success: boolean; votes?: VotingResponse[]; error?: string }>
+  simulateAllExperts: (projectId: string) => Promise<{ success: boolean; totalVotes?: number; error?: string }>
 }
 
 const MockDataContext = createContext<MockDataContextType | undefined>(undefined)
@@ -100,7 +117,7 @@ interface MockDataProviderProps {
 }
 
 export function MockDataProvider({ children }: MockDataProviderProps) {
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<Project[]>(mockProjects)
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
   const [experts, setExperts] = useState<Expert[]>([])
   const [loadingProjects, setLoadingProjects] = useState(false)
@@ -689,6 +706,135 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     console.log(`Etiqueta "${tag}" marcada para eliminación`)
   }
 
+  // ============ SISTEMA DE VOTACIÓN ============
+
+  const saveVote = async (projectId: string, expertId: string, vote: VotingResponse): Promise<{ success: boolean; error?: string }> => {
+    try {
+      await delay(100) // Simular guardado
+      
+      // Verificar que el proyecto existe
+      const project = projects.find(p => p.id === projectId)
+      if (!project) {
+        return { success: false, error: 'Proyecto no encontrado' }
+      }
+      
+      // Verificar que el experto existe
+      const expert = globalMockExperts.find(e => e.id === expertId)
+      if (!expert) {
+        return { success: false, error: 'Experto no encontrado' }
+      }
+      
+      // Verificar que las variables existen
+      const variableA = project.variables.find(v => v.id === vote.variableAId)
+      const variableB = project.variables.find(v => v.id === vote.variableBId)
+      if (!variableA || !variableB) {
+        return { success: false, error: 'Variables no encontradas' }
+      }
+      
+      // Verificar que es un voto válido (0-3)
+      if (vote.value < 0 || vote.value > 3 || !Number.isInteger(vote.value)) {
+        return { success: false, error: 'Valor de voto inválido (debe ser 0, 1, 2 o 3)' }
+      }
+      
+      // Buscar si ya existe un voto para este par de variables por este experto
+      const existingVoteIndex = globalMockVotes.findIndex(v =>
+        v.expertId === expertId &&
+        v.variableAId === vote.variableAId &&
+        v.variableBId === vote.variableBId
+      )
+      
+      const voteWithTimestamp = {
+        ...vote,
+        createdAt: existingVoteIndex === -1 ? new Date().toISOString() : globalMockVotes[existingVoteIndex].createdAt,
+        updatedAt: new Date().toISOString()
+      }
+      
+      if (existingVoteIndex !== -1) {
+        // Actualizar voto existente
+        globalMockVotes[existingVoteIndex] = voteWithTimestamp
+      } else {
+        // Agregar nuevo voto
+        globalMockVotes.push(voteWithTimestamp)
+      }
+      
+      return { success: true }
+    } catch (error) {
+      console.error('Error saving vote:', error)
+      return { success: false, error: 'Error al guardar el voto' }
+    }
+  }
+
+  const getVotingProgress = (projectId: string, expertId: string): { completedPairs: number; totalPairs: number; percentage: number } => {
+    const project = projects.find(p => p.id === projectId)
+    if (!project) {
+      return { completedPairs: 0, totalPairs: 0, percentage: 0 }
+    }
+    
+    // Calcular total de pares posibles (n × (n-1) para matriz no diagonal)
+    const variableCount = project.variables.length
+    const totalPairs = variableCount * (variableCount - 1)
+    
+    // Contar votos completados por este experto para este proyecto
+    const expertVotes = globalMockVotes.filter(vote =>
+      vote.expertId === expertId &&
+      project.variables.some(v => v.id === vote.variableAId) &&
+      project.variables.some(v => v.id === vote.variableBId)
+    )
+    
+    const completedPairs = expertVotes.length
+    const percentage = totalPairs > 0 ? Math.round((completedPairs / totalPairs) * 100) : 0
+    
+    return { completedPairs, totalPairs, percentage }
+  }
+
+  const getProjectVotes = (projectId: string): VotingResponse[] => {
+    const project = projects.find(p => p.id === projectId)
+    if (!project) {
+      return []
+    }
+    
+    // Filtrar votos que pertenecen a variables de este proyecto
+    return globalMockVotes.filter(vote =>
+      project.variables.some(v => v.id === vote.variableAId) &&
+      project.variables.some(v => v.id === vote.variableBId)
+    )
+  }
+
+  const getExpertVotes = (projectId: string, expertId: string): VotingResponse[] => {
+    return getProjectVotes(projectId).filter(vote => vote.expertId === expertId)
+  }
+
+  const clearVotes = async (projectId: string, expertId?: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      await delay(100)
+      
+      const project = projects.find(p => p.id === projectId)
+      if (!project) {
+        return { success: false, error: 'Proyecto no encontrado' }
+      }
+      
+      if (expertId) {
+        // Limpiar votos de un experto específico
+        globalMockVotes = globalMockVotes.filter(vote =>
+          !(vote.expertId === expertId &&
+            project.variables.some(v => v.id === vote.variableAId) &&
+            project.variables.some(v => v.id === vote.variableBId))
+        )
+      } else {
+        // Limpiar todos los votos del proyecto
+        globalMockVotes = globalMockVotes.filter(vote =>
+          !(project.variables.some(v => v.id === vote.variableAId) &&
+            project.variables.some(v => v.id === vote.variableBId))
+        )
+      }
+      
+      return { success: true }
+    } catch (error) {
+      console.error('Error clearing votes:', error)
+      return { success: false, error: 'Error al limpiar los votos' }
+    }
+  }
+
   const value: MockDataContextType = {
     // Estados
     projects,
@@ -728,7 +874,158 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     // Sistema de etiquetas
     getAllExpertiseTags,
     addExpertiseTag,
-    removeExpertiseTag
+    removeExpertiseTag,
+    
+    // Sistema de votación
+    saveVote,
+    getVotingProgress,
+    getProjectVotes,
+    getExpertVotes,
+    clearVotes,
+    simulateExpertVoting,
+    simulateAllExperts
+  }
+
+  // ============ SISTEMA DE SIMULACIÓN DE EXPERTOS ============
+  
+  async function simulateExpertVoting(projectId: string, expertId: string): Promise<{ success: boolean; votes?: VotingResponse[]; error?: string }> {
+    try {
+      await delay(500) // Simular tiempo de procesamiento
+      
+      const project = mockProjects.find(p => p.id === projectId)
+      if (!project) {
+        return { success: false, error: 'Proyecto no encontrado' }
+      }
+
+      const expert = sampleExperts.find(e => e.id === expertId)
+      if (!expert) {
+        return { success: false, error: 'Experto no encontrado' }
+      }
+
+      // Generar pares de variables
+      const variables = project.variables
+      const pairs: Array<{variableA: Variable, variableB: Variable}> = []
+      
+      for (let i = 0; i < variables.length; i++) {
+        for (let j = 0; j < variables.length; j++) {
+          if (i !== j) {
+            pairs.push({
+              variableA: variables[i],
+              variableB: variables[j]
+            })
+          }
+        }
+      }
+
+      // Crear patrones de votación inteligentes basados en expertise
+      const expertVotes: VotingResponse[] = []
+      
+      for (const pair of pairs) {
+        const vote = generateIntelligentVote(expert, pair.variableA, pair.variableB)
+        expertVotes.push({
+          expertId,
+          variableAId: pair.variableA.id,
+          variableBId: pair.variableB.id,
+          value: vote.value,
+          confidence: vote.confidence,
+          timeSpent: vote.timeSpent,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+      }
+
+      // Guardar todos los votos
+      globalMockVotes.push(...expertVotes)
+      
+      return { success: true, votes: expertVotes }
+      
+    } catch (error) {
+      console.error('Error simulando votación de experto:', error)
+      return { success: false, error: 'Error interno del servidor' }
+    }
+  }
+
+  async function simulateAllExperts(projectId: string): Promise<{ success: boolean; totalVotes?: number; error?: string }> {
+    try {
+      const project = mockProjects.find(p => p.id === projectId)
+      if (!project) {
+        return { success: false, error: 'Proyecto no encontrado' }
+      }
+
+      let totalVotes = 0
+      
+      // Simular votación de todos los expertos asignados
+      for (const projectExpert of project.projectExperts) {
+        const result = await simulateExpertVoting(projectId, projectExpert.expertId)
+        if (result.success && result.votes) {
+          totalVotes += result.votes.length
+        }
+        
+        // Pequeña pausa entre expertos para realismo
+        await delay(200)
+      }
+      
+      return { success: true, totalVotes }
+      
+    } catch (error) {
+      console.error('Error simulando todos los expertos:', error)
+      return { success: false, error: 'Error interno del servidor' }
+    }
+  }
+
+  // Función para generar votos inteligentes basados en expertise
+  function generateIntelligentVote(expert: Expert, variableA: Variable, variableB: Variable) {
+    // Mapeo inteligente basado en contenido de las variables
+    let baseInfluence = 1 // Por defecto influencia débil
+    
+    // Lógica específica para el proyecto de digitalización de salud
+    const aName = variableA.name.toLowerCase()
+    const bName = variableB.name.toLowerCase()
+    
+    // Patrones de influencia realistas
+    if (aName.includes('inteligencia artificial') && bName.includes('telemedicina')) {
+      baseInfluence = 2 // IA puede potenciar telemedicina
+    } else if (aName.includes('inteligencia artificial') && bName.includes('expedientes')) {
+      baseInfluence = 3 // IA necesita datos digitales
+    } else if (aName.includes('telemedicina') && bName.includes('expedientes')) {
+      baseInfluence = 3 // Telemedicina necesita acceso a expedientes
+    } else if (aName.includes('expedientes') && bName.includes('telemedicina')) {
+      baseInfluence = 2 // Expedientes facilitan telemedicina
+    } else if (aName.includes('expedientes') && bName.includes('inteligencia artificial')) {
+      baseInfluence = 2 // Expedientes proporcionan datos para IA
+    } else if (aName.includes('telemedicina') && bName.includes('inteligencia artificial')) {
+      baseInfluence = 1 // Telemedicina puede demandar IA
+    }
+    
+    // Ajustar según expertise del experto
+    const expertiseBonus = expert.expertiseAreas.some(area => 
+      aName.includes(area.toLowerCase()) || bName.includes(area.toLowerCase())
+    ) ? 0.5 : 0
+    
+    // Añadir variabilidad realista basada en experiencia
+    const experienceVariation = (expert.yearsExperience - 15) / 30 // Normalizado
+    const randomVariation = Math.random() * 0.6 - 0.3 // ±30% variación
+    
+    const finalValue = Math.max(0, Math.min(3, Math.round(
+      baseInfluence + expertiseBonus + experienceVariation + randomVariation
+    )))
+    
+    // Calcular confianza basada en experiencia y expertise
+    const hasExpertise = expert.expertiseAreas.some(area => 
+      aName.includes(area.toLowerCase()) || bName.includes(area.toLowerCase())
+    )
+    const confidenceBase = hasExpertise ? 3 : Math.min(3, Math.floor(expert.yearsExperience / 8))
+    const confidence = Math.max(1, confidenceBase + Math.round(Math.random() * 0.4 - 0.2))
+    
+    // Tiempo basado en experiencia (más experiencia = más rápido)
+    const timeBase = Math.max(15, 60 - expert.yearsExperience)
+    const timeSpent = timeBase + Math.round(Math.random() * 20 - 10)
+    
+    return {
+      value: finalValue,
+      confidence,
+      timeSpent
+    }
   }
 
   return (
