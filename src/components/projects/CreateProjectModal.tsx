@@ -5,7 +5,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { ProjectType } from '@/types/project'
-import { useData } from '@/contexts/DataContext'
+import { useMockData } from '@/contexts/MockDataContext'
 
 interface CreateProjectModalProps {
   isOpen: boolean
@@ -74,7 +74,7 @@ export default function CreateProjectModal({
     return Object.keys(newErrors).length === 0
   }
 
-  const { createProject } = useData()
+  const { createProject } = useMockData()
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

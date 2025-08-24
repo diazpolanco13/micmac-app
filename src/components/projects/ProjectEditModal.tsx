@@ -5,7 +5,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Project, ProjectType, Expert } from '@/types/project'
-import { updateProject, deleteProject, delay } from '@/lib/mockData'
+import { useMockData } from '@/contexts/MockDataContext'
 import { useToast } from '@/contexts/ToastContext'
 import VariableManager from './VariableManager'
 import ExpertSelector from './ExpertSelector'
@@ -46,6 +46,7 @@ export default function ProjectEditModal({
   onProjectDeleted
 }: ProjectEditModalProps) {
   const toast = useToast()
+  const { updateProject } = useMockData()
   const [activeTab, setActiveTab] = useState<'general' | 'variables' | 'experts'>('general')
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -206,11 +207,9 @@ export default function ProjectEditModal({
 
     setIsSubmitting(true)
     try {
-      await delay(300)
-      
-      const updatedProject = updateProject(project.id, { status: newStatus })
-      if (updatedProject) {
-        onProjectUpdated(updatedProject)
+      const result = await updateProject(project.id, { status: newStatus })
+      if (result.success && result.data) {
+        onProjectUpdated(result.data)
         
         // Notificación de éxito
         const successMessages = {

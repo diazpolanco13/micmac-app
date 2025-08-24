@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/SupabaseAuthContext'
-import { useData } from '@/contexts/DataContext'
+import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useMockData } from '@/contexts/MockDataContext'
 import { useRouter } from 'next/navigation'
 import { Project } from '@/types/project'
 import { Button } from '@/components/ui'
@@ -11,13 +11,13 @@ import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import AppLayout from '@/components/layout/AppLayout'
 
 export default function ProjectsPage() {
-  const { user, loading } = useAuth()
+  const { user, loading } = useMockAuth()
   const { 
     projects, 
     loadingProjects, 
     setCurrentProject,
     refreshProjects 
-  } = useData()
+  } = useMockData()
   const router = useRouter()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
