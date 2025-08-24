@@ -9,6 +9,8 @@ export interface User {
   email: string
   name?: string
   role: UserRole
+  avatar?: string
+  bio?: string
 }
 
 interface AuthContextType {
@@ -17,6 +19,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signUp: (email: string, password: string, role: UserRole, name?: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
+  updateProfile: (data: { name?: string; avatar?: string; bio?: string }) => Promise<{ success: boolean; error?: string }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -31,6 +34,8 @@ interface StoredUser {
   password: string
   name: string
   role: UserRole
+  avatar?: string
+  bio?: string
 }
 
 const getStoredUsers = (): StoredUser[] => {
@@ -155,7 +160,9 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         id: storedUser.id,
         email: storedUser.email,
         name: storedUser.name,
-        role: storedUser.role
+        role: storedUser.role,
+        avatar: storedUser.avatar,
+        bio: storedUser.bio
       }
       
       setCurrentUser(authenticatedUser)
@@ -188,12 +195,59 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const updateProfile = async (data: { 
+    name?: string; 
+    avatar?: string; 
+    bio?: string 
+  }): Promise<{ success: boolean; error?: string }> => {
+    try {
+      if (!user) {
+        return { success: false, error: 'Usuario no autenticado' }
+      }
+
+      // Simular delay de red
+      await new Promise(resolve => setTimeout(resolve, 400))
+
+      const users = getStoredUsers()
+      const userIndex = users.findIndex(u => u.id === user.id)
+      
+      if (userIndex === -1) {
+        return { success: false, error: 'Usuario no encontrado' }
+      }
+
+      // Actualizar datos en "base de datos" (localStorage)
+      const updatedStoredUser: StoredUser = {
+        ...users[userIndex],
+        ...data
+      }
+      
+      users[userIndex] = updatedStoredUser
+      setStoredUsers(users)
+
+      // Actualizar usuario actual
+      const updatedUser: User = {
+        ...user,
+        ...data
+      }
+      
+      setCurrentUser(updatedUser)
+      setUser(updatedUser)
+
+      return { success: true }
+      
+    } catch (error) {
+      console.error('Mock updateProfile error:', error)
+      return { success: false, error: 'Error inesperado al actualizar el perfil' }
+    }
+  }
+
   const value: AuthContextType = {
     user,
     loading,
     signIn,
     signUp,
-    signOut
+    signOut,
+    updateProfile
   }
 
   return (

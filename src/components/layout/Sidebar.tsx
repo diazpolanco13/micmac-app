@@ -9,6 +9,7 @@ import {
   FolderIcon,
   HomeIcon,
   UsersIcon,
+  UserIcon,
   CogIcon,
   BeakerIcon,
   ChartBarIcon,
@@ -39,6 +40,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   // Navegación específica por rol
   const moderatorNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, current: true },
+    { name: 'Mi Perfil', href: '/profile', icon: UserIcon, current: false },
     {
       name: 'Proyectos',
       icon: FolderIcon,
@@ -79,6 +81,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
   const expertNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, current: true },
+    { name: 'Mi Perfil', href: '/profile', icon: UserIcon, current: false },
     { name: 'Mis Proyectos', href: '/my-projects', icon: FolderIcon, current: false },
     {
       name: 'Participación',
