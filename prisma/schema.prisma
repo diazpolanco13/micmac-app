@@ -21,9 +21,11 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
-  createdProjects Project[]           @relation("ProjectCreator")
-  projectExperts  ProjectExpert[]
-  evaluations     Evaluation[]
+  createdProjects    Project[]         @relation("ProjectCreator")
+  projectExperts     ProjectExpert[]
+  evaluations        Evaluation[]
+  statusChanges      StatusChange[]    @relation("StatusChanger")
+  expertInvitations  ProjectExpert[]   @relation("ExpertInviter")
 
   @@map("users")
 }
@@ -35,29 +37,61 @@ enum UserRole {
 
 // Proyectos MIC MAC
 model Project {
-  id          String        @id @default(uuid())
-  name        String
-  description String?
-  status      ProjectStatus @default(DRAFT)
-  creatorId   String        @map("creator_id")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  id              String        @id @default(uuid())
+  name            String
+  description     String?
+  type            ProjectType   @default(STRATEGIC)
+  status          ProjectStatus @default(DRAFT)
+  expectedExperts Int           @default(5) @map("expected_experts")
+  tags            String[]      @default([])
+  isPublic        Boolean       @default(false) @map("is_public")
+  creatorId       String        @map("creator_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
 
   // Relaciones
   creator        User            @relation("ProjectCreator", fields: [creatorId], references: [id])
   variables      Variable[]
   projectExperts ProjectExpert[]
   evaluations    Evaluation[]
+  statusHistory  StatusChange[]
 
   @@map("projects")
 }
 
+// Historial de cambios de estado
+model StatusChange {
+  id        String         @id @default(uuid())
+  projectId String         @map("project_id")
+  from      ProjectStatus?
+  to        ProjectStatus
+  changedBy String         @map("changed_by")
+  reason    String?
+  notes     String?
+  changedAt DateTime       @default(now()) @map("changed_at")
+
+  // Relaciones
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation("StatusChanger", fields: [changedBy], references: [id])
+
+  @@map("status_changes")
+}
+
 enum ProjectStatus {
   DRAFT
-  ACTIVE
-  VOTING
+  SETUP
+  ACTIVE  
+  IN_REVIEW
   COMPLETED
   ARCHIVED
+}
+
+enum ProjectType {
+  STRATEGIC
+  TECHNOLOGICAL
+  ENVIRONMENTAL
+  SOCIAL
+  ECONOMIC
 }
 
 // Variables del sistema
@@ -67,6 +101,8 @@ model Variable {
   name        String
   description String?
   order       Int     @default(0)
+  category    String?  // motriz, dependiente, enlace, autonoma
+  color       String?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -79,17 +115,18 @@ model Variable {
   @@map("variables")
 }
 
-// Expertos del sistema
+// Expertos del sistema  
 model Expert {
-  id             String   @id @default(uuid())
-  name           String
-  email          String   @unique
-  organization   String?
-  expertiseAreas String[] @map("expertise_areas")
-  avatar         String?
-  yearsExperience Int?    @map("years_experience")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id                      String   @id @default(uuid())
+  name                    String
+  email                   String   @unique
+  organization            String?
+  expertiseAreas          String[] @map("expertise_areas")
+  avatar                  String?
+  yearsExperience         Int?     @map("years_experience")
+  notes                   String?
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
 
   // Relaciones
   projectExperts ProjectExpert[]
@@ -100,18 +137,27 @@ model Expert {
 
 // Relación many-to-many: Proyectos <-> Expertos
 model ProjectExpert {
-  id        String                @id @default(uuid())
-  projectId String                @map("project_id")
-  expertId  String                @map("expert_id")
-  userId    String?               @map("user_id") // Link a User si está registrado
-  status    ProjectExpertStatus   @default(INVITED)
-  invitedAt DateTime              @default(now()) @map("invited_at")
-  updatedAt DateTime              @updatedAt @map("updated_at")
+  id                          String                @id @default(uuid())
+  projectId                   String                @map("project_id")
+  expertId                    String                @map("expert_id")
+  userId                      String?               @map("user_id") // Link a User si está registrado
+  status                      ProjectExpertStatus   @default(INVITED)
+  invitedAt                   DateTime              @default(now()) @map("invited_at")
+  invitedBy                   String                @map("invited_by")
+  respondedAt                 DateTime?             @map("responded_at")
+  lastActivity                DateTime?             @map("last_activity")
+  votingProgress              Int                   @default(0) @map("voting_progress") // 0-100
+  notes                       String?
+  emailNotifications          Boolean               @default(true) @map("email_notifications")
+  inAppNotifications          Boolean               @default(true) @map("in_app_notifications")
+  reminderNotifications       Boolean               @default(true) @map("reminder_notifications")
+  updatedAt                   DateTime              @updatedAt @map("updated_at")
 
   // Relaciones
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  expert  Expert  @relation(fields: [expertId], references: [id])
-  user    User?   @relation(fields: [userId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  expert    Expert  @relation(fields: [expertId], references: [id])
+  user      User?   @relation(fields: [userId], references: [id])
+  inviter   User    @relation("ExpertInviter", fields: [invitedBy], references: [id])
 
   @@unique([projectId, expertId])
   @@map("project_experts")
@@ -119,7 +165,7 @@ model ProjectExpert {
 
 enum ProjectExpertStatus {
   INVITED
-  ACCEPTED
+  ACTIVE
   VOTING
   COMPLETED
   DECLINED

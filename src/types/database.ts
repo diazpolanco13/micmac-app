@@ -48,7 +48,11 @@ export interface Database {
           id: string
           name: string
           description: string | null
-          status: 'DRAFT' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'ARCHIVED'
+          type: 'STRATEGIC' | 'TECHNOLOGICAL' | 'ENVIRONMENTAL' | 'SOCIAL' | 'ECONOMIC'
+          status: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+          expected_experts: number
+          tags: string[]
+          is_public: boolean
           creator_id: string
           created_at: string
           updated_at: string
@@ -57,7 +61,11 @@ export interface Database {
           id?: string
           name: string
           description?: string | null
-          status?: 'DRAFT' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'ARCHIVED'
+          type?: 'STRATEGIC' | 'TECHNOLOGICAL' | 'ENVIRONMENTAL' | 'SOCIAL' | 'ECONOMIC'
+          status?: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+          expected_experts?: number
+          tags?: string[]
+          is_public?: boolean
           creator_id: string
           created_at?: string
           updated_at?: string
@@ -66,7 +74,11 @@ export interface Database {
           id?: string
           name?: string
           description?: string | null
-          status?: 'DRAFT' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'ARCHIVED'
+          type?: 'STRATEGIC' | 'TECHNOLOGICAL' | 'ENVIRONMENTAL' | 'SOCIAL' | 'ECONOMIC'
+          status?: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+          expected_experts?: number
+          tags?: string[]
+          is_public?: boolean
           creator_id?: string
           created_at?: string
           updated_at?: string
@@ -79,6 +91,8 @@ export interface Database {
           name: string
           description: string | null
           order: number
+          category: string | null
+          color: string | null
           created_at: string
           updated_at: string
         }
@@ -88,6 +102,8 @@ export interface Database {
           name: string
           description?: string | null
           order?: number
+          category?: string | null
+          color?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -97,7 +113,62 @@ export interface Database {
           name?: string
           description?: string | null
           order?: number
+          category?: string | null
+          color?: string | null
           created_at?: string
+          updated_at?: string
+        }
+      }
+      project_experts: {
+        Row: {
+          id: string
+          project_id: string
+          expert_id: string
+          user_id: string | null
+          status: 'INVITED' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'DECLINED'
+          invited_at: string
+          invited_by: string
+          responded_at: string | null
+          last_activity: string | null
+          voting_progress: number
+          notes: string | null
+          email_notifications: boolean
+          in_app_notifications: boolean
+          reminder_notifications: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          expert_id: string
+          user_id?: string | null
+          status?: 'INVITED' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'DECLINED'
+          invited_at?: string
+          invited_by: string
+          responded_at?: string | null
+          last_activity?: string | null
+          voting_progress?: number
+          notes?: string | null
+          email_notifications?: boolean
+          in_app_notifications?: boolean
+          reminder_notifications?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          expert_id?: string
+          user_id?: string | null
+          status?: 'INVITED' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'DECLINED'
+          invited_at?: string
+          invited_by?: string
+          responded_at?: string | null
+          last_activity?: string | null
+          voting_progress?: number
+          notes?: string | null
+          email_notifications?: boolean
+          in_app_notifications?: boolean
+          reminder_notifications?: boolean
           updated_at?: string
         }
       }
@@ -110,6 +181,7 @@ export interface Database {
           expertise_areas: string[]
           avatar: string | null
           years_experience: number | null
+          notes: string | null
           created_at: string
           updated_at: string
         }
@@ -121,6 +193,7 @@ export interface Database {
           expertise_areas: string[]
           avatar?: string | null
           years_experience?: number | null
+          notes?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -132,37 +205,41 @@ export interface Database {
           expertise_areas?: string[]
           avatar?: string | null
           years_experience?: number | null
+          notes?: string | null
           created_at?: string
           updated_at?: string
         }
       }
-      project_experts: {
+      status_changes: {
         Row: {
           id: string
           project_id: string
-          expert_id: string
-          user_id: string | null
-          status: 'INVITED' | 'ACCEPTED' | 'VOTING' | 'COMPLETED' | 'DECLINED'
-          invited_at: string
-          updated_at: string
+          from: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED' | null
+          to: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+          changed_by: string
+          reason: string | null
+          notes: string | null
+          changed_at: string
         }
         Insert: {
           id?: string
           project_id: string
-          expert_id: string
-          user_id?: string | null
-          status?: 'INVITED' | 'ACCEPTED' | 'VOTING' | 'COMPLETED' | 'DECLINED'
-          invited_at?: string
-          updated_at?: string
+          from?: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED' | null
+          to: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+          changed_by: string
+          reason?: string | null
+          notes?: string | null
+          changed_at?: string
         }
         Update: {
           id?: string
           project_id?: string
-          expert_id?: string
-          user_id?: string | null
-          status?: 'INVITED' | 'ACCEPTED' | 'VOTING' | 'COMPLETED' | 'DECLINED'
-          invited_at?: string
-          updated_at?: string
+          from?: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED' | null
+          to?: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+          changed_by?: string
+          reason?: string | null
+          notes?: string | null
+          changed_at?: string
         }
       }
       evaluations: {
@@ -215,8 +292,9 @@ export interface Database {
     }
     Enums: {
       user_role: 'MODERATOR' | 'EXPERT'
-      project_status: 'DRAFT' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'ARCHIVED'
-      project_expert_status: 'INVITED' | 'ACCEPTED' | 'VOTING' | 'COMPLETED' | 'DECLINED'
+      project_type: 'STRATEGIC' | 'TECHNOLOGICAL' | 'ENVIRONMENTAL' | 'SOCIAL' | 'ECONOMIC'
+      project_status: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+      project_expert_status: 'INVITED' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'DECLINED'
     }
     CompositeTypes: {
       [_ in never]: never
