@@ -4,237 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Expert } from '@/types/project'
-
-// Catálogo de expertos disponibles actualizado con campos completos
-const availableExperts: Expert[] = [
-  {
-    id: 'expert-1',
-    name: 'Dr. María González',
-    email: 'maria.gonzalez@universidad.edu',
-    expertise: ['Tecnología', 'Innovación', 'Prospectiva'],
-    role: 'expert',
-    status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-    invitedAt: '2024-01-10T09:00:00Z',
-    invitedBy: 'system',
-    respondedAt: '2024-01-10T10:30:00Z',
-    lastActivity: '2024-01-20T14:30:00Z',
-    votingProgress: 0,
-    notes: 'Experta senior con 15 años de experiencia en prospectiva tecnológica',
-    notificationPreferences: {
-      email: true,
-      inApp: true,
-      reminders: true
-    }
-  },
-  {
-    id: 'expert-2',
-    name: 'Ing. Carlos Ruiz',
-    email: 'carlos.ruiz@consultora.com',
-    expertise: ['Políticas Públicas', 'Regulación'],
-    role: 'expert',
-    status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-    invitedAt: '2024-01-10T09:15:00Z',
-    invitedBy: 'system',
-    respondedAt: '2024-01-10T11:00:00Z',
-    lastActivity: '2024-01-19T16:45:00Z',
-    votingProgress: 0,
-    notes: 'Especialista en marco regulatorio y políticas públicas',
-    notificationPreferences: {
-      email: true,
-      inApp: false,
-      reminders: false
-    }
-  },
-  {
-    id: 'expert-3',
-    name: 'Dra. Ana Martín',
-    email: 'ana.martin@empresa.com',
-    expertise: ['Marketing', 'Comportamiento del Consumidor'],
-    role: 'expert',
-    status: 'active',
-    invitedAt: '2024-01-15T14:00:00Z',
-    invitedBy: 'system',
-    votingProgress: 0,
-    notes: 'Especialista en análisis de mercado y comportamiento del consumidor',
-    notificationPreferences: {
-      email: true,
-      inApp: true,
-      reminders: true
-    }
-  },
-  {
-    id: 'expert-4',
-    name: 'Prof. Ricardo Vega',
-    email: 'ricardo.vega@instituto.org',
-    expertise: ['Economía', 'Finanzas', 'Análisis Estratégico'],
-    role: 'expert',
-    status: 'active',
-    invitedAt: '2024-01-12T10:00:00Z',
-    invitedBy: 'system',
-    votingProgress: 0,
-    notes: 'Economista con expertise en análisis macroeconómico',
-    notificationPreferences: {
-      email: true,
-      inApp: true,
-      reminders: false
-    }
-  },
-  {
-    id: 'expert-5',
-    name: 'Dra. Sofía Herrera',
-    email: 'sofia.herrera@centro.edu',
-    expertise: ['Sostenibilidad', 'Medio Ambiente', 'Política Ambiental'],
-    role: 'expert',
-    status: 'active',
-    invitedAt: '2024-01-11T08:30:00Z',
-    invitedBy: 'system',
-    votingProgress: 0,
-    notes: 'Especialista en sostenibilidad y políticas ambientales',
-    notificationPreferences: {
-      email: true,
-      inApp: true,
-      reminders: true
-    }
-  },
-  {
-    id: 'expert-6',
-    name: 'Ing. David López',
-    email: 'david.lopez@tech.com',
-    expertise: ['IA', 'Machine Learning', 'Transformación Digital'],
-    role: 'expert',
-    status: 'active',
-    invitedAt: '2024-01-13T15:45:00Z',
-    invitedBy: 'system',
-    votingProgress: 0,
-    notes: 'Ingeniero especializado en IA y transformación digital',
-    notificationPreferences: {
-      email: false,
-      inApp: true,
-      reminders: true
-    }
-  },
-  {
-    id: 'expert-7',
-    name: 'Dr. Patricia Silva',
-    email: 'patricia.silva@social.org',
-    expertise: ['Sociología', 'Comportamiento Social', 'Tendencias'],
-    role: 'expert',
-    status: 'active',
-    invitedAt: '2024-01-14T11:20:00Z',
-    invitedBy: 'system',
-    votingProgress: 0,
-    notes: 'Socióloga especialista en tendencias sociales y comportamiento',
-    notificationPreferences: {
-      email: true,
-      inApp: false,
-      reminders: true
-    }
-  },
-  {
-    id: 'expert-8',
-    name: 'Ing. Miguel Torres',
-    email: 'miguel.torres@energia.com',
-    expertise: ['Energía', 'Renovables', 'Infraestructura'],
-    role: 'expert',
-    status: 'active',
-    invitedAt: '2024-01-16T09:10:00Z',
-    invitedBy: 'system',
-    votingProgress: 0,
-    notes: 'Ingeniero especializado en energías renovables e infraestructura',
-    notificationPreferences: {
-      email: true,
-      inApp: true,
-      reminders: false
-    }
-  }
-]
-
-// ✨ NUEVAS FUNCIONES CRUD PARA EXPERTOS
-
-// Invitar un nuevo experto al proyecto
-const inviteExpert = (expertData: {
-  name: string
-  email: string
-  expertise: string[]
-  notes?: string
-}): Expert => {
-  const newExpert: Expert = {
-    id: `expert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    name: expertData.name,
-    email: expertData.email,
-    expertise: expertData.expertise,
-    role: 'expert',
-    status: 'invited',
-    invitedAt: new Date().toISOString(),
-    invitedBy: 'current-user', // En implementación real vendría del contexto de auth
-    votingProgress: 0,
-    notes: expertData.notes || '',
-    notificationPreferences: {
-      email: true,
-      inApp: true,
-      reminders: true
-    }
-  }
-  
-  // En implementación real, esto enviaría invitación por email
-  console.log(`📧 Invitación enviada a ${newExpert.email}`)
-  
-  return newExpert
-}
-
-// Actualizar estado de un experto
-const updateExpertStatus = (expertId: string, newStatus: Expert['status'], notes?: string): Expert | null => {
-  const expert = availableExperts.find(e => e.id === expertId)
-  if (!expert) return null
-  
-  const updatedExpert = {
-    ...expert,
-    status: newStatus,
-    respondedAt: ['active', 'declined'].includes(newStatus) ? new Date().toISOString() : expert.respondedAt,
-    lastActivity: new Date().toISOString(),
-    notes: notes || expert.notes
-  }
-  
-  // En implementación real, esto actualizaría la base de datos
-  console.log(`👤 ${expert.name} cambió estado a: ${newStatus}`)
-  
-  return updatedExpert
-}
-
-// Actualizar progreso de votación de un experto
-const updateVotingProgress = (expertId: string, progress: number): Expert | null => {
-  const expert = availableExperts.find(e => e.id === expertId)
-  if (!expert) return null
-  
-  const updatedExpert = {
-    ...expert,
-    votingProgress: Math.max(0, Math.min(100, progress)),
-    lastActivity: new Date().toISOString()
-  }
-  
-  console.log(`📊 ${expert.name} progreso de votación: ${progress}%`)
-  
-  return updatedExpert
-}
-
-// Obtener estadísticas de expertos del proyecto
-const getExpertStats = (experts: Expert[]) => {
-  const stats = {
-    total: experts.length,
-    invited: experts.filter(e => e.status === 'invited').length,
-    active: experts.filter(e => e.status === 'active').length,
-    voting: experts.filter(e => e.status === 'voting').length,
-    completed: experts.filter(e => e.status === 'completed').length,
-    declined: experts.filter(e => e.status === 'declined').length,
-    avgProgress: experts.length > 0 ? 
-      Math.round(experts.reduce((sum, e) => sum + (e.votingProgress || 0), 0) / experts.length) : 0,
-    expertiseAreas: Array.from(new Set(experts.flatMap(e => e.expertise))).length
-  }
-  
-  return stats
-}
+import { useData } from '@/contexts/DataContext'
 
 interface ExpertSelectorProps {
   selectedExperts: Expert[]
@@ -252,19 +22,22 @@ export default function ExpertSelector({
   const [isSelectingMode, setIsSelectingMode] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterByExpertise, setFilterByExpertise] = useState('')
+  
+  const { experts, loadingExperts } = useData()
 
   // Filtrar expertos disponibles (no seleccionados)
-  const availableForSelection = availableExperts.filter(expert => 
+  const availableForSelection = experts.filter(expert => 
     !selectedExperts.some(selected => selected.id === expert.id)
   )
 
   // Filtrar por búsqueda y expertise
   const filteredAvailable = availableForSelection.filter(expert => {
     const matchesSearch = expert.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         expert.email.toLowerCase().includes(searchTerm.toLowerCase())
+                         expert.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         expert.organization?.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesExpertise = !filterByExpertise || 
-                           expert.expertise.some(exp => 
+                           expert.expertiseAreas.some(exp => 
                              exp.toLowerCase().includes(filterByExpertise.toLowerCase())
                            )
     
@@ -273,7 +46,7 @@ export default function ExpertSelector({
 
   // Obtener todas las áreas de expertise para el filtro
   const allExpertiseAreas = Array.from(
-    new Set(availableExperts.flatMap(expert => expert.expertise))
+    new Set(experts.flatMap(expert => expert.expertiseAreas))
   ).sort()
 
   const addExpert = (expert: Expert) => {
@@ -338,21 +111,32 @@ export default function ExpertSelector({
         {selectedExperts.map((expert) => (
           <div key={expert.id} className="flex items-center space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="w-10 h-10 bg-micmac-primary-500/10 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-micmac-primary-600 dark:text-micmac-primary-400">
-                {expert.name.split(' ').map(n => n[0]).join('')}
-              </span>
+              {expert.avatar ? (
+                <img 
+                  src={expert.avatar} 
+                  alt={expert.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-sm font-medium text-micmac-primary-600 dark:text-micmac-primary-400">
+                  {expert.name.split(' ').map(n => n[0]).join('')}
+                </span>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 dark:text-white">{expert.name}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">{expert.email}</p>
+              {expert.organization && (
+                <p className="text-xs text-gray-400">{expert.organization}</p>
+              )}
               <div className="flex flex-wrap gap-1 mt-1">
-                {expert.expertise.slice(0, 2).map((exp) => (
+                {expert.expertiseAreas.slice(0, 2).map((exp) => (
                   <span key={exp} className={`px-2 py-0.5 rounded text-xs ${getExpertiseColor(exp)}`}>
                     {exp}
                   </span>
                 ))}
-                {expert.expertise.length > 2 && (
-                  <span className="text-xs text-gray-500">+{expert.expertise.length - 2}</span>
+                {expert.expertiseAreas.length > 2 && (
+                  <span className="text-xs text-gray-500">+{expert.expertiseAreas.length - 2}</span>
                 )}
               </div>
             </div>
@@ -419,7 +203,7 @@ export default function ExpertSelector({
               {/* Filtros */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
-                  placeholder="Buscar por nombre o email..."
+                  placeholder="Buscar por nombre, email u organización..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -443,51 +227,64 @@ export default function ExpertSelector({
 
             {/* Lista de expertos disponibles */}
             <div className="p-6 max-h-96 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredAvailable.map((expert) => (
-                  <div 
-                    key={expert.id}
-                    className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <div className="w-12 h-12 bg-micmac-primary-500/10 rounded-full flex items-center justify-center">
-                      {expert.avatar ? (
-                        <img 
-                          src={expert.avatar} 
-                          alt={expert.name}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-sm font-medium text-micmac-primary-600 dark:text-micmac-primary-400">
-                          {expert.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white">{expert.name}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{expert.email}</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {expert.expertise.slice(0, 3).map((exp) => (
-                          <span key={exp} className={`px-2 py-0.5 rounded text-xs ${getExpertiseColor(exp)}`}>
-                            {exp}
+              {loadingExperts ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-pulse-slow rounded-full h-6 w-6 bg-micmac-primary-500"></div>
+                  <span className="ml-3 text-dark-text-secondary">Cargando expertos...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredAvailable.map((expert) => (
+                    <div 
+                      key={expert.id}
+                      className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="w-12 h-12 bg-micmac-primary-500/10 rounded-full flex items-center justify-center">
+                        {expert.avatar ? (
+                          <img 
+                            src={expert.avatar} 
+                            alt={expert.name}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-medium text-micmac-primary-600 dark:text-micmac-primary-400">
+                            {expert.name.split(' ').map(n => n[0]).join('')}
                           </span>
-                        ))}
-                        {expert.expertise.length > 3 && (
-                          <span className="text-xs text-gray-500">+{expert.expertise.length - 3}</span>
                         )}
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-white">{expert.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{expert.email}</p>
+                        {expert.organization && (
+                          <p className="text-xs text-gray-400">{expert.organization}</p>
+                        )}
+                        {expert.yearsExperience && (
+                          <p className="text-xs text-gray-400">{expert.yearsExperience} años de experiencia</p>
+                        )}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {expert.expertiseAreas.slice(0, 3).map((exp) => (
+                            <span key={exp} className={`px-2 py-0.5 rounded text-xs ${getExpertiseColor(exp)}`}>
+                              {exp}
+                            </span>
+                          ))}
+                          {expert.expertiseAreas.length > 3 && (
+                            <span className="text-xs text-gray-500">+{expert.expertiseAreas.length - 3}</span>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        color="primary"
+                        size="sm"
+                        onClick={() => addExpert(expert)}
+                      >
+                        Agregar
+                      </Button>
                     </div>
-                    <Button
-                      color="primary"
-                      size="sm"
-                      onClick={() => addExpert(expert)}
-                    >
-                      Agregar
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
-              {filteredAvailable.length === 0 && (
+              {!loadingExperts && filteredAvailable.length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-gray-500 dark:text-gray-400">
                     {availableForSelection.length === 0 
@@ -515,6 +312,81 @@ export default function ExpertSelector({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Lista de expertos seleccionados */}
+      {selectedExperts.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {selectedExperts.map((expert) => (
+            <div key={expert.id} className="flex items-center space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="w-10 h-10 bg-micmac-primary-500/10 rounded-full flex items-center justify-center">
+                {expert.avatar ? (
+                  <img 
+                    src={expert.avatar} 
+                    alt={expert.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-medium text-micmac-primary-600 dark:text-micmac-primary-400">
+                    {expert.name.split(' ').map(n => n[0]).join('')}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 dark:text-white">{expert.name}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{expert.email}</p>
+                {expert.organization && (
+                  <p className="text-xs text-gray-400">{expert.organization}</p>
+                )}
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {expert.expertiseAreas.slice(0, 2).map((exp) => (
+                    <span key={exp} className={`px-2 py-0.5 rounded text-xs ${getExpertiseColor(exp)}`}>
+                      {exp}
+                    </span>
+                  ))}
+                  {expert.expertiseAreas.length > 2 && (
+                    <span className="text-xs text-gray-500">+{expert.expertiseAreas.length - 2}</span>
+                  )}
+                </div>
+              </div>
+              <Button 
+                ghost 
+                size="sm" 
+                onClick={() => removeExpert(expert.id)}
+                className="h-10 w-10 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                title="Eliminar experto"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedExperts.length === 0 && (
+        <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">No hay expertos seleccionados</p>
+          <Button 
+            color="primary" 
+            size="sm"
+            onClick={() => setIsSelectingMode(true)}
+          >
+            Seleccionar Primeros Expertos
+          </Button>
+        </div>
+      )}
+
+      {/* Botón para agregar más expertos si ya hay algunos seleccionados */}
+      {selectedExperts.length > 0 && selectedExperts.length < 50 && (
+        <Button
+          onClick={() => setIsSelectingMode(true)}
+          ghost
+          className="w-full h-12 border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-micmac-primary-300 hover:bg-micmac-primary-50 dark:hover:bg-micmac-primary-900/20 transition-colors"
+        >
+          + Agregar Más Expertos ({availableForSelection.length} disponibles)
+        </Button>
       )}
 
       {/* Info metodológica */}

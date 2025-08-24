@@ -1,186 +1,190 @@
 /**
  * 📊 Types para Proyectos MIC MAC
+ * Alineados con esquema Prisma + Supabase (API responses)
  */
 
-export type ProjectType = 'strategic' | 'technological' | 'environmental' | 'social' | 'economic'
+// Tipos base que coinciden con la respuesta de la API
+export type ProjectType = 'STRATEGIC' | 'TECHNOLOGICAL' | 'ENVIRONMENTAL' | 'SOCIAL' | 'ECONOMIC'
+export type ProjectStatus = 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+export type ProjectExpertStatus = 'INVITED' | 'ACTIVE' | 'VOTING' | 'COMPLETED' | 'DECLINED'
 
-export type ProjectStatus = 'draft' | 'setup' | 'active' | 'in_review' | 'completed' | 'archived'
-
-export interface Project {
-  id: string
-  name: string
-  description: string
-  type: ProjectType
-  status: ProjectStatus
-  createdBy: string
-  createdAt: string
-  updatedAt: string
-  expectedExperts: number
-  
-  // Configuración MIC MAC
-  variables: Variable[]
-  experts: Expert[]
-  matrix?: VotingMatrix
-  
-  // Metadatos
-  tags: string[]
-  isPublic: boolean
-  
-  // Sistema de estados
-  statusHistory: StatusChange[]
-  canTransitionTo?: ProjectStatus[]
-  
-  // Validaciones según estado
-  validationRules: ProjectValidationRules
-  isValid: boolean
-  validationErrors: string[]
-}
-
-// Nuevo: Historial de cambios de estado
-export interface StatusChange {
-  id: string
-  from: ProjectStatus | null
-  to: ProjectStatus
-  changedBy: string
-  changedAt: string
-  reason?: string
-  notes?: string
-}
-
-// Nuevo: Reglas de validación según estado
-export interface ProjectValidationRules {
-  requiresVariables: boolean
-  minVariables: number
-  maxVariables: number
-  requiresExperts: boolean
-  minExperts: number
-  maxExperts: number
-  requiresMatrix: boolean
-  allowEditing: boolean
-}
-
-// Nuevo: Estados válidos de transición
-export const PROJECT_TRANSITIONS: Record<ProjectStatus, ProjectStatus[]> = {
-  draft: ['setup', 'archived'],
-  setup: ['active', 'draft', 'archived'],
-  active: ['in_review', 'setup', 'archived'],
-  in_review: ['completed', 'active', 'archived'],
-  completed: ['archived'],
-  archived: ['draft'] // Solo para recuperar proyectos archivados
-}
-
-// Nuevo: Configuración de validación por estado
-export const PROJECT_VALIDATION_CONFIG: Record<ProjectStatus, ProjectValidationRules> = {
-  draft: {
-    requiresVariables: false,
-    minVariables: 0,
-    maxVariables: 50,
-    requiresExperts: false,
-    minExperts: 0,
-    maxExperts: 100,
-    requiresMatrix: false,
-    allowEditing: true
-  },
-  setup: {
-    requiresVariables: true,
-    minVariables: 3,
-    maxVariables: 10,
-    requiresExperts: true,
-    minExperts: 3,
-    maxExperts: 50,
-    requiresMatrix: false,
-    allowEditing: true
-  },
-  active: {
-    requiresVariables: true,
-    minVariables: 3,
-    maxVariables: 10,
-    requiresExperts: true,
-    minExperts: 3,
-    maxExperts: 50,
-    requiresMatrix: true,
-    allowEditing: false // Solo expertos pueden votar
-  },
-  in_review: {
-    requiresVariables: true,
-    minVariables: 3,
-    maxVariables: 10,
-    requiresExperts: true,
-    minExperts: 3,
-    maxExperts: 50,
-    requiresMatrix: true,
-    allowEditing: false
-  },
-  completed: {
-    requiresVariables: true,
-    minVariables: 3,
-    maxVariables: 10,
-    requiresExperts: true,
-    minExperts: 3,
-    maxExperts: 50,
-    requiresMatrix: true,
-    allowEditing: false
-  },
-  archived: {
-    requiresVariables: false,
-    minVariables: 0,
-    maxVariables: 50,
-    requiresExperts: false,
-    minExperts: 0,
-    maxExperts: 100,
-    requiresMatrix: false,
-    allowEditing: false
-  }
-}
-
+// Interfaces que coinciden con la respuesta de la API (fechas como strings)
 export interface Variable {
   id: string
+  projectId: string
   name: string
-  description: string
+  description: string | null
   order: number
-  category?: 'motriz' | 'dependiente' | 'enlace' | 'autonoma'
-  color?: string
-  position?: { x: number; y: number }
+  category: string | null
+  color: string | null
+  createdAt: string
+  updatedAt: string
 }
-
-export type ExpertStatus = 'invited' | 'active' | 'voting' | 'completed' | 'declined'
 
 export interface Expert {
   id: string
   name: string
   email: string
-  expertise: string[]
-  role: 'expert' | 'moderator'
-  avatar?: string
-  status: ExpertStatus
-  
-  // Nuevos campos para gestión completa
+  organization: string | null
+  expertiseAreas: string[]
+  avatar: string | null
+  yearsExperience: number | null
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProjectExpert {
+  id: string
+  projectId: string
+  expertId: string
+  userId: string | null
+  status: ProjectExpertStatus
   invitedAt: string
   invitedBy: string
-  respondedAt?: string
-  lastActivity?: string
-  votingProgress?: number // 0-100%
-  notes?: string
+  respondedAt: string | null
+  lastActivity: string | null
+  votingProgress: number
+  notes: string | null
+  emailNotifications: boolean
+  inAppNotifications: boolean
+  reminderNotifications: boolean
+  updatedAt: string
+  expert: Expert
+}
+
+export interface StatusChange {
+  id: string
+  projectId: string
+  from: ProjectStatus | null
+  to: ProjectStatus
+  changedBy: string
+  reason: string | null
+  notes: string | null
+  changedAt: string
+}
+
+export interface Project {
+  id: string
+  name: string
+  description: string | null
+  type: ProjectType
+  status: ProjectStatus
+  expectedExperts: number
+  tags: string[]
+  isPublic: boolean
+  creatorId: string
+  createdAt: string
+  updatedAt: string
   
-  // Configuración de notificaciones
-  notificationPreferences: {
-    email: boolean
-    inApp: boolean
-    reminders: boolean
+  // Relaciones incluidas
+  creator: { name: string | null; email: string }
+  variables: Variable[]
+  projectExperts: ProjectExpert[]
+  statusHistory: StatusChange[]
+  _count?: { variables: number; projectExperts: number }
+}
+
+// Estados válidos de transición
+export const PROJECT_TRANSITIONS: Record<ProjectStatus, ProjectStatus[]> = {
+  DRAFT: ['SETUP', 'ARCHIVED'],
+  SETUP: ['ACTIVE', 'DRAFT', 'ARCHIVED'],
+  ACTIVE: ['IN_REVIEW', 'SETUP', 'ARCHIVED'],
+  IN_REVIEW: ['COMPLETED', 'ACTIVE', 'ARCHIVED'],
+  COMPLETED: ['ARCHIVED'],
+  ARCHIVED: ['DRAFT'] // Solo para recuperar proyectos archivados
+}
+
+// Reglas de validación según estado
+export interface ProjectValidationRules {
+  requiresVariables: boolean
+  minVariables: number
+  maxVariables: number
+  requiresExpertos: boolean
+  minExpertos: number
+  maxExpertos: number
+  requiresMatrix: boolean
+  allowEditing: boolean
+}
+
+export const PROJECT_VALIDATION_CONFIG: Record<ProjectStatus, ProjectValidationRules> = {
+  DRAFT: {
+    requiresVariables: false,
+    minVariables: 0,
+    maxVariables: 50,
+    requiresExpertos: false,
+    minExpertos: 0,
+    maxExpertos: 100,
+    requiresMatrix: false,
+    allowEditing: true
+  },
+  SETUP: {
+    requiresVariables: true,
+    minVariables: 3,
+    maxVariables: 10,
+    requiresExpertos: true,
+    minExpertos: 3,
+    maxExpertos: 50,
+    requiresMatrix: false,
+    allowEditing: true
+  },
+  ACTIVE: {
+    requiresVariables: true,
+    minVariables: 3,
+    maxVariables: 10,
+    requiresExpertos: true,
+    minExpertos: 3,
+    maxExpertos: 50,
+    requiresMatrix: true,
+    allowEditing: false // Solo expertos pueden votar
+  },
+  IN_REVIEW: {
+    requiresVariables: true,
+    minVariables: 3,
+    maxVariables: 10,
+    requiresExpertos: true,
+    minExpertos: 3,
+    maxExpertos: 50,
+    requiresMatrix: true,
+    allowEditing: false
+  },
+  COMPLETED: {
+    requiresVariables: true,
+    minVariables: 3,
+    maxVariables: 10,
+    requiresExpertos: true,
+    minExpertos: 3,
+    maxExpertos: 50,
+    requiresMatrix: true,
+    allowEditing: false
+  },
+  ARCHIVED: {
+    requiresVariables: false,
+    minVariables: 0,
+    maxVariables: 50,
+    requiresExpertos: false,
+    minExpertos: 0,
+    maxExpertos: 100,
+    requiresMatrix: false,
+    allowEditing: false
   }
 }
 
-// Nuevo: Historial de actividad de expertos
-export interface ExpertActivity {
-  id: string
-  expertId: string
-  projectId: string
-  type: 'invited' | 'joined' | 'voted' | 'commented' | 'declined'
-  description: string
-  timestamp: string
-  metadata?: Record<string, any>
+// Filtros
+export type ProjectFilter = {
+  status?: ProjectStatus[]
+  search?: string
+  tags?: string[]
+  creatorId?: string
+  isPublic?: boolean
 }
 
+export type ExpertFilter = {
+  search?: string
+  expertiseAreas?: string[]
+}
+
+// Para la matriz de votación (Fase 5)
 export interface VotingMatrix {
   id: string
   projectId: string
@@ -191,36 +195,66 @@ export interface VotingMatrix {
 
 export interface VotingResponse {
   expertId: string
-  variableFrom: string
-  variableTo: string
-  influence: 0 | 1 | 2 | 3 // 0=Sin influencia, 1=Débil, 2=Moderada, 3=Fuerte
-  comment?: string
-  votedAt: string
+  variableAId: string
+  variableBId: string
+  value: number // 0-3: Sin influencia, Débil, Moderada, Fuerte
+  confidence?: number // 1-5: Nivel de confianza
+  timeSpent?: number // Segundos gastados
+  createdAt: string
+  updatedAt: string
 }
 
-// Estados de filtros
-export type ProjectFilter = {
-  status?: ProjectStatus[]
-  search?: string
-  tags?: string[]
-  createdBy?: string
-  isPublic?: boolean
-  hasMatrix?: boolean
+// Utilidades para el sistema de estados
+export const getStatusColor = (status: ProjectStatus): string => {
+  const colors = {
+    DRAFT: 'bg-gray-500/20 text-gray-400',
+    SETUP: 'bg-yellow-500/20 text-yellow-400',
+    ACTIVE: 'bg-micmac-primary-500/20 text-micmac-primary-300',
+    IN_REVIEW: 'bg-purple-500/20 text-purple-400',
+    COMPLETED: 'bg-micmac-secondary-500/20 text-micmac-secondary-300',
+    ARCHIVED: 'bg-gray-600/20 text-gray-500'
+  }
+  return colors[status]
 }
 
-// Nuevo: Filtros para expertos
-export type ExpertFilter = {
-  status?: ExpertStatus[]
-  search?: string
-  expertise?: string[]
-  role?: Expert['role'][]
+export const getStatusLabel = (status: ProjectStatus): string => {
+  const labels = {
+    DRAFT: 'Borrador',
+    SETUP: 'Configuración',
+    ACTIVE: 'Activo',
+    IN_REVIEW: 'En Revisión',
+    COMPLETED: 'Completado',
+    ARCHIVED: 'Archivado'
+  }
+  return labels[status]
 }
 
-// Nuevo: Utilidades para el sistema de estados
-export interface ProjectStateUtils {
-  canTransitionTo(from: ProjectStatus, to: ProjectStatus): boolean
-  validateProject(project: Project): { isValid: boolean; errors: string[] }
-  getRequiredFields(status: ProjectStatus): string[]
-  getStatusBadgeColor(status: ProjectStatus): string
-  getStatusLabel(status: ProjectStatus): string
+export const canTransitionTo = (from: ProjectStatus, to: ProjectStatus): boolean => {
+  return PROJECT_TRANSITIONS[from].includes(to)
+}
+
+export const validateProject = (project: Project): { isValid: boolean; errors: string[] } => {
+  const rules = PROJECT_VALIDATION_CONFIG[project.status]
+  const errors: string[] = []
+
+  if (rules.requiresVariables && project.variables.length < rules.minVariables) {
+    errors.push(`Mínimo ${rules.minVariables} variables requeridas`)
+  }
+
+  if (project.variables.length > rules.maxVariables) {
+    errors.push(`Máximo ${rules.maxVariables} variables permitidas`)
+  }
+
+  if (rules.requiresExpertos && project.projectExperts.length < rules.minExpertos) {
+    errors.push(`Mínimo ${rules.minExpertos} expertos requeridos`)
+  }
+
+  if (project.projectExperts.length > rules.maxExpertos) {
+    errors.push(`Máximo ${rules.maxExpertos} expertos permitidos`)
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }

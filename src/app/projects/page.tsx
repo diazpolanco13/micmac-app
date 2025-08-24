@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/SupabaseAuthContext'
+import { useData } from '@/contexts/DataContext'
 import { useRouter } from 'next/navigation'
-import { mockProjects, getFilteredProjects } from '@/lib/mockData'
 import { Project } from '@/types/project'
 import { Button } from '@/components/ui'
 import CreateProjectModal from '@/components/projects/CreateProjectModal'
@@ -11,13 +11,17 @@ import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import AppLayout from '@/components/layout/AppLayout'
 
 export default function ProjectsPage() {
-  const { user, loading } = useMockAuth()
+  const { user, loading } = useAuth()
+  const { 
+    projects, 
+    loadingProjects, 
+    setCurrentProject,
+    refreshProjects 
+  } = useData()
   const router = useRouter()
-  const [projects, setProjects] = useState<Project[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [projectsLoading, setProjectsLoading] = useState(true)
   const [filter, setFilter] = useState<{
     status: string[]
     search: string
@@ -30,35 +34,37 @@ export default function ProjectsPage() {
     }
   }, [user, loading, router])
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      setProjectsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 500))
-      const filtered = getFilteredProjects(filter)
-      setProjects(filtered)
-      setProjectsLoading(false)
-    }
+  // Filtrar proyectos localmente
+  const filteredProjects = projects.filter(project => {
+    const statusMatch = filter.status.length === 0 || filter.status.includes(project.status)
+    const searchMatch = !filter.search || 
+      project.name.toLowerCase().includes(filter.search.toLowerCase()) ||
+      project.description?.toLowerCase().includes(filter.search.toLowerCase())
+    const tagsMatch = filter.tags.length === 0 || 
+      filter.tags.some(tag => project.tags.includes(tag))
+    
+    return statusMatch && searchMatch && tagsMatch
+  })
 
-    if (user) {
-      loadProjects()
-    }
-  }, [filter, user])
-
-  const handleProjectCreated = (newProject: Project) => {
-    setProjects(prev => [newProject, ...prev])
+  const handleProjectCreated = () => {
+    refreshProjects()
+    setIsCreateModalOpen(false)
   }
 
-  const handleProjectUpdated = (updatedProject: Project) => {
-    setProjects(prev => prev.map(p => 
-      p.id === updatedProject.id ? updatedProject : p
-    ))
+  const handleProjectUpdated = () => {
+    refreshProjects()
+    setIsEditModalOpen(false)
+    setSelectedProject(null)
   }
 
-  const handleProjectDeleted = (projectId: string) => {
-    setProjects(prev => prev.filter(p => p.id !== projectId))
+  const handleProjectDeleted = () => {
+    refreshProjects()
+    setIsEditModalOpen(false)
+    setSelectedProject(null)
   }
 
   const handleEditProject = (project: Project) => {
+    setCurrentProject(project)
     setSelectedProject(project)
     setIsEditModalOpen(true)
   }
@@ -105,12 +111,12 @@ export default function ProjectsPage() {
                 className="px-4 py-2 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-lg text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-micmac-primary-500"
               >
                 <option value="">Todos los estados</option>
-                <option value="draft">📝 Borradores</option>
-                <option value="setup">🛠️ Configuración</option>
-                <option value="active">🚀 Activos</option>
-                <option value="in_review">🔍 En Revisión</option>
-                <option value="completed">✅ Completados</option>
-                <option value="archived">📦 Archivados</option>
+                <option value="DRAFT">📝 Borradores</option>
+                <option value="SETUP">🛠️ Configuración</option>
+                <option value="ACTIVE">🚀 Activos</option>
+                <option value="IN_REVIEW">🔍 En Revisión</option>
+                <option value="COMPLETED">✅ Completados</option>
+                <option value="ARCHIVED">📦 Archivados</option>
               </select>
             </div>
             <Button 
@@ -125,15 +131,15 @@ export default function ProjectsPage() {
         {/* Lista de proyectos */}
         <div className="card p-6">
           <h2 className="text-xl font-semibold text-dark-text-primary mb-6">
-            Proyectos ({projects.length})
+            Proyectos ({filteredProjects.length})
           </h2>
 
-          {projectsLoading ? (
+          {loadingProjects ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-pulse-slow rounded-full h-8 w-8 bg-micmac-primary-500"></div>
               <span className="ml-3 text-dark-text-secondary">Cargando proyectos...</span>
             </div>
-          ) : projects.length === 0 ? (
+          ) : filteredProjects.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📊</div>
               <h3 className="text-lg font-medium text-dark-text-primary mb-2">
@@ -151,7 +157,7 @@ export default function ProjectsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {projects.map((project) => (
+              {filteredProjects.map((project) => (
                 <ProjectCard 
                   key={project.id} 
                   project={project}
@@ -189,21 +195,21 @@ function ProjectCard({ project, onEdit }: {
   onEdit?: () => void 
 }) {
   const statusColors = {
-    draft: 'bg-gray-500/20 text-gray-400',
-    setup: 'bg-yellow-500/20 text-yellow-400',
-    active: 'bg-micmac-primary-500/20 text-micmac-primary-300',
-    in_review: 'bg-purple-500/20 text-purple-400',
-    completed: 'bg-micmac-secondary-500/20 text-micmac-secondary-300',
-    archived: 'bg-gray-600/20 text-gray-500'
+    DRAFT: 'bg-gray-500/20 text-gray-400',
+    SETUP: 'bg-yellow-500/20 text-yellow-400',
+    ACTIVE: 'bg-micmac-primary-500/20 text-micmac-primary-300',
+    IN_REVIEW: 'bg-purple-500/20 text-purple-400',
+    COMPLETED: 'bg-micmac-secondary-500/20 text-micmac-secondary-300',
+    ARCHIVED: 'bg-gray-600/20 text-gray-500'
   }
 
   const statusLabels = {
-    draft: 'Borrador',
-    setup: 'Configuración',
-    active: 'Activo',
-    in_review: 'En Revisión',
-    completed: 'Completado',
-    archived: 'Archivado'
+    DRAFT: 'Borrador',
+    SETUP: 'Configuración',
+    ACTIVE: 'Activo',
+    IN_REVIEW: 'En Revisión',
+    COMPLETED: 'Completado',
+    ARCHIVED: 'Archivado'
   }
 
   return (
@@ -226,8 +232,8 @@ function ProjectCard({ project, onEdit }: {
       
       <div className="flex items-center justify-between text-sm text-dark-text-muted">
         <div className="flex items-center gap-4">
-          <span>📊 {project.variables.length} variables</span>
-          <span>👥 {project.experts.length} expertos</span>
+          <span>📊 {project._count?.variables || project.variables.length} variables</span>
+          <span>👥 {project._count?.projectExperts || project.projectExperts.length} expertos</span>
         </div>
         <div className="text-xs">
           {new Date(project.updatedAt).toLocaleDateString()}
@@ -236,7 +242,7 @@ function ProjectCard({ project, onEdit }: {
       
       {project.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-3">
-          {project.tags.slice(0, 3).map((tag) => (
+          {project.tags.slice(0, 3).map((tag: string) => (
             <span
               key={tag}
               className="px-2 py-1 bg-dark-bg-tertiary text-dark-text-muted rounded text-xs"

@@ -4,25 +4,52 @@
  * 📊 Dashboard Page - Panel principal con gestión de proyectos
  */
 
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/SupabaseAuthContext'
+import { useData } from '@/contexts/DataContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { mockProjects, getFilteredProjects } from '@/lib/mockData'
-import { Project } from '@/types/project'
 import { Button } from '@/components/ui'
 import CreateProjectModal from '@/components/projects/CreateProjectModal'
 import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import AppLayout from '@/components/layout/AppLayout'
 
+// Tipos locales para el dashboard
+interface Project {
+  id: string
+  name: string
+  description: string | null
+  type: 'STRATEGIC' | 'TECHNOLOGICAL' | 'ENVIRONMENTAL' | 'SOCIAL' | 'ECONOMIC'
+  status: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
+  expectedExperts: number
+  tags: string[]
+  isPublic: boolean
+  creatorId: string
+  createdAt: string
+  updatedAt: string
+  creator: { name: string | null, email: string }
+  variables: any[]
+  projectExperts: any[]
+  statusHistory: any[]
+  _count?: { variables: number, projectExperts: number }
+}
+
 export default function DashboardPage() {
-  const { user, loading, signOut } = useMockAuth()
+  const { user, loading } = useAuth()
+  const { 
+    projects, 
+    loadingProjects, 
+    setCurrentProject,
+    refreshProjects 
+  } = useData()
   const router = useRouter()
-  const [projects, setProjects] = useState<Project[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [projectsLoading, setProjectsLoading] = useState(true)
-  const [filter, setFilter] = useState({ status: [], search: '', tags: [] })
+  const [filter, setFilter] = useState({ 
+    status: [] as string[], 
+    search: '', 
+    tags: [] as string[] 
+  })
 
   useEffect(() => {
     if (!loading && !user) {
@@ -30,36 +57,25 @@ export default function DashboardPage() {
     }
   }, [user, loading, router])
 
-  useEffect(() => {
-    // Simular carga de proyectos
-    const loadProjects = async () => {
-      setProjectsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 500)) // Simular delay
-      const filtered = getFilteredProjects(filter)
-      setProjects(filtered)
-      setProjectsLoading(false)
-    }
-
-    if (user) {
-      loadProjects()
-    }
-  }, [filter, user])
-
-  const handleProjectCreated = (newProject: Project) => {
-    setProjects(prev => [newProject, ...prev])
+  const handleProjectCreated = () => {
+    refreshProjects()
+    setIsCreateModalOpen(false)
   }
 
-  const handleProjectUpdated = (updatedProject: Project) => {
-    setProjects(prev => prev.map(p => 
-      p.id === updatedProject.id ? updatedProject : p
-    ))
+  const handleProjectUpdated = () => {
+    refreshProjects()
+    setIsEditModalOpen(false)
+    setSelectedProject(null)
   }
 
-  const handleProjectDeleted = (projectId: string) => {
-    setProjects(prev => prev.filter(p => p.id !== projectId))
+  const handleProjectDeleted = () => {
+    refreshProjects()
+    setIsEditModalOpen(false)
+    setSelectedProject(null)
   }
 
   const handleEditProject = (project: Project) => {
+    setCurrentProject(project)
     setSelectedProject(project)
     setIsEditModalOpen(true)
   }
@@ -79,10 +95,22 @@ export default function DashboardPage() {
     return null // Se redirigirá a /auth
   }
 
+  // Filtrar proyectos localmente
+  const filteredProjects = projects.filter(project => {
+    const statusMatch = filter.status.length === 0 || filter.status.includes(project.status.toLowerCase())
+    const searchMatch = !filter.search || 
+      project.name.toLowerCase().includes(filter.search.toLowerCase()) ||
+      project.description?.toLowerCase().includes(filter.search.toLowerCase())
+    const tagsMatch = filter.tags.length === 0 || 
+      filter.tags.some(tag => project.tags.includes(tag))
+    
+    return statusMatch && searchMatch && tagsMatch
+  })
+
   const stats = {
-    active: projects.filter(p => p.status === 'active').length,
-    completed: projects.filter(p => p.status === 'completed').length,
-    experts: new Set(projects.flatMap(p => p.experts.map(e => e.id))).size
+    active: projects.filter(p => p.status === 'ACTIVE').length,
+    completed: projects.filter(p => p.status === 'COMPLETED').length,
+    experts: projects.reduce((total, p) => total + (p._count?.projectExperts || p.projectExperts.length), 0)
   }
 
   return (
@@ -97,6 +125,7 @@ export default function DashboardPage() {
             Bienvenido, <span className="text-dark-text-primary font-medium">{user.name || user.email}</span>
           </p>
         </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="card p-6">
@@ -145,16 +174,17 @@ export default function DashboardPage() {
         {/* Content based on role */}
         {user.role === 'MODERATOR' ? (
           <ModeratorContent 
-            projects={projects} 
-            loading={projectsLoading}
+            projects={filteredProjects} 
+            loading={loadingProjects}
             filter={filter}
             setFilter={setFilter}
             onEditProject={handleEditProject}
           />
         ) : (
           <ExpertContent 
-            projects={projects}
-            loading={projectsLoading}
+            projects={filteredProjects}
+            loading={loadingProjects}
+            user={user}
             onEditProject={handleEditProject}
           />
         )}
@@ -214,8 +244,8 @@ export default function DashboardPage() {
 function ModeratorContent({ projects, loading, filter, setFilter, onEditProject }: {
   projects: Project[]
   loading: boolean
-  filter: any
-  setFilter: any
+  filter: { status: string[]; search: string; tags: string[] }
+  setFilter: (fn: (prev: any) => any) => void
   onEditProject: (project: Project) => void
 }) {
   return (
@@ -273,13 +303,16 @@ function ModeratorContent({ projects, loading, filter, setFilter, onEditProject 
   )
 }
 
-function ExpertContent({ projects, loading, onEditProject }: {
+function ExpertContent({ projects, loading, user, onEditProject }: {
   projects: Project[]
   loading: boolean
+  user: { email: string; id: string }
   onEditProject: (project: Project) => void
 }) {
   // Filtrar proyectos donde el usuario actual es experto
-  const myProjects = projects.filter(p => p.experts.some(e => e.email === 'expert@micmac.com'))
+  const myProjects = projects.filter(p => 
+    p.projectExperts.some((pe: any) => pe.expert?.email === user.email)
+  )
   
   return (
     <div className="space-y-6">
@@ -328,21 +361,21 @@ function ProjectCard({ project, onEdit }: {
   onEdit?: () => void 
 }) {
   const statusColors = {
-    draft: 'bg-gray-500/20 text-gray-400',
-    setup: 'bg-yellow-500/20 text-yellow-400',
-    active: 'bg-micmac-primary-500/20 text-micmac-primary-300',
-    in_review: 'bg-purple-500/20 text-purple-400',
-    completed: 'bg-micmac-secondary-500/20 text-micmac-secondary-300',
-    archived: 'bg-gray-600/20 text-gray-500'
+    DRAFT: 'bg-gray-500/20 text-gray-400',
+    SETUP: 'bg-yellow-500/20 text-yellow-400',
+    ACTIVE: 'bg-micmac-primary-500/20 text-micmac-primary-300',
+    IN_REVIEW: 'bg-purple-500/20 text-purple-400',
+    COMPLETED: 'bg-micmac-secondary-500/20 text-micmac-secondary-300',
+    ARCHIVED: 'bg-gray-600/20 text-gray-500'
   }
 
   const statusLabels = {
-    draft: 'Borrador',
-    setup: 'Configuración',
-    active: 'Activo',
-    in_review: 'En Revisión',
-    completed: 'Completado',
-    archived: 'Archivado'
+    DRAFT: 'Borrador',
+    SETUP: 'Configuración',
+    ACTIVE: 'Activo',
+    IN_REVIEW: 'En Revisión',
+    COMPLETED: 'Completado',
+    ARCHIVED: 'Archivado'
   }
 
   return (
@@ -365,8 +398,8 @@ function ProjectCard({ project, onEdit }: {
       
       <div className="flex items-center justify-between text-sm text-dark-text-muted">
         <div className="flex items-center gap-4">
-          <span>📊 {project.variables.length} variables</span>
-          <span>👥 {project.experts.length} expertos</span>
+          <span>📊 {project._count?.variables || project.variables.length} variables</span>
+          <span>👥 {project._count?.projectExperts || project.projectExperts.length} expertos</span>
         </div>
         <div className="text-xs">
           {new Date(project.updatedAt).toLocaleDateString()}
@@ -375,7 +408,7 @@ function ProjectCard({ project, onEdit }: {
       
       {project.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-3">
-          {project.tags.slice(0, 3).map((tag) => (
+          {project.tags.slice(0, 3).map((tag: string) => (
             <span
               key={tag}
               className="px-2 py-1 bg-dark-bg-tertiary text-dark-text-muted rounded text-xs"

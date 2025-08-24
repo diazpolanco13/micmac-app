@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Project, ProjectType } from '@/types/project'
-import { createProject } from '@/lib/mockData'
+import { ProjectType } from '@/types/project'
+import { useData } from '@/contexts/DataContext'
 
 interface CreateProjectModalProps {
   isOpen: boolean
   onClose: () => void
-  onProjectCreated: (project: Project) => void
+  onProjectCreated: () => void
 }
 
 interface FormData {
@@ -35,7 +35,7 @@ export default function CreateProjectModal({
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
-    type: 'strategic',
+    type: 'STRATEGIC',
     expectedExperts: 5
   })
   
@@ -74,6 +74,8 @@ export default function CreateProjectModal({
     return Object.keys(newErrors).length === 0
   }
 
+  const { createProject } = useData()
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -84,18 +86,17 @@ export default function CreateProjectModal({
     setIsSubmitting(true)
     
     try {
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      const newProject = createProject({
+      const result = await createProject({
         name: formData.name.trim(),
         description: formData.description.trim(),
         type: formData.type,
         expectedExperts: formData.expectedExperts
       })
       
-      onProjectCreated(newProject)
-      handleClose()
+      if (result.success) {
+        onProjectCreated()
+        handleClose()
+      }
       
     } catch (error) {
       console.error('Error creating project:', error)
@@ -109,7 +110,7 @@ export default function CreateProjectModal({
       setFormData({
         name: '',
         description: '',
-        type: 'strategic',
+        type: 'STRATEGIC',
         expectedExperts: 5
       })
       setErrors({})
@@ -231,11 +232,11 @@ export default function CreateProjectModal({
                     disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isSubmitting}
                 >
-                  <option value="strategic">Estratégico</option>
-                  <option value="technological">Tecnológico</option>
-                  <option value="environmental">Ambiental</option>
-                  <option value="social">Social</option>
-                  <option value="economic">Económico</option>
+                  <option value="STRATEGIC">Estratégico</option>
+                  <option value="TECHNOLOGICAL">Tecnológico</option>
+                  <option value="ENVIRONMENTAL">Ambiental</option>
+                  <option value="SOCIAL">Social</option>
+                  <option value="ECONOMIC">Económico</option>
                 </select>
               </div>
 
