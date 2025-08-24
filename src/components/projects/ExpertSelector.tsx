@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Expert } from '@/types/project'
-import { useData } from '@/contexts/DataContext'
+import { useMockData } from '@/contexts/MockDataContext'
 
 interface ExpertSelectorProps {
   selectedExperts: Expert[]
@@ -23,7 +23,7 @@ export default function ExpertSelector({
   const [searchTerm, setSearchTerm] = useState('')
   const [filterByExpertise, setFilterByExpertise] = useState('')
   
-  const { experts, loadingExperts } = useData()
+  const { experts, loadingExperts } = useMockData()
 
   // Filtrar expertos disponibles (no seleccionados)
   const availableForSelection = experts.filter(expert => 
@@ -107,55 +107,55 @@ export default function ExpertSelector({
       </div>
 
       {/* Lista de expertos seleccionados */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {selectedExperts.map((expert) => (
-          <div key={expert.id} className="flex items-center space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="w-10 h-10 bg-micmac-primary-500/10 rounded-full flex items-center justify-center">
-              {expert.avatar ? (
-                <img 
-                  src={expert.avatar} 
-                  alt={expert.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <span className="text-sm font-medium text-micmac-primary-600 dark:text-micmac-primary-400">
-                  {expert.name.split(' ').map(n => n[0]).join('')}
-                </span>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 dark:text-white">{expert.name}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{expert.email}</p>
-              {expert.organization && (
-                <p className="text-xs text-gray-400">{expert.organization}</p>
-              )}
-              <div className="flex flex-wrap gap-1 mt-1">
-                {expert.expertiseAreas.slice(0, 2).map((exp) => (
-                  <span key={exp} className={`px-2 py-0.5 rounded text-xs ${getExpertiseColor(exp)}`}>
-                    {exp}
+      {selectedExperts.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {selectedExperts.map((expert) => (
+            <div key={expert.id} className="flex items-center space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="w-10 h-10 bg-micmac-primary-500/10 rounded-full flex items-center justify-center">
+                {expert.avatar ? (
+                  <img 
+                    src={expert.avatar} 
+                    alt={expert.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-medium text-micmac-primary-600 dark:text-micmac-primary-400">
+                    {expert.name.split(' ').map(n => n[0]).join('')}
                   </span>
-                ))}
-                {expert.expertiseAreas.length > 2 && (
-                  <span className="text-xs text-gray-500">+{expert.expertiseAreas.length - 2}</span>
                 )}
               </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 dark:text-white">{expert.name}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{expert.email}</p>
+                {expert.organization && (
+                  <p className="text-xs text-gray-400">{expert.organization}</p>
+                )}
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {expert.expertiseAreas.slice(0, 2).map((exp) => (
+                    <span key={exp} className={`px-2 py-0.5 rounded text-xs ${getExpertiseColor(exp)}`}>
+                      {exp}
+                    </span>
+                  ))}
+                  {expert.expertiseAreas.length > 2 && (
+                    <span className="text-xs text-gray-500">+{expert.expertiseAreas.length - 2}</span>
+                  )}
+                </div>
+              </div>
+              <Button 
+                ghost 
+                size="sm" 
+                onClick={() => removeExpert(expert.id)}
+                className="h-10 w-10 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                title="Eliminar experto"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+              </Button>
             </div>
-            <Button 
-              ghost 
-              size="sm" 
-              onClick={() => removeExpert(expert.id)}
-              className="h-10 w-10 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-              title="Eliminar experto"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-              </svg>
-            </Button>
-          </div>
-        ))}
-      </div>
-
-      {selectedExperts.length === 0 && (
+          ))}
+        </div>
+      ) : (
         <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
           <p className="text-gray-500 dark:text-gray-400 mb-4">No hay expertos seleccionados</p>
           <Button 
@@ -314,80 +314,6 @@ export default function ExpertSelector({
         </div>
       )}
 
-      {/* Lista de expertos seleccionados */}
-      {selectedExperts.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {selectedExperts.map((expert) => (
-            <div key={expert.id} className="flex items-center space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="w-10 h-10 bg-micmac-primary-500/10 rounded-full flex items-center justify-center">
-                {expert.avatar ? (
-                  <img 
-                    src={expert.avatar} 
-                    alt={expert.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-sm font-medium text-micmac-primary-600 dark:text-micmac-primary-400">
-                    {expert.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 dark:text-white">{expert.name}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{expert.email}</p>
-                {expert.organization && (
-                  <p className="text-xs text-gray-400">{expert.organization}</p>
-                )}
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {expert.expertiseAreas.slice(0, 2).map((exp) => (
-                    <span key={exp} className={`px-2 py-0.5 rounded text-xs ${getExpertiseColor(exp)}`}>
-                      {exp}
-                    </span>
-                  ))}
-                  {expert.expertiseAreas.length > 2 && (
-                    <span className="text-xs text-gray-500">+{expert.expertiseAreas.length - 2}</span>
-                  )}
-                </div>
-              </div>
-              <Button 
-                ghost 
-                size="sm" 
-                onClick={() => removeExpert(expert.id)}
-                className="h-10 w-10 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                title="Eliminar experto"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {selectedExperts.length === 0 && (
-        <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">No hay expertos seleccionados</p>
-          <Button 
-            color="primary" 
-            size="sm"
-            onClick={() => setIsSelectingMode(true)}
-          >
-            Seleccionar Primeros Expertos
-          </Button>
-        </div>
-      )}
-
-      {/* Botón para agregar más expertos si ya hay algunos seleccionados */}
-      {selectedExperts.length > 0 && selectedExperts.length < 50 && (
-        <Button
-          onClick={() => setIsSelectingMode(true)}
-          ghost
-          className="w-full h-12 border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-micmac-primary-300 hover:bg-micmac-primary-50 dark:hover:bg-micmac-primary-900/20 transition-colors"
-        >
-          + Agregar Más Expertos ({availableForSelection.length} disponibles)
-        </Button>
-      )}
 
       {/* Info metodológica */}
       <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
