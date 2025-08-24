@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Project, ProjectType, Expert } from '@/types/project'
 import { updateProject, deleteProject, delay } from '@/lib/mockData'
+import { useToast } from '@/contexts/ToastContext'
 import VariableManager from './VariableManager'
 import ExpertSelector from './ExpertSelector'
 
@@ -44,6 +45,7 @@ export default function ProjectEditModal({
   onProjectUpdated,
   onProjectDeleted
 }: ProjectEditModalProps) {
+  const toast = useToast()
   const [activeTab, setActiveTab] = useState<'general' | 'variables' | 'experts'>('general')
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -86,6 +88,8 @@ export default function ProjectEditModal({
       newErrors.name = 'El nombre del proyecto es obligatorio'
     } else if (formData.name.trim().length < 3) {
       newErrors.name = 'El nombre debe tener al menos 3 caracteres'
+    } else if (formData.name.trim().length > 250) {
+      newErrors.name = 'El nombre no puede exceder 250 caracteres'
     }
     
     if (!formData.description.trim()) {
@@ -194,12 +198,14 @@ export default function ProjectEditModal({
 
     // Mostrar confirmación para cambios importantes
     const statusMessages = {
+      setup: '¿Mover a configuración? El proyecto estará listo para activarse.',
       active: '¿Activar el proyecto? Los expertos podrán comenzar a votar.',
-      completed: '¿Marcar como completado? Se finalizará la votación.',
+      in_review: '¿Enviar a revisión? Se pausará la votación para analizar resultados.',
+      completed: '¿Marcar como completado? Se finalizará la votación definitivamente.',
       archived: '¿Archivar el proyecto? Se moverá al archivo histórico.'
     }
 
-    if (newStatus !== 'draft' && !confirm(statusMessages[newStatus])) {
+    if (newStatus !== 'draft' && statusMessages[newStatus] && !confirm(statusMessages[newStatus])) {
       return
     }
 
@@ -214,13 +220,17 @@ export default function ProjectEditModal({
         // Notificación de éxito
         const successMessages = {
           draft: 'Proyecto marcado como borrador',
+          setup: 'Proyecto listo para configuración final',
           active: '¡Proyecto activado! Los expertos pueden comenzar a votar.',
+          in_review: 'Proyecto enviado a revisión. Analizando resultados.',
           completed: 'Proyecto completado. Revisa los resultados del análisis.',
           archived: 'Proyecto archivado correctamente'
         }
         
-        // En una app real, esto sería un toast notification
-        alert(`✅ ${successMessages[newStatus]}`)
+        // Mostrar toast de éxito
+        if (successMessages[newStatus]) {
+          toast.success('Estado actualizado', successMessages[newStatus])
+        }
       }
     } catch (error) {
       console.error('Error updating project status:', error)
@@ -233,25 +243,31 @@ export default function ProjectEditModal({
   const getStatusDescription = (status: Project['status']): string => {
     const descriptions = {
       draft: 'El proyecto está en configuración. Puedes editar variables y expertos.',
+      setup: 'Configuración completa. El proyecto puede activarse para iniciar votación.',
       active: 'El proyecto está listo para que los expertos voten. No se pueden hacer cambios mayores.',
+      in_review: 'La votación ha terminado. Los resultados están siendo revisados.',
       completed: 'La votación ha terminado y los resultados están disponibles.',
       archived: 'El proyecto está archivado para referencia futura.'
     }
-    return descriptions[status]
+    return descriptions[status] || 'Estado desconocido'
   }
 
   if (!project) return null
 
   const statusColors = {
     draft: 'bg-gray-500/20 text-gray-300',
+    setup: 'bg-yellow-500/20 text-yellow-300',
     active: 'bg-micmac-primary-500/20 text-micmac-primary-300',
+    in_review: 'bg-purple-500/20 text-purple-300',
     completed: 'bg-micmac-secondary-500/20 text-micmac-secondary-300',
     archived: 'bg-gray-600/20 text-gray-500'
   }
 
   const statusLabels = {
     draft: 'Borrador',
-    active: 'Activo', 
+    setup: 'Configuración',
+    active: 'Activo',
+    in_review: 'En Revisión',
     completed: 'Completado',
     archived: 'Archivado'
   }
@@ -333,6 +349,7 @@ export default function ProjectEditModal({
                       placeholder="ej. Futuro del Sector Energético 2030"
                       className={errors.name ? 'border-red-500' : ''}
                       disabled={isSubmitting}
+                      maxLength={250}
                     />
                     {errors.name && (
                       <p className="mt-1 text-sm text-red-600">{errors.name}</p>
@@ -374,8 +391,10 @@ export default function ProjectEditModal({
                         dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                       disabled={isSubmitting}
                     >
-                      <option value="draft">📝 Borrador - En configuración</option>
-                      <option value="active">🚀 Activo - Listo para votación</option>
+                      <option value="draft">📝 Borrador - En configuración inicial</option>
+                      <option value="setup">🛠️ Configuración - Listo para activar</option>
+                      <option value="active">🚀 Activo - Votación en proceso</option>
+                      <option value="in_review">🔍 En Revisión - Analizando resultados</option>
                       <option value="completed">✅ Completado - Análisis finalizado</option>
                       <option value="archived">📦 Archivado - Guardado para referencia</option>
                     </select>

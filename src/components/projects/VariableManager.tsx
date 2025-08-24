@@ -212,11 +212,12 @@ export default function VariableManager({
                     placeholder="Nombre de la variable"
                     className="font-medium"
                   />
-                  <Input
+                  <textarea
                     value={variable.description}
                     onChange={(e) => updateVariable(variable.id, { description: e.target.value })}
-                    placeholder="Descripción (opcional)"
-                    className="text-sm"
+                    placeholder="Descripción detallada de la variable (opcional)"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition-colors focus:border-micmac-primary-500 focus:ring-micmac-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    rows={3}
                   />
                   <div className="flex space-x-2">
                     <Button size="sm" onClick={() => saveEdit(variable.id)}>
@@ -283,10 +284,12 @@ export default function VariableManager({
               placeholder="Nombre de la variable (ej. Políticas educativas)"
               className="font-medium"
             />
-            <Input
+            <textarea
               value={newVariable.description}
               onChange={(e) => setNewVariable(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Descripción breve (opcional)"
+              placeholder="Descripción detallada de la variable (ej. Impacto de las políticas educativas en la calidad del sistema formativo nacional)"
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition-colors focus:border-micmac-primary-500 focus:ring-micmac-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              rows={3}
             />
             <div className="flex items-center space-x-2">
               <Button

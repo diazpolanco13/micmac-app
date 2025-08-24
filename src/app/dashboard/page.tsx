@@ -230,9 +230,12 @@ function ModeratorContent({ projects, loading, filter, setFilter, onEditProject 
             onChange={(e) => setFilter((prev: any) => ({ ...prev, status: e.target.value ? [e.target.value] : [] }))}
           >
             <option value="">Todos los estados</option>
-            <option value="active">Activos</option>
-            <option value="draft">Borradores</option>
-            <option value="completed">Completados</option>
+            <option value="draft">📝 Borradores</option>
+            <option value="setup">🛠️ Configuración</option>
+            <option value="active">🚀 Activos</option>
+            <option value="in_review">🔍 En Revisión</option>
+            <option value="completed">✅ Completados</option>
+            <option value="archived">📦 Archivados</option>
           </select>
         </div>
       </div>
@@ -326,14 +329,18 @@ function ProjectCard({ project, onEdit }: {
 }) {
   const statusColors = {
     draft: 'bg-gray-500/20 text-gray-400',
+    setup: 'bg-yellow-500/20 text-yellow-400',
     active: 'bg-micmac-primary-500/20 text-micmac-primary-300',
+    in_review: 'bg-purple-500/20 text-purple-400',
     completed: 'bg-micmac-secondary-500/20 text-micmac-secondary-300',
     archived: 'bg-gray-600/20 text-gray-500'
   }
 
   const statusLabels = {
     draft: 'Borrador',
+    setup: 'Configuración',
     active: 'Activo',
+    in_review: 'En Revisión',
     completed: 'Completado',
     archived: 'Archivado'
   }

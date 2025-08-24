@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Expert } from '@/types/project'
 
-// Catálogo de expertos disponibles
+// Catálogo de expertos disponibles actualizado con campos completos
 const availableExperts: Expert[] = [
   {
     id: 'expert-1',
@@ -14,7 +14,18 @@ const availableExperts: Expert[] = [
     expertise: ['Tecnología', 'Innovación', 'Prospectiva'],
     role: 'expert',
     status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150'
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
+    invitedAt: '2024-01-10T09:00:00Z',
+    invitedBy: 'system',
+    respondedAt: '2024-01-10T10:30:00Z',
+    lastActivity: '2024-01-20T14:30:00Z',
+    votingProgress: 0,
+    notes: 'Experta senior con 15 años de experiencia en prospectiva tecnológica',
+    notificationPreferences: {
+      email: true,
+      inApp: true,
+      reminders: true
+    }
   },
   {
     id: 'expert-2',
@@ -23,7 +34,18 @@ const availableExperts: Expert[] = [
     expertise: ['Políticas Públicas', 'Regulación'],
     role: 'expert',
     status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150'
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+    invitedAt: '2024-01-10T09:15:00Z',
+    invitedBy: 'system',
+    respondedAt: '2024-01-10T11:00:00Z',
+    lastActivity: '2024-01-19T16:45:00Z',
+    votingProgress: 0,
+    notes: 'Especialista en marco regulatorio y políticas públicas',
+    notificationPreferences: {
+      email: true,
+      inApp: false,
+      reminders: false
+    }
   },
   {
     id: 'expert-3',
@@ -31,7 +53,16 @@ const availableExperts: Expert[] = [
     email: 'ana.martin@empresa.com',
     expertise: ['Marketing', 'Comportamiento del Consumidor'],
     role: 'expert',
-    status: 'active'
+    status: 'active',
+    invitedAt: '2024-01-15T14:00:00Z',
+    invitedBy: 'system',
+    votingProgress: 0,
+    notes: 'Especialista en análisis de mercado y comportamiento del consumidor',
+    notificationPreferences: {
+      email: true,
+      inApp: true,
+      reminders: true
+    }
   },
   {
     id: 'expert-4',
@@ -39,7 +70,16 @@ const availableExperts: Expert[] = [
     email: 'ricardo.vega@instituto.org',
     expertise: ['Economía', 'Finanzas', 'Análisis Estratégico'],
     role: 'expert',
-    status: 'active'
+    status: 'active',
+    invitedAt: '2024-01-12T10:00:00Z',
+    invitedBy: 'system',
+    votingProgress: 0,
+    notes: 'Economista con expertise en análisis macroeconómico',
+    notificationPreferences: {
+      email: true,
+      inApp: true,
+      reminders: false
+    }
   },
   {
     id: 'expert-5',
@@ -47,7 +87,16 @@ const availableExperts: Expert[] = [
     email: 'sofia.herrera@centro.edu',
     expertise: ['Sostenibilidad', 'Medio Ambiente', 'Política Ambiental'],
     role: 'expert',
-    status: 'active'
+    status: 'active',
+    invitedAt: '2024-01-11T08:30:00Z',
+    invitedBy: 'system',
+    votingProgress: 0,
+    notes: 'Especialista en sostenibilidad y políticas ambientales',
+    notificationPreferences: {
+      email: true,
+      inApp: true,
+      reminders: true
+    }
   },
   {
     id: 'expert-6',
@@ -55,7 +104,16 @@ const availableExperts: Expert[] = [
     email: 'david.lopez@tech.com',
     expertise: ['IA', 'Machine Learning', 'Transformación Digital'],
     role: 'expert',
-    status: 'active'
+    status: 'active',
+    invitedAt: '2024-01-13T15:45:00Z',
+    invitedBy: 'system',
+    votingProgress: 0,
+    notes: 'Ingeniero especializado en IA y transformación digital',
+    notificationPreferences: {
+      email: false,
+      inApp: true,
+      reminders: true
+    }
   },
   {
     id: 'expert-7',
@@ -63,7 +121,16 @@ const availableExperts: Expert[] = [
     email: 'patricia.silva@social.org',
     expertise: ['Sociología', 'Comportamiento Social', 'Tendencias'],
     role: 'expert',
-    status: 'active'
+    status: 'active',
+    invitedAt: '2024-01-14T11:20:00Z',
+    invitedBy: 'system',
+    votingProgress: 0,
+    notes: 'Socióloga especialista en tendencias sociales y comportamiento',
+    notificationPreferences: {
+      email: true,
+      inApp: false,
+      reminders: true
+    }
   },
   {
     id: 'expert-8',
@@ -71,9 +138,103 @@ const availableExperts: Expert[] = [
     email: 'miguel.torres@energia.com',
     expertise: ['Energía', 'Renovables', 'Infraestructura'],
     role: 'expert',
-    status: 'active'
+    status: 'active',
+    invitedAt: '2024-01-16T09:10:00Z',
+    invitedBy: 'system',
+    votingProgress: 0,
+    notes: 'Ingeniero especializado en energías renovables e infraestructura',
+    notificationPreferences: {
+      email: true,
+      inApp: true,
+      reminders: false
+    }
   }
 ]
+
+// ✨ NUEVAS FUNCIONES CRUD PARA EXPERTOS
+
+// Invitar un nuevo experto al proyecto
+const inviteExpert = (expertData: {
+  name: string
+  email: string
+  expertise: string[]
+  notes?: string
+}): Expert => {
+  const newExpert: Expert = {
+    id: `expert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name: expertData.name,
+    email: expertData.email,
+    expertise: expertData.expertise,
+    role: 'expert',
+    status: 'invited',
+    invitedAt: new Date().toISOString(),
+    invitedBy: 'current-user', // En implementación real vendría del contexto de auth
+    votingProgress: 0,
+    notes: expertData.notes || '',
+    notificationPreferences: {
+      email: true,
+      inApp: true,
+      reminders: true
+    }
+  }
+  
+  // En implementación real, esto enviaría invitación por email
+  console.log(`📧 Invitación enviada a ${newExpert.email}`)
+  
+  return newExpert
+}
+
+// Actualizar estado de un experto
+const updateExpertStatus = (expertId: string, newStatus: Expert['status'], notes?: string): Expert | null => {
+  const expert = availableExperts.find(e => e.id === expertId)
+  if (!expert) return null
+  
+  const updatedExpert = {
+    ...expert,
+    status: newStatus,
+    respondedAt: ['active', 'declined'].includes(newStatus) ? new Date().toISOString() : expert.respondedAt,
+    lastActivity: new Date().toISOString(),
+    notes: notes || expert.notes
+  }
+  
+  // En implementación real, esto actualizaría la base de datos
+  console.log(`👤 ${expert.name} cambió estado a: ${newStatus}`)
+  
+  return updatedExpert
+}
+
+// Actualizar progreso de votación de un experto
+const updateVotingProgress = (expertId: string, progress: number): Expert | null => {
+  const expert = availableExperts.find(e => e.id === expertId)
+  if (!expert) return null
+  
+  const updatedExpert = {
+    ...expert,
+    votingProgress: Math.max(0, Math.min(100, progress)),
+    lastActivity: new Date().toISOString()
+  }
+  
+  console.log(`📊 ${expert.name} progreso de votación: ${progress}%`)
+  
+  return updatedExpert
+}
+
+// Obtener estadísticas de expertos del proyecto
+const getExpertStats = (experts: Expert[]) => {
+  const stats = {
+    total: experts.length,
+    invited: experts.filter(e => e.status === 'invited').length,
+    active: experts.filter(e => e.status === 'active').length,
+    voting: experts.filter(e => e.status === 'voting').length,
+    completed: experts.filter(e => e.status === 'completed').length,
+    declined: experts.filter(e => e.status === 'declined').length,
+    avgProgress: experts.length > 0 ? 
+      Math.round(experts.reduce((sum, e) => sum + (e.votingProgress || 0), 0) / experts.length) : 0,
+    expertiseAreas: Array.from(new Set(experts.flatMap(e => e.expertise))).length
+  }
+  
+  return stats
+}
 
 interface ExpertSelectorProps {
   selectedExperts: Expert[]
