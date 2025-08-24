@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Project, ProjectType } from '@/types/project'
+import { Project, ProjectType, Expert } from '@/types/project'
+import { updateProject, deleteProject, delay } from '@/lib/mockData'
 import VariableManager from './VariableManager'
+import ExpertSelector from './ExpertSelector'
 
 interface Variable {
   id: string
@@ -50,6 +52,7 @@ export default function ProjectEditModal({
     expectedExperts: 5
   })
   const [variables, setVariables] = useState<Variable[]>([])
+  const [experts, setExperts] = useState<Expert[]>([])
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -72,6 +75,7 @@ export default function ProjectEditModal({
         order: index
       }))
       setVariables(projectVariables)
+      setExperts(project.experts)
     }
   }, [project])
 
@@ -126,6 +130,7 @@ export default function ProjectEditModal({
           description: v.description,
           order: v.order
         })),
+        experts: experts,
         updatedAt: new Date().toISOString()
       }
       
@@ -169,6 +174,70 @@ export default function ProjectEditModal({
     if (errors[field as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
     }
+  }
+
+  const handleStatusChange = async (newStatus: Project['status']) => {
+    if (!project) return
+
+    // Validaciones antes de cambiar estado
+    if (newStatus === 'active' && variables.length < 3) {
+      alert('⚠️ Se requieren mínimo 3 variables para activar el proyecto')
+      setActiveTab('variables')
+      return
+    }
+    
+    if (newStatus === 'active' && experts.length < 3) {
+      alert('⚠️ Se requieren mínimo 3 expertos para activar el proyecto')
+      setActiveTab('experts')
+      return
+    }
+
+    // Mostrar confirmación para cambios importantes
+    const statusMessages = {
+      active: '¿Activar el proyecto? Los expertos podrán comenzar a votar.',
+      completed: '¿Marcar como completado? Se finalizará la votación.',
+      archived: '¿Archivar el proyecto? Se moverá al archivo histórico.'
+    }
+
+    if (newStatus !== 'draft' && !confirm(statusMessages[newStatus])) {
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await delay(300)
+      
+      const updatedProject = updateProject(project.id, { status: newStatus })
+      if (updatedProject) {
+        onProjectUpdated(updatedProject)
+        
+        // Notificación de éxito
+        const successMessages = {
+          draft: 'Proyecto marcado como borrador',
+          active: '¡Proyecto activado! Los expertos pueden comenzar a votar.',
+          completed: 'Proyecto completado. Revisa los resultados del análisis.',
+          archived: 'Proyecto archivado correctamente'
+        }
+        
+        // En una app real, esto sería un toast notification
+        alert(`✅ ${successMessages[newStatus]}`)
+      }
+    } catch (error) {
+      console.error('Error updating project status:', error)
+      alert('Error al cambiar el estado del proyecto')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const getStatusDescription = (status: Project['status']): string => {
+    const descriptions = {
+      draft: 'El proyecto está en configuración. Puedes editar variables y expertos.',
+      active: 'El proyecto está listo para que los expertos voten. No se pueden hacer cambios mayores.',
+      completed: 'La votación ha terminado y los resultados están disponibles.',
+      archived: 'El proyecto está archivado para referencia futura.'
+    }
+    return descriptions[status]
   }
 
   if (!project) return null
@@ -230,7 +299,7 @@ export default function ProjectEditModal({
                 {[
                   { key: 'general', label: 'General', icon: '📝' },
                   { key: 'variables', label: `Variables (${variables.length})`, icon: '🔧' },
-                  { key: 'experts', label: `Expertos (${project.experts.length})`, icon: '👥' }
+                  { key: 'experts', label: `Expertos (${experts.length})`, icon: '👥' }
                 ].map((tab) => (
                   <button
                     key={tab.key}
@@ -292,6 +361,29 @@ export default function ProjectEditModal({
                     )}
                   </div>
 
+                  {/* Estado del Proyecto */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Estado del Proyecto
+                    </label>
+                    <select
+                      value={project.status}
+                      onChange={(e) => handleStatusChange(e.target.value as Project['status'])}
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm
+                        focus:border-micmac-primary-500 focus:ring-micmac-primary-500
+                        dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      disabled={isSubmitting}
+                    >
+                      <option value="draft">📝 Borrador - En configuración</option>
+                      <option value="active">🚀 Activo - Listo para votación</option>
+                      <option value="completed">✅ Completado - Análisis finalizado</option>
+                      <option value="archived">📦 Archivado - Guardado para referencia</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {getStatusDescription(project.status)}
+                    </p>
+                  </div>
+
                   {/* Tipo y Expertos */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -344,41 +436,11 @@ export default function ProjectEditModal({
               )}
 
               {activeTab === 'experts' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Expertos Seleccionados
-                    </h3>
-                    <Button color="primary" size="sm">
-                      + Agregar Expertos
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {project.experts.map((expert) => (
-                      <div key={expert.id} className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="w-10 h-10 bg-micmac-primary-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-micmac-primary-600">
-                            {expert.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 dark:text-white">{expert.name}</p>
-                          <p className="text-sm text-gray-500">{expert.expertise}</p>
-                        </div>
-                        <Button ghost size="sm" className="text-red-500 hover:text-red-700">
-                          ✕
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {project.experts.length === 0 && (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500 dark:text-gray-400">No hay expertos seleccionados</p>
-                    </div>
-                  )}
-                </div>
+                <ExpertSelector
+                  selectedExperts={experts}
+                  onExpertsChange={setExperts}
+                  expectedExperts={formData.expectedExperts}
+                />
               )}
             </div>
 

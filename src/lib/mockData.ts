@@ -254,5 +254,29 @@ export const createProject = (data: {
   return newProject
 }
 
+// Función para actualizar un proyecto existente
+export const updateProject = (projectId: string, updates: Partial<Project>): Project | null => {
+  const index = mockProjects.findIndex(p => p.id === projectId)
+  if (index === -1) return null
+  
+  const updatedProject = {
+    ...mockProjects[index],
+    ...updates,
+    updatedAt: new Date().toISOString()
+  }
+  
+  mockProjects[index] = updatedProject
+  return updatedProject
+}
+
+// Función para eliminar un proyecto
+export const deleteProject = (projectId: string): boolean => {
+  const index = mockProjects.findIndex(p => p.id === projectId)
+  if (index === -1) return false
+  
+  mockProjects.splice(index, 1)
+  return true
+}
+
 // Función para simular delay de API
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
