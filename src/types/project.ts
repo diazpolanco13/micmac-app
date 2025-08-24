@@ -30,8 +30,53 @@ export interface Expert {
   avatar: string | null
   yearsExperience: number | null
   notes: string | null
+  // Nuevos campos para CRUD completo
+  role: 'EXPERT' | 'MODERATOR'
+  biography: string | null
+  linkedinUrl: string | null
+  phone: string | null
+  isActive: boolean
+  lastLoginAt: string | null
+  totalProjectsParticipated: number
+  averageResponseTime: number | null // en horas
   createdAt: string
   updatedAt: string
+}
+
+// Filtros expandidos para expertos
+export type ExpertFilter = {
+  search?: string
+  expertiseAreas?: string[]
+  role?: 'EXPERT' | 'MODERATOR'
+  organization?: string
+  isActive?: boolean
+  minExperience?: number
+  maxExperience?: number
+}
+
+// Datos para crear/editar experto
+export interface ExpertFormData {
+  name: string
+  email: string
+  organization?: string
+  expertiseAreas: string[]
+  avatar?: string
+  yearsExperience?: number
+  notes?: string
+  role: 'EXPERT' | 'MODERATOR'
+  biography?: string
+  linkedinUrl?: string
+  phone?: string
+}
+
+// Estadísticas de expertos
+export interface ExpertStats {
+  totalExperts: number
+  totalModerators: number
+  totalActiveExperts: number
+  expertiseDistribution: { area: string; count: number }[]
+  averageExperience: number
+  organizationDistribution: { organization: string; count: number }[]
 }
 
 export interface ProjectExpert {
@@ -177,11 +222,6 @@ export type ProjectFilter = {
   tags?: string[]
   creatorId?: string
   isPublic?: boolean
-}
-
-export type ExpertFilter = {
-  search?: string
-  expertiseAreas?: string[]
 }
 
 // Para la matriz de votación (Fase 5)

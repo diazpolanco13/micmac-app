@@ -43,7 +43,7 @@ const sampleVariables: Variable[] = [
 ]
 
 // Expertos de ejemplo
-const sampleExperts: Expert[] = [
+export const sampleExperts: Expert[] = [
   {
     id: 'expert-1',
     name: 'Dr. María González',
@@ -53,6 +53,14 @@ const sampleExperts: Expert[] = [
     avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
     yearsExperience: 15,
     notes: 'Experta senior con 15 años de experiencia',
+    role: 'EXPERT',
+    biography: 'Doctora en Ingeniería con especialización en prospectiva tecnológica. Ha dirigido múltiples estudios de futuro para el sector público y privado.',
+    linkedinUrl: 'https://linkedin.com/in/maria-gonzalez-tech',
+    phone: '+34 666 111 222',
+    isActive: true,
+    lastLoginAt: '2024-01-20T14:30:00Z',
+    totalProjectsParticipated: 12,
+    averageResponseTime: 3.2,
     createdAt: '2024-01-10T09:00:00Z',
     updatedAt: '2024-01-20T14:30:00Z'
   },
@@ -65,6 +73,14 @@ const sampleExperts: Expert[] = [
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
     yearsExperience: 12,
     notes: 'Especialista en marco regulatorio',
+    role: 'MODERATOR',
+    biography: 'Ingeniero con amplia experiencia en consultoría de políticas públicas y marcos regulatorios para nuevas tecnologías.',
+    linkedinUrl: 'https://linkedin.com/in/carlos-ruiz-policy',
+    phone: '+34 777 333 444',
+    isActive: true,
+    lastLoginAt: '2024-01-19T16:45:00Z',
+    totalProjectsParticipated: 8,
+    averageResponseTime: 2.8,
     createdAt: '2024-01-10T09:15:00Z',
     updatedAt: '2024-01-19T16:45:00Z'
   },
@@ -77,8 +93,56 @@ const sampleExperts: Expert[] = [
     avatar: null,
     yearsExperience: 8,
     notes: 'Especialista en comportamiento del consumidor',
+    role: 'EXPERT',
+    biography: 'Doctora en Psicología del Consumidor con enfoque en adopción de tecnologías emergentes.',
+    linkedinUrl: 'https://linkedin.com/in/ana-martin-marketing',
+    phone: null,
+    isActive: true,
+    lastLoginAt: '2024-01-15T14:00:00Z',
+    totalProjectsParticipated: 5,
+    averageResponseTime: 5.1,
     createdAt: '2024-01-15T14:00:00Z',
     updatedAt: '2024-01-15T14:00:00Z'
+  },
+  {
+    id: 'expert-4',
+    name: 'Prof. Roberto Silva',
+    email: 'roberto.silva@economia.gov',
+    organization: 'Ministerio de Economía',
+    expertiseAreas: ['Económico', 'Políticas Fiscales'],
+    avatar: null,
+    yearsExperience: 20,
+    notes: 'Economista senior del gobierno',
+    role: 'EXPERT',
+    biography: 'Profesor de Economía Aplicada con 20 años de experiencia en políticas fiscales y análisis económico prospectivo.',
+    linkedinUrl: null,
+    phone: '+34 666 999 888',
+    isActive: true,
+    lastLoginAt: '2024-01-18T11:00:00Z',
+    totalProjectsParticipated: 15,
+    averageResponseTime: 4.0,
+    createdAt: '2024-01-05T08:00:00Z',
+    updatedAt: '2024-01-18T11:00:00Z'
+  },
+  {
+    id: 'expert-5',
+    name: 'Dra. Laura Vega',
+    email: 'laura.vega@sostenible.org',
+    organization: 'Instituto de Sostenibilidad',
+    expertiseAreas: ['Ambiental', 'Sostenibilidad', 'Energético'],
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+    yearsExperience: 18,
+    notes: 'Experta en sostenibilidad ambiental',
+    role: 'EXPERT',
+    biography: 'Doctora en Ciencias Ambientales con especialización en transición energética y desarrollo sostenible.',
+    linkedinUrl: 'https://linkedin.com/in/laura-vega-sostenible',
+    phone: '+34 555 666 777',
+    isActive: true,
+    lastLoginAt: '2024-01-21T09:30:00Z',
+    totalProjectsParticipated: 9,
+    averageResponseTime: 3.7,
+    createdAt: '2024-01-08T10:00:00Z',
+    updatedAt: '2024-01-21T09:30:00Z'
   }
 ]
 
