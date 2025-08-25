@@ -25,14 +25,19 @@ import type {
   ExpertFilter,
   ExpertStats,
   VotingResponse,
-  VotingMatrix
+  VotingMatrix,
+  MicMacResults
 } from '@/types/project'
+import { generateMicMacMatrix, generateImprovedMicMacMatrix, validateMicMacResults } from '@/utils/micmacCalculations'
 
 // Estado global para expertos mock (para persistir entre renders)
 let globalMockExperts: Expert[] = []
 
 // Estado global para votos mock (persistir entre renders)
 let globalMockVotes: VotingResponse[] = []
+
+// Estado global para resultados MIC MAC (cache)
+let globalMicMacResults: Map<string, MicMacResults> = new Map()
 
 interface MockDataContextType {
   // Proyectos
@@ -100,6 +105,12 @@ interface MockDataContextType {
   // Sistema de simulación de expertos
   simulateExpertVoting: (projectId: string, expertId: string) => Promise<{ success: boolean; votes?: VotingResponse[]; error?: string }>
   simulateAllExperts: (projectId: string) => Promise<{ success: boolean; totalVotes?: number; error?: string }>
+  
+  // ============ SISTEMA DE CÁLCULOS MIC MAC ============
+  // Métodos para calcular resultados MIC MAC
+  calculateMicMacResults: (projectId: string) => Promise<{ success: boolean; data?: MicMacResults; error?: string }>
+  getMicMacResults: (projectId: string) => MicMacResults | null
+  clearMicMacResults: (projectId: string) => void
 }
 
 const MockDataContext = createContext<MockDataContextType | undefined>(undefined)
@@ -835,6 +846,102 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     }
   }
 
+  // ============ SISTEMA DE CÁLCULOS MIC MAC ============
+
+  /**
+   * 🧮 Calcula resultados MIC MAC para un proyecto
+   */
+  const calculateMicMacResults = async (projectId: string): Promise<{ success: boolean; data?: MicMacResults; error?: string }> => {
+    try {
+      console.log(`🧮 [MockDataContext] Iniciando calculateMicMacResults para: ${projectId}`)
+      await delay(800) // Simular procesamiento complejo
+      
+      const project = projects.find(p => p.id === projectId)
+      if (!project) {
+        console.error(`❌ [MockDataContext] Proyecto no encontrado: ${projectId}`)
+        return { success: false, error: 'Proyecto no encontrado' }
+      }
+      
+      console.log(`📋 [MockDataContext] Proyecto encontrado:`, {
+        nombre: project.name,
+        variables: project.variables.length,
+        expertos: project.projectExperts.length
+      })
+      
+      if (project.variables.length === 0) {
+        console.error(`❌ [MockDataContext] Proyecto sin variables`)
+        return { success: false, error: 'El proyecto no tiene variables definidas' }
+      }
+      
+      // Obtener todos los votos del proyecto
+      const projectVotes = getProjectVotes(projectId)
+      console.log(`🗳️ [MockDataContext] Votos obtenidos: ${projectVotes.length}`)
+      
+      if (projectVotes.length === 0) {
+        console.error(`❌ [MockDataContext] No hay votos para calcular`)
+        return { success: false, error: 'No hay votos disponibles para calcular' }
+      }
+      
+      console.log(`🧮 [MockDataContext] Calculando MIC MAC:`, {
+        variables: project.variables.length,
+        votos: projectVotes.length,
+        expertos: project.projectExperts.length
+      })
+      
+      // Generar matriz MIC MAC usando el motor de cálculo MEJORADO
+      const improvedResults = generateImprovedMicMacMatrix(projectVotes, project.variables, 'average')
+      console.log(`📊 [MockDataContext] Matriz MEJORADA generada:`)
+      console.log(`   - Método: ${improvedResults.calculationMethod}`)
+      console.log(`   - Calidad: ${improvedResults.qualityScore}%`)
+      console.log(`   - Alertas: ${improvedResults.inconsistencyAlerts.length}`)
+      
+      // Extraer resultado básico para compatibilidad
+      const { inconsistencyAlerts, calculationMethod, qualityScore, ...results } = improvedResults
+      
+      // Validar resultados
+      const validation = validateMicMacResults(results)
+      if (!validation.isValid) {
+        console.error(`❌ [MockDataContext] Validación falló:`, validation.errors)
+        return { 
+          success: false, 
+          error: `Resultados inválidos: ${validation.errors.join(', ')}` 
+        }
+      }
+      
+      // Guardar en cache
+      globalMicMacResults.set(projectId, results)
+      console.log(`💾 [MockDataContext] Resultados guardados en cache`)
+      
+      console.log(`✅ [MockDataContext] Cálculo MIC MAC completado:`, {
+        avgMotricity: results.averageMotricity.toFixed(2),
+        avgDependence: results.averageDependence.toFixed(2),
+        variables: results.variables.length,
+        totalVotes: results.totalVotes
+      })
+      
+      return { success: true, data: results }
+      
+    } catch (error) {
+      console.error('💥 [MockDataContext] Error crítico calculando MIC MAC:', error)
+      return { success: false, error: 'Error interno en el cálculo MIC MAC' }
+    }
+  }
+  
+  /**
+   * 📊 Obtiene resultados MIC MAC cacheados
+   */
+  const getMicMacResults = (projectId: string): MicMacResults | null => {
+    return globalMicMacResults.get(projectId) || null
+  }
+  
+  /**
+   * 🗑️ Limpia resultados MIC MAC cacheados
+   */
+  const clearMicMacResults = (projectId: string): void => {
+    globalMicMacResults.delete(projectId)
+    console.log(`🗑️ Cache MIC MAC limpiado para proyecto ${projectId}`)
+  }
+
   const value: MockDataContextType = {
     // Estados
     projects,
@@ -883,7 +990,12 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     getExpertVotes,
     clearVotes,
     simulateExpertVoting,
-    simulateAllExperts
+    simulateAllExperts,
+    
+    // Cálculos MIC MAC
+    calculateMicMacResults,
+    getMicMacResults,
+    clearMicMacResults
   }
 
   // ============ SISTEMA DE SIMULACIÓN DE EXPERTOS ============
@@ -897,7 +1009,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
         return { success: false, error: 'Proyecto no encontrado' }
       }
 
-      const expert = sampleExperts.find(e => e.id === expertId)
+      const expert = experts.find(e => e.id === expertId)
       if (!expert) {
         return { success: false, error: 'Experto no encontrado' }
       }
@@ -965,24 +1077,39 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
 
   async function simulateAllExperts(projectId: string): Promise<{ success: boolean; totalVotes?: number; error?: string }> {
     try {
+      console.log(`🤖 [MockDataContext] Iniciando simulateAllExperts para: ${projectId}`)
+      
       const project = mockProjects.find(p => p.id === projectId)
       if (!project) {
+        console.error(`❌ [MockDataContext] Proyecto no encontrado en simulateAllExperts: ${projectId}`)
         return { success: false, error: 'Proyecto no encontrado' }
       }
+
+      console.log(`📋 [MockDataContext] Proyecto encontrado para simulación:`, {
+        nombre: project.name,
+        variables: project.variables.length,
+        expertosAsignados: project.projectExperts.length
+      })
 
       let totalVotes = 0
       
       // Simular votación de todos los expertos asignados
       for (const projectExpert of project.projectExperts) {
+        console.log(`👤 [MockDataContext] Simulando experto: ${projectExpert.expertId}`)
+        
         const result = await simulateExpertVoting(projectId, projectExpert.expertId)
         if (result.success && result.votes) {
           totalVotes += result.votes.length
+          console.log(`✅ [MockDataContext] Experto ${projectExpert.expertId} simulado: ${result.votes.length} votos`)
+        } else {
+          console.error(`❌ [MockDataContext] Error simulando experto ${projectExpert.expertId}:`, result.error)
         }
         
         // Pequeña pausa entre expertos para realismo
         await delay(200)
       }
       
+      console.log(`✅ [MockDataContext] Simulación completada: ${totalVotes} votos totales`)
       return { success: true, totalVotes }
       
     } catch (error) {
@@ -1039,7 +1166,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     ) ? 0.5 : 0
     
     // Añadir variabilidad realista basada en experiencia
-    const experienceVariation = (expert.yearsExperience - 15) / 30 // Normalizado
+    const experienceVariation = ((expert.yearsExperience || 10) - 15) / 30 // Normalizado
     const randomVariation = Math.random() * 0.6 - 0.3 // ±30% variación
     
     const finalValue = Math.max(0, Math.min(3, Math.round(
@@ -1050,11 +1177,11 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     const hasExpertise = expert.expertiseAreas.some(area => 
       aName.includes(area.toLowerCase()) || bName.includes(area.toLowerCase())
     )
-    const confidenceBase = hasExpertise ? 3 : Math.min(3, Math.floor(expert.yearsExperience / 8))
+    const confidenceBase = hasExpertise ? 3 : Math.min(3, Math.floor((expert.yearsExperience || 5) / 8))
     const confidence = Math.max(1, confidenceBase + Math.round(Math.random() * 0.4 - 0.2))
     
     // Tiempo basado en experiencia (más experiencia = más rápido)
-    const timeBase = Math.max(15, 60 - expert.yearsExperience)
+    const timeBase = Math.max(15, 60 - (expert.yearsExperience || 10))
     const timeSpent = timeBase + Math.round(Math.random() * 20 - 10)
     
     return {

@@ -290,6 +290,33 @@ export const canTransitionTo = (from: ProjectStatus, to: ProjectStatus): boolean
   return PROJECT_TRANSITIONS[from].includes(to)
 }
 
+// Tipos para resultados MIC MAC (Etapa 5)
+export interface MicMacResults {
+  projectId: string
+  variables: VariableAnalysis[]
+  totalVotes: number
+  calculatedAt: string
+  averageMotricity: number
+  averageDependence: number
+  matrixData: number[][] // Matriz NxN para visualización
+}
+
+export interface VariableAnalysis {
+  variable: Variable
+  motricity: number // Influencia (Eje Y)
+  dependence: number // Dependencia (Eje X) 
+  coordinates: [number, number] // [dependence, motricity]
+  classification: VariableClassification
+  rank: number
+  percentage: number // % del total
+}
+
+export type VariableClassification = 
+  | "Variable Motriz"     // Alta influencia, baja dependencia
+  | "Variable de Enlace"  // Alta influencia, alta dependencia
+  | "Variable Dependiente" // Baja influencia, alta dependencia
+  | "Variable Autónoma"   // Baja influencia, baja dependencia
+
 export const validateProject = (project: Project): { isValid: boolean; errors: string[] } => {
   const rules = PROJECT_VALIDATION_CONFIG[project.status]
   const errors: string[] = []

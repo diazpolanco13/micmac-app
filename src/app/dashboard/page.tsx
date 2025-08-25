@@ -11,6 +11,7 @@ import { Button } from '@/components/ui'
 import CreateProjectModal from '@/components/projects/CreateProjectModal'
 import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import AppLayout from '@/components/layout/AppLayout'
+import MicMacTester from '@/components/testing/MicMacTester'
 import { mockProjects } from '@/lib/mockData'
 
 // Tipos locales para el dashboard
@@ -346,6 +347,13 @@ function ExpertContent({ projects, loading, user, onEditProject }: {
           </div>
         )}
       </div>
+      
+      {/* 🧪 TESTING COMPONENT - Solo para desarrollo */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-12">
+          <MicMacTester />
+        </div>
+      )}
     </div>
   )
 }
