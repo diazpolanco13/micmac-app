@@ -97,7 +97,7 @@ export default function VotingPage() {
     // Mostrar pantalla de completado elegante
     setCompletionStats({
       votes: votes.length,
-      progress: progress.percentage,
+      progress: 100, // Siempre 100% cuando se completa la votación
       totalPairs: progress.totalPairs
     })
     setShowCompletion(true)
