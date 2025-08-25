@@ -28,7 +28,7 @@ import type {
   VotingMatrix,
   MicMacResults
 } from '@/types/project'
-import { generateMicMacMatrix, generateImprovedMicMacMatrix, validateMicMacResults } from '@/utils/micmacCalculations'
+import { generateMicMacMatrix, generateImprovedMicMacMatrix, generateClassicMicMacMatrix, validateMicMacResults } from '@/utils/micmacCalculations'
 
 // Estado global para expertos mock (para persistir entre renders)
 let globalMockExperts: Expert[] = []

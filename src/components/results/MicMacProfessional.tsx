@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useMockData } from '@/contexts/MockDataContext'
 import type { MicMacResults, VariableAnalysis, Expert, VotingResponse } from '@/types/project'
+import { generateClassicMicMacMatrix, generateImprovedMicMacMatrix } from '@/utils/micmacCalculations'
+import MicMacMethodSelector from './MicMacMethodSelector'
+import MicMacMethodExplanation from './MicMacMethodExplanation'
 import { 
   Camera, Download, RefreshCw, Settings, Info, ChevronRight, ChevronLeft, 
   Plus, Minus, Grid, BarChart3, TrendingUp, Target, Layers, Activity, 
@@ -19,6 +22,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
   // Estados principales
   const [results, setResults] = useState<MicMacResults | null>(null)
   const [loading, setLoading] = useState(true) // Empezar en loading
+  const [calculationMethod, setCalculationMethod] = useState<'classic' | 'hybrid'>('hybrid')
   const [selectedVariable, setSelectedVariable] = useState<number | null>(null)
   const [selectedExpert, setSelectedExpert] = useState<string | null>(null)
   
@@ -65,22 +69,28 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
     setLoading(true)
     
     try {
-      // 1. Intentar cache primero
-      console.log(`📦 [MicMacProfessional] Verificando cache...`)
-      let cached = getMicMacResults(projectId)
-      
-      if (cached) {
-        console.log(`✅ [MicMacProfessional] Resultados encontrados en cache:`, {
-          variables: cached.variables.length,
-          votos: cached.totalVotes,
-          calculadoEn: cached.calculatedAt
-        })
-        setResults(cached)
-        setLoading(false)
-        return
+      // 1. Para método híbrido, intentar cache primero
+      if (calculationMethod === 'hybrid') {
+        console.log(`📦 [MicMacProfessional] Verificando cache para método híbrido...`)
+        let cached = getMicMacResults(projectId)
+        
+        if (cached) {
+          console.log(`✅ [MicMacProfessional] Resultados híbridos encontrados en cache:`, {
+            variables: cached.variables.length,
+            votos: cached.totalVotes,
+            calculadoEn: cached.calculatedAt
+          })
+          setResults(cached)
+          setLoading(false)
+          return
+        }
+        
+        console.log(`❌ [MicMacProfessional] No hay cache híbrido, continuando...`)
+      } else {
+        console.log(`📚 [MicMacProfessional] Método clásico - siempre recalcular (no usar cache)`)
       }
       
-      console.log(`❌ [MicMacProfessional] No hay cache, verificando votos...`)
+      console.log(`🗳️ [MicMacProfessional] Verificando votos...`)
       
       // 2. Verificar votos existentes
       const votes = getProjectVotes(projectId)
@@ -102,21 +112,41 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
         console.log(`🔍 [MicMacProfessional] Votos después de simulación: ${votesAfterSim.length}`)
       }
       
-      // 3. Calcular resultados MIC MAC
-      console.log(`🧮 [MicMacProfessional] Iniciando cálculo MIC MAC...`)
-      const result = await calculateMicMacResults(projectId)
+      // 3. Calcular resultados según método seleccionado
+      console.log(`🧮 [MicMacProfessional] Iniciando cálculo MIC MAC con método: ${calculationMethod}`)
       
-      if (result.success && result.data) {
-        console.log(`✅ [MicMacProfessional] Cálculo exitoso:`, {
-          variables: result.data.variables.length,
-          votos: result.data.totalVotes,
-          avgMotricity: result.data.averageMotricity,
-          avgDependence: result.data.averageDependence
+      if (calculationMethod === 'classic') {
+        // Método MIC MAC Clásico - usar solo fase INFLUENCE
+        console.log(`📚 [MicMacProfessional] Aplicando método CLÁSICO (solo influencia)`)
+        const updatedVotes = getProjectVotes(projectId)
+        const classicResults = generateClassicMicMacMatrix(updatedVotes, project?.variables || [])
+        
+        console.log(`✅ [MicMacProfessional] Cálculo clásico exitoso:`, {
+          variables: classicResults.variables.length,
+          votos: classicResults.totalVotes,
+          avgMotricity: classicResults.averageMotricity,
+          avgDependence: classicResults.averageDependence,
+          metodo: 'Clásico (solo INFLUENCE)'
         })
-        setResults(result.data)
+        setResults(classicResults)
       } else {
-        console.error(`❌ [MicMacProfessional] Error en cálculo:`, result.error)
-        throw new Error(`Error calculando resultados: ${result.error}`)
+        // Método Híbrido - usar contexto existente
+        console.log(`🚀 [MicMacProfessional] Aplicando método HÍBRIDO (ambas fases)`)
+        const result = await calculateMicMacResults(projectId)
+        
+        if (result.success && result.data) {
+          console.log(`✅ [MicMacProfessional] Cálculo híbrido exitoso:`, {
+            variables: result.data.variables.length,
+            votos: result.data.totalVotes,
+            avgMotricity: result.data.averageMotricity,
+            avgDependence: result.data.averageDependence,
+            metodo: 'Híbrido (INFLUENCE + DEPENDENCE)'
+          })
+          setResults(result.data)
+        } else {
+          console.error(`❌ [MicMacProfessional] Error en cálculo híbrido:`, result.error)
+          throw new Error(`Error calculando resultados híbridos: ${result.error}`)
+        }
       }
       
     } catch (error) {
@@ -154,7 +184,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
         setResults(null)
       }
     }
-  }, [projectId, projects.length, experts.length, project])
+  }, [projectId, projects.length, experts.length, project, calculationMethod])
 
   // Análisis de expertos
   const expertAnalysis = useMemo(() => {
@@ -343,6 +373,33 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
             <p className="text-gray-300">
               {project.name} • {results.variables.length} variables • {results.totalVotes} votos procesados
             </p>
+            <div className="mt-2 flex items-center gap-2 text-sm">
+              <span className="text-gray-400">Método activo:</span>
+              {calculationMethod === 'classic' ? (
+                <span className="px-2 py-1 bg-amber-900 text-amber-300 rounded font-medium">
+                  📚 Clásico (Solo Influencia)
+                </span>
+              ) : (
+                <span className="px-2 py-1 bg-blue-900 text-blue-300 rounded font-medium">
+                  🚀 Híbrido (Validación Cruzada)
+                </span>
+              )}
+            </div>
+            
+            {/* Selector de Método */}
+            <div className="mt-4">
+              <MicMacMethodSelector
+                method={calculationMethod}
+                onMethodChange={(newMethod) => {
+                  console.log(`🔄 [MicMacProfessional] Cambiando método de ${calculationMethod} a ${newMethod}`)
+                  setCalculationMethod(newMethod)
+                  setResults(null) // Limpiar resultados inmediatamente
+                  setLoading(true) // Mostrar loading
+                  // Auto-recalcular cuando cambie el método
+                  setTimeout(() => loadResults(), 200)
+                }}
+              />
+            </div>
           </div>
           <div className="flex gap-2">
             <button
@@ -1130,6 +1187,9 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                   </div>
                 </div>
               </div>
+
+              {/* Explicación comparativa de métodos */}
+              <MicMacMethodExplanation currentMethod={calculationMethod} />
             </div>
           )}
         </div>

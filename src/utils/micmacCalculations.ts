@@ -228,6 +228,136 @@ export function validateMicMacResults(results: MicMacResults): {
 }
 
 // ========================================
+// 📚 MÉTODO MIC MAC CLÁSICO (GODET ORIGINAL)
+// ========================================
+
+/**
+ * 📚 MÉTODO CLÁSICO: MIC MAC según metodología original de Michel Godet
+ * Usa SOLO la fase INFLUENCE para construir la matriz de influencias directas
+ */
+export function generateClassicMicMacMatrix(
+  votes: VotingResponse[], 
+  variables: Variable[]
+): MicMacResults {
+  console.log(`📚 Iniciando cálculo MIC MAC CLÁSICO para ${variables.length} variables`)
+  
+  // 1. Usar SOLO votos de la fase INFLUENCE (metodología original)
+  const influenceVotes = votes.filter(v => v.phase === 'INFLUENCE')
+  console.log(`📊 Usando solo ${influenceVotes.length} votos de INFLUENCE (ignorando DEPENDENCE)`)
+  
+  // 2. Construir matriz de influencias directas
+  const matrix = buildPhaseMatrix(influenceVotes, variables)
+  
+  // 3. Calcular motricidad y dependencia desde la MISMA matriz
+  const motricity = calculateMotricity(matrix)
+  const dependence = calculateDependence(matrix)
+  
+  // 4. Calcular medias para clasificación
+  const avgMotricity = calculateAverage(motricity)
+  const avgDependence = calculateAverage(dependence)
+  
+  // 5. Clasificar variables
+  const variableAnalysis = variables.map((variable, index): VariableAnalysis => {
+    const mot = motricity[index]
+    const dep = dependence[index]
+    
+    return {
+      variable,
+      motricity: mot,
+      dependence: dep,
+      coordinates: [dep, mot], // X, Y
+      classification: classifyVariable(mot, dep, avgMotricity, avgDependence),
+      rank: index + 1,
+      percentage: ((mot + dep) / (avgMotricity + avgDependence)) * 50
+    }
+  })
+  
+  // 6. Construir resultado final
+  const results: MicMacResults = {
+    projectId: 'calculated-classic',
+    variables: variableAnalysis,
+    totalVotes: influenceVotes.length, // Solo contar votos de influencia
+    calculatedAt: new Date().toISOString(),
+    averageMotricity: avgMotricity,
+    averageDependence: avgDependence,
+    matrixData: matrix
+  }
+  
+  console.log(`📚 MIC MAC CLÁSICO completado - usando solo matriz de influencias`)
+  return results
+}
+
+/**
+ * 📚 ALTERNATIVA: MIC MAC Clásico usando fase DEPENDENCE (transpuesta)
+ */
+export function generateClassicMicMacFromDependence(
+  votes: VotingResponse[], 
+  variables: Variable[]
+): MicMacResults {
+  console.log(`📚 Iniciando cálculo MIC MAC CLÁSICO desde DEPENDENCE (transpuesta)`)
+  
+  // 1. Usar SOLO votos de la fase DEPENDENCE
+  const dependenceVotes = votes.filter(v => v.phase === 'DEPENDENCE')
+  console.log(`📊 Usando ${dependenceVotes.length} votos de DEPENDENCE transpuestos`)
+  
+  // 2. Construir matriz transpuesta: "j depende de i" → "i influye sobre j"
+  const dependenceMatrix = buildPhaseMatrix(dependenceVotes, variables)
+  const transposedMatrix = transposeMatrix(dependenceMatrix)
+  
+  // 3. Calcular motricidad y dependencia
+  const motricity = calculateMotricity(transposedMatrix)
+  const dependence = calculateDependence(transposedMatrix)
+  
+  // 4. Resto igual al método clásico...
+  const avgMotricity = calculateAverage(motricity)
+  const avgDependence = calculateAverage(dependence)
+  
+  const variableAnalysis = variables.map((variable, index): VariableAnalysis => {
+    const mot = motricity[index]
+    const dep = dependence[index]
+    
+    return {
+      variable,
+      motricity: mot,
+      dependence: dep,
+      coordinates: [dep, mot],
+      classification: classifyVariable(mot, dep, avgMotricity, avgDependence),
+      rank: index + 1,
+      percentage: ((mot + dep) / (avgMotricity + avgDependence)) * 50
+    }
+  })
+  
+  const results: MicMacResults = {
+    projectId: 'calculated-classic-dep',
+    variables: variableAnalysis,
+    totalVotes: dependenceVotes.length,
+    calculatedAt: new Date().toISOString(),
+    averageMotricity: avgMotricity,
+    averageDependence: avgDependence,
+    matrixData: transposedMatrix
+  }
+  
+  console.log(`📚 MIC MAC CLÁSICO (desde dependencia) completado`)
+  return results
+}
+
+/**
+ * 🔄 Utilidad: Transponer matriz
+ */
+function transposeMatrix(matrix: number[][]): number[][] {
+  const n = matrix.length
+  const transposed: number[][] = Array(n).fill(0).map(() => Array(n).fill(0))
+  
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      transposed[i][j] = matrix[j][i]
+    }
+  }
+  
+  return transposed
+}
+
+// ========================================
 // 🚀 MÉTODO MIC MAC MEJORADO 
 // ========================================
 
