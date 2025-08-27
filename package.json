@@ -23,7 +23,6 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
-
     "@headlessui/react": "^2.2.7",
     "@heroicons/react": "^2.2.0",
     "@modelcontextprotocol/sdk": "^1.17.4",
@@ -40,7 +39,7 @@
     "prisma": "^5.6.0",
     "react": "^18",
     "react-dom": "^18",
-    "recharts": "^2.8.0",
+    "recharts": "^2.15.4",
     "tailwindcss": "^3.3.0",
     "typescript": "^5",
     "zod": "^3.22.4"

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
+import { useSidebarState, type SidebarState } from '@/hooks/useWindowSize'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -11,27 +12,63 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children, onNewProject }: AppLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
+  const [sidebarState, setSidebarState] = useState<SidebarState>('hidden')
   const [mounted, setMounted] = useState(false)
+  const [manualOverride, setManualOverride] = useState<SidebarState | null>(null) // Override manual del usuario
+  const responsiveSidebarState = useSidebarState()
 
   useEffect(() => {
     setMounted(true)
     // Recuperar estado del sidebar desde localStorage
-    const saved = localStorage.getItem('micmac-sidebar-collapsed')
-    if (saved) {
-      setSidebarCollapsed(JSON.parse(saved))
+    const savedState = localStorage.getItem('micmac-sidebar-state')
+    const savedOverride = localStorage.getItem('micmac-sidebar-manual-override')
+    
+    if (savedState) {
+      setSidebarState(JSON.parse(savedState))
+    }
+    if (savedOverride) {
+      setManualOverride(JSON.parse(savedOverride))
     }
   }, [])
+
+  // Efecto para manejar el estado automático basado en el tamaño de pantalla
+  useEffect(() => {
+    if (mounted && !manualOverride) {
+      // Solo aplicar estado automático si no hay override manual
+      setSidebarState(responsiveSidebarState)
+    }
+  }, [responsiveSidebarState, mounted, manualOverride])
 
   useEffect(() => {
     if (mounted) {
       // Guardar estado del sidebar
-      localStorage.setItem('micmac-sidebar-collapsed', JSON.stringify(sidebarCollapsed))
+      localStorage.setItem('micmac-sidebar-state', JSON.stringify(sidebarState))
+      localStorage.setItem('micmac-sidebar-manual-override', JSON.stringify(manualOverride))
     }
-  }, [sidebarCollapsed, mounted])
+  }, [sidebarState, mounted, manualOverride])
 
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed)
+    // Ciclar entre estados disponibles según el tamaño de pantalla
+    let nextState: SidebarState
+    
+    if (responsiveSidebarState === 'hidden') {
+      // En móvil, solo alternar entre hidden y expanded
+      nextState = sidebarState === 'hidden' ? 'expanded' : 'hidden'
+    } else if (responsiveSidebarState === 'collapsed') {
+      // En tablet, alternar entre collapsed y expanded
+      nextState = sidebarState === 'collapsed' ? 'expanded' : 'collapsed'
+    } else {
+      // En desktop, alternar entre expanded y collapsed
+      nextState = sidebarState === 'expanded' ? 'collapsed' : 'expanded'
+    }
+    
+    setSidebarState(nextState)
+    setManualOverride(nextState)
+    
+    // Resetear el override manual después de un tiempo para permitir comportamiento automático
+    setTimeout(() => {
+      setManualOverride(null)
+    }, 15000) // 15 segundos
   }
 
   if (!mounted) {
@@ -45,17 +82,17 @@ export default function AppLayout({ children, onNewProject }: AppLayoutProps) {
   return (
     <div className="h-screen overflow-hidden bg-gray-50 dark:bg-dark-bg-primary">
       {/* Fixed Navbar */}
-      <Navbar 
+              <Navbar 
         onNewProject={onNewProject} 
         onToggleSidebar={toggleSidebar}
-        sidebarCollapsed={sidebarCollapsed}
+        sidebarState={sidebarState}
       />
 
       {/* Layout container - ajustado para navbar fijo */}
       <div className="flex h-screen pt-16">
         {/* Sidebar */}
         <Sidebar 
-          isCollapsed={sidebarCollapsed} 
+          state={sidebarState} 
           onToggle={toggleSidebar}
         />
         

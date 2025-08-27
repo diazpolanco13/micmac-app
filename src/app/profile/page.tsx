@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
 import { Button, Input } from '@/components/ui'
 import { useToast } from '@/contexts/ToastContext'
+import ExpertiseAreasSection from '@/components/profile/ExpertiseAreasSection'
+import ExpertiseRadarChart from '@/components/profile/ExpertiseRadarChart'
+import type { ExpertiseArea } from '@/types/project'
 
 export default function ProfilePage() {
   const { user, loading, updateProfile } = useMockAuth()
@@ -15,12 +18,21 @@ export default function ProfilePage() {
   // Estados del formulario
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     role: 'EXPERT' as 'EXPERT' | 'MODERATOR',
     avatar: '',
-    bio: ''
+    bio: '',
+    // 🎯 NUEVOS CAMPOS
+    organization: '',
+    phone: '',
+    linkedinUrl: '',
+    profession: '',
+    currentPosition: '',
+    yearsExperience: 0,
+    expertiseAreas: [] as ExpertiseArea[]
   })
 
   // Redireccionar si no está autenticado
@@ -38,7 +50,14 @@ export default function ProfilePage() {
         email: user.email || '',
         role: user.role || 'EXPERT',
         avatar: user.avatar || '',
-        bio: user.bio || ''
+        bio: user.bio || '',
+        organization: user.organization || '',
+        phone: user.phone || '',
+        linkedinUrl: user.linkedinUrl || '',
+        profession: user.profession || '',
+        currentPosition: user.currentPosition || '',
+        yearsExperience: user.yearsExperience || 0,
+        expertiseAreas: user.expertiseAreas || []
       })
     }
   }, [user])
@@ -57,17 +76,23 @@ export default function ProfilePage() {
     try {
       setIsSaving(true)
       
-      // Por ahora usamos MockAuth, pero será compatible con SupabaseAuth
       const result = await updateProfile({
         name: formData.name,
         avatar: formData.avatar,
-        // Estos campos adicionales se pueden agregar después
-        bio: formData.bio
+        bio: formData.bio,
+        organization: formData.organization,
+        phone: formData.phone,
+        linkedinUrl: formData.linkedinUrl,
+        profession: formData.profession,
+        currentPosition: formData.currentPosition,
+        yearsExperience: formData.yearsExperience,
+        expertiseAreas: formData.expertiseAreas
       })
 
       if (result.success) {
         toast.success('Perfil actualizado', 'Los cambios se han guardado correctamente')
         setIsEditing(false)
+        setShowSidebar(false)
       } else {
         toast.error('Error', result.error || 'No se pudo actualizar el perfil')
       }
@@ -86,10 +111,23 @@ export default function ProfilePage() {
         email: user.email || '',
         role: user.role || 'EXPERT',
         avatar: user.avatar || '',
-        bio: user.bio || ''
+        bio: user.bio || '',
+        organization: user.organization || '',
+        phone: user.phone || '',
+        linkedinUrl: user.linkedinUrl || '',
+        profession: user.profession || '',
+        currentPosition: user.currentPosition || '',
+        yearsExperience: user.yearsExperience || 0,
+        expertiseAreas: user.expertiseAreas || []
       })
     }
     setIsEditing(false)
+    setShowSidebar(false)
+  }
+
+  const handleEditClick = () => {
+    setIsEditing(true)
+    setShowSidebar(true)
   }
 
   if (loading) {
@@ -107,7 +145,7 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-7xl mx-auto relative">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gradient mb-2">
@@ -118,64 +156,166 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* Información de cuenta */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Panel principal */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Información personal */}
-            <div className="card p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-dark-text-primary">
-                  Información Personal
-                </h2>
-                {!isEditing ? (
-                  <Button 
-                    ghost 
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                    </svg>
-                    Editar
-                  </Button>
+        {/* Perfil compacto */}
+        <div className="card p-5 mb-6">
+          {/* DIV SUPERIOR - Botón de editar centrado a la derecha */}
+          <div className="w-full flex justify-end mb-0">
+            <Button 
+              ghost 
+              onClick={handleEditClick}
+              className="flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              </svg>
+              Editar Perfil
+            </Button>
+          </div>
+
+          {/* CONTENIDO PRINCIPAL - 3 divs separados */}
+          <div className="flex gap-6">
+            {/* DIV LOGO - Avatar centrado vertical y horizontalmente */}
+            <div className="w-50 flex items-center justify-center">
+              <div className="flex flex-col items-center">
+                {formData.avatar ? (
+                  <img
+                    src={formData.avatar}
+                    alt="Avatar"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-dark-bg-tertiary shadow-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Usuario')}&background=2DD4BF&color=1F2937&size=128`
+                    }}
+                  />
                 ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      ghost
-                      onClick={handleCancel}
-                      disabled={isSaving}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      color="primary"
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="flex items-center gap-2"
-                    >
-                      {isSaving ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                      )}
-                      Guardar
-                    </Button>
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+                    {(formData.name || formData.email || 'U').charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
+            </div>
+            
+            {/* DIV INFORMACIÓN - Datos del usuario */}
+            <div className="flex-1 space-y-4">
+              <div>
+                <h2 className="text-2xl font-bold text-dark-text-primary mb-1">
+                  {formData.name || 'Sin nombre'}
+                </h2>
+                <p className="text-dark-text-secondary mb-2">
+                  {formData.email}
+                </p>
+                <div className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${
+                  formData.role === 'MODERATOR'
+                    ? 'bg-micmac-secondary-500/20 text-micmac-secondary-300'
+                    : 'bg-micmac-primary-500/20 text-micmac-primary-300'
+                }`}>
+                  {formData.role === 'MODERATOR' ? '🛡️ Moderador' : '👨‍🔬 Experto'}
+                </div>
+              </div>
+              
+              {/* Profesión y Cargo */}
+              {(formData.profession || formData.currentPosition) && (
+                <div className="space-y-2">
+                  {formData.profession && (
+                    <div className="text-sm text-dark-text-primary font-medium">
+                      🎓 {formData.profession}
+                    </div>
+                  )}
+                  {formData.currentPosition && (
+                    <div className="text-sm text-dark-text-secondary">
+                      💼 {formData.currentPosition}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Información de contacto */}
+              <div className="space-y-1 text-sm text-dark-text-secondary">
+                {formData.organization && (
+                  <div>📍 {formData.organization}</div>
+                )}
+                {formData.phone && (
+                  <div>📞 {formData.phone}</div>
+                )}
+                {formData.linkedinUrl && (
+                  <div>
+                    <a 
+                      href={formData.linkedinUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300"
+                    >
+                      💼 LinkedIn
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
 
-              <div className="space-y-6">
-                {/* Nombre */}
-                <div>
-                  <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                    Nombre completo
-                  </label>
-                  {isEditing ? (
+            {/* DIV RADAR - Chart de expertise separado */}
+            <div className="w-80 hidden lg:flex flex-col items-center justify-center">
+              <div className="w-full h-64">
+                <ExpertiseRadarChart expertiseAreas={formData.expertiseAreas} />
+              </div>
+            </div>
+          </div>
+          
+          {/* Biografía */}
+          {formData.bio && (
+            <div className="mt-6 pt-4 border-t border-dark-bg-tertiary">
+              <h4 className="text-sm font-medium text-dark-text-primary mb-2">Descripción personal</h4>
+              <p className="text-dark-text-secondary text-sm leading-relaxed">
+                {formData.bio}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Áreas de Expertise - Protagonista */}
+        <div className="card p-6">
+          <ExpertiseAreasSection
+            expertiseAreas={formData.expertiseAreas}
+            onAreasChange={(areas) => setFormData(prev => ({ ...prev, expertiseAreas: areas }))}
+            isEditing={!showSidebar}
+          />
+        </div>
+
+        {/* Sidebar de edición */}
+        <div className={`fixed inset-0 z-40 transition-opacity duration-300 ${
+          showSidebar ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}>
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+            onClick={handleCancel}
+          />
+          
+          {/* Sidebar */}
+          <div className={`absolute top-0 right-0 h-full w-[480px] bg-dark-bg-secondary border-l border-dark-bg-tertiary shadow-2xl transform transition-all duration-300 ease-out ${
+            showSidebar ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+          }`}>
+              <div className="flex flex-col h-full">
+                {/* Header del sidebar */}
+                <div className="flex items-center justify-between p-6 border-b border-dark-bg-tertiary">
+                  <h3 className="text-lg font-semibold text-dark-text-primary">
+                    Editar Información Personal
+                  </h3>
+                  <button
+                    onClick={handleCancel}
+                    className="text-dark-text-secondary hover:text-dark-text-primary"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Contenido scrolleable */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {/* Nombre */}
+                  <div>
+                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                      Nombre completo
+                    </label>
                     <Input
                       type="text"
                       name="name"
@@ -184,32 +324,13 @@ export default function ProfilePage() {
                       placeholder="Ingresa tu nombre completo"
                       disabled={isSaving}
                     />
-                  ) : (
-                    <p className="text-dark-text-primary bg-dark-bg-tertiary p-3 rounded-md">
-                      {formData.name || 'No especificado'}
-                    </p>
-                  )}
-                </div>
+                  </div>
 
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                    Correo electrónico
-                  </label>
-                  <p className="text-dark-text-secondary bg-dark-bg-tertiary p-3 rounded-md">
-                    {formData.email}
-                    <span className="ml-2 text-xs text-dark-text-muted">
-                      (No se puede cambiar)
-                    </span>
-                  </p>
-                </div>
-
-                {/* Avatar URL */}
-                <div>
-                  <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                    Avatar (URL de imagen)
-                  </label>
-                  {isEditing ? (
+                  {/* Avatar URL */}
+                  <div>
+                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                      Avatar (URL de imagen)
+                    </label>
                     <Input
                       type="url"
                       name="avatar"
@@ -218,19 +339,106 @@ export default function ProfilePage() {
                       placeholder="https://ejemplo.com/avatar.jpg"
                       disabled={isSaving}
                     />
-                  ) : (
-                    <p className="text-dark-text-primary bg-dark-bg-tertiary p-3 rounded-md">
-                      {formData.avatar || 'No especificado'}
-                    </p>
-                  )}
-                </div>
+                  </div>
 
-                {/* Biografía */}
-                <div>
-                  <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                    Biografía
-                  </label>
-                  {isEditing ? (
+                  {/* Organización y Teléfono en la misma fila */}
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Organización
+                      </label>
+                      <Input
+                        type="text"
+                        name="organization"
+                        value={formData.organization}
+                        onChange={handleInputChange}
+                        placeholder="Empresa, Universidad..."
+                        disabled={isSaving}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Teléfono
+                      </label>
+                      <Input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="+1 234 567 8900"
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </div>
+
+                  {/* LinkedIn */}
+                  <div>
+                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                      LinkedIn Profile
+                    </label>
+                    <Input
+                      type="url"
+                      name="linkedinUrl"
+                      value={formData.linkedinUrl}
+                      onChange={handleInputChange}
+                      placeholder="https://linkedin.com/in/tu-perfil"
+                      disabled={isSaving}
+                    />
+                  </div>
+
+                  {/* Profesión Principal y Cargo Actual */}
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Profesión Principal
+                      </label>
+                      <Input
+                        type="text"
+                        name="profession"
+                        value={formData.profession}
+                        onChange={handleInputChange}
+                        placeholder="Ej: Ingeniero, Abogado, Médico..."
+                        disabled={isSaving}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Cargo Actual
+                      </label>
+                      <Input
+                        type="text"
+                        name="currentPosition"
+                        value={formData.currentPosition}
+                        onChange={handleInputChange}
+                        placeholder="Ej: Director General, Consultor Senior..."
+                        disabled={isSaving}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Años de Experiencia Total
+                      </label>
+                      <Input
+                        type="number"
+                        name="yearsExperience"
+                        value={formData.yearsExperience}
+                        onChange={handleInputChange}
+                        placeholder="Ej: 15"
+                        min="0"
+                        max="60"
+                        disabled={isSaving}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Descripción personal */}
+                  <div>
+                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                      Descripción personal
+                    </label>
                     <textarea
                       name="bio"
                       value={formData.bio}
@@ -240,154 +448,44 @@ export default function ProfilePage() {
                       disabled={isSaving}
                       className="w-full px-3 py-2 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-md text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 resize-vertical"
                     />
-                  ) : (
-                    <p className="text-dark-text-primary bg-dark-bg-tertiary p-3 rounded-md min-h-[100px] whitespace-pre-wrap">
-                      {formData.bio || 'No hay biografía disponible'}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Configuración de cuenta */}
-            <div className="card p-6">
-              <h2 className="text-xl font-semibold text-dark-text-primary mb-6">
-                Configuración de Cuenta
-              </h2>
-
-              <div className="space-y-4">
-                {/* Rol */}
-                <div className="flex items-center justify-between p-4 bg-dark-bg-tertiary rounded-lg">
-                  <div>
-                    <h3 className="text-sm font-medium text-dark-text-primary">
-                      Rol en el sistema
-                    </h3>
-                    <p className="text-sm text-dark-text-secondary">
-                      Define tus permisos y capacidades en la plataforma
-                    </p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    formData.role === 'MODERATOR' 
-                      ? 'bg-micmac-secondary-500/20 text-micmac-secondary-300'
-                      : 'bg-micmac-primary-500/20 text-micmac-primary-300'
-                  }`}>
-                    {formData.role === 'MODERATOR' ? '🛡️ Moderador' : '👨‍🔬 Experto'}
-                  </span>
                 </div>
 
-                {/* Estadísticas de sesión */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-dark-bg-tertiary rounded-lg">
-                    <h4 className="text-sm font-medium text-dark-text-primary mb-1">
-                      Último acceso
-                    </h4>
-                    <p className="text-sm text-dark-text-secondary">
-                      {new Date().toLocaleDateString('es-ES', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-dark-bg-tertiary rounded-lg">
-                    <h4 className="text-sm font-medium text-dark-text-primary mb-1">
-                      Cuenta desde
-                    </h4>
-                    <p className="text-sm text-dark-text-secondary">
-                      {new Date().toLocaleDateString('es-ES', {
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </p>
+                {/* Footer con botones */}
+                <div className="p-6 border-t border-dark-bg-tertiary bg-dark-bg-primary">
+                  <div className="flex gap-4">
+                    <Button
+                      ghost
+                      onClick={handleCancel}
+                      disabled={isSaving}
+                      className="flex-1 h-12 text-base font-medium hover:bg-dark-bg-tertiary transition-colors"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      color="primary"
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="flex-1 h-12 text-base font-medium flex items-center justify-center gap-2 bg-micmac-primary-500 hover:bg-micmac-primary-600 transition-colors"
+                    >
+                      {isSaving ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                          Guardar Cambios
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Panel lateral */}
-          <div className="lg:col-span-1 space-y-6">
-            
-            {/* Avatar preview */}
-            <div className="card p-6 text-center">
-              <div className="mb-4">
-                {formData.avatar ? (
-                  <img
-                    src={formData.avatar}
-                    alt="Avatar"
-                    className="w-24 h-24 rounded-full mx-auto object-cover border-2 border-dark-bg-tertiary"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Usuario')}&background=2DD4BF&color=1F2937&size=96`
-                    }}
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full mx-auto bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center text-2xl font-bold text-white">
-                    {(formData.name || formData.email || 'U').charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <h3 className="text-lg font-semibold text-dark-text-primary">
-                {formData.name || 'Sin nombre'}
-              </h3>
-              <p className="text-sm text-dark-text-secondary">
-                {formData.email}
-              </p>
-              <div className={`inline-block mt-3 px-3 py-1 rounded-full text-xs font-medium ${
-                formData.role === 'MODERATOR'
-                  ? 'bg-micmac-secondary-500/20 text-micmac-secondary-300'
-                  : 'bg-micmac-primary-500/20 text-micmac-primary-300'
-              }`}>
-                {formData.role === 'MODERATOR' ? 'Moderador' : 'Experto'}
-              </div>
-            </div>
-
-            {/* Acciones rápidas */}
-            <div className="card p-6">
-              <h3 className="text-lg font-semibold text-dark-text-primary mb-4">
-                Acciones
-              </h3>
-              <div className="space-y-3">
-                <Button
-                  ghost
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => router.push('/dashboard')}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                  </svg>
-                  Dashboard
-                </Button>
-                
-                <Button
-                  ghost
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => router.push('/projects')}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25H11.379a1.5 1.5 0 01-1.06-.44z" />
-                  </svg>
-                  Mis Proyectos
-                </Button>
-
-                {formData.role === 'MODERATOR' && (
-                  <Button
-                    ghost
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => router.push('/experts')}
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                    </svg>
-                    Gestionar Expertos
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </AppLayout>

@@ -17,25 +17,31 @@ import {
 } from '@heroicons/react/24/outline'
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useState, useEffect } from 'react'
+import { useSidebarState, type SidebarState } from '@/hooks/useWindowSize'
 
 function classNames(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(' ')
 }
 
 interface SidebarProps {
-  isCollapsed: boolean
+  state: SidebarState
   onToggle: () => void
 }
 
-export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
+export default function Sidebar({ state, onToggle }: SidebarProps) {
   const { user, signOut } = useMockAuth()
   const [mounted, setMounted] = useState(false)
+  const responsiveState = useSidebarState()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  if (!user || !mounted) return null
+  if (!user || !mounted || state === 'hidden') return null
+
+  // Determinar si está colapsado (solo iconos)
+  const isCollapsed = state === 'collapsed'
+  const isExpanded = state === 'expanded'
 
   // Navegación específica por rol
   const moderatorNavigation = [
@@ -102,28 +108,27 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile backdrop */}
-      {!isCollapsed && (
+      {/* Mobile backdrop - solo cuando está expandido en móvil */}
+      {isExpanded && responsiveState === 'hidden' && (
         <div 
-          className="fixed inset-0 z-40 bg-gray-900/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-gray-900/50"
           onClick={onToggle}
         />
       )}
       
       {/* Sidebar */}
       <div className={classNames(
-        'fixed left-0 z-40 flex flex-col transition-all duration-300 ease-in-out',
-        'lg:static lg:h-full',
-        // Mobile: full height from top, Desktop: from top-0 (navbar is separate)
-        'top-16 bottom-0 lg:top-0',
-        isCollapsed 
-          ? 'w-16 lg:w-16' 
-          : 'w-64 lg:w-64',
-        // Mobile: slide from left
-        'transform lg:transform-none',
-        isCollapsed 
-          ? '-translate-x-full lg:translate-x-0'
-          : 'translate-x-0'
+        'flex flex-col transition-all duration-300 ease-in-out',
+        // Positioning basado en el estado responsivo
+        responsiveState === 'hidden' 
+          ? 'fixed left-0 z-40 top-16 bottom-0' // Móvil: fixed overlay
+          : 'static h-full', // Tablet/Desktop: static
+        // Width basado en el estado actual
+        isCollapsed ? 'w-16' : 'w-64',
+        // Transform para móvil cuando está expandido sobre el contenido
+        responsiveState === 'hidden' 
+          ? (isExpanded ? 'translate-x-0' : '-translate-x-full transform')
+          : 'transform-none'
       )}>
         
         {/* Sidebar content */}
@@ -131,8 +136,9 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           
           {/* Logo - solo visible en móvil cuando el sidebar está expandido */}
           <div className={classNames(
-            "relative flex h-16 shrink-0 items-center px-6 border-b border-gray-200 dark:border-gray-700 lg:hidden",
-            isCollapsed ? "hidden" : "flex"
+            "relative flex h-16 shrink-0 items-center border-b border-gray-200 dark:border-gray-700",
+            responsiveState === 'hidden' ? "flex" : "hidden", // Solo en móvil
+            isCollapsed ? "hidden px-2" : "flex px-6"
           )}>
             {isCollapsed ? (
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center">

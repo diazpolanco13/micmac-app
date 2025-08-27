@@ -1,6 +1,8 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
+import type { ExpertiseArea } from '@/types/project'
+import { createMockUserProfile } from '@/utils/mockExpertiseData'
 
 export type UserRole = 'MODERATOR' | 'EXPERT'
 
@@ -11,6 +13,20 @@ export interface User {
   role: UserRole
   avatar?: string
   bio?: string
+  // 🎯 CAMPOS PARA COHERENCIA CON DASHBOARD DE EXPERTOS
+  organization?: string
+  phone?: string
+  linkedinUrl?: string
+  profession?: string
+  currentPosition?: string
+  yearsExperience?: number
+  isActive?: boolean
+  lastLoginAt?: string
+  totalProjectsParticipated?: number
+  averageResponseTime?: number
+  createdAt?: string
+  updatedAt?: string
+  expertiseAreas: ExpertiseArea[]
 }
 
 interface AuthContextType {
@@ -19,7 +35,18 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signUp: (email: string, password: string, role: UserRole, name?: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
-  updateProfile: (data: { name?: string; avatar?: string; bio?: string }) => Promise<{ success: boolean; error?: string }>
+  updateProfile: (data: { 
+    name?: string; 
+    avatar?: string; 
+    bio?: string;
+    organization?: string;
+    phone?: string;
+    linkedinUrl?: string;
+    profession?: string;
+    currentPosition?: string;
+    yearsExperience?: number;
+    expertiseAreas?: ExpertiseArea[];
+  }) => Promise<{ success: boolean; error?: string }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -36,6 +63,19 @@ interface StoredUser {
   role: UserRole
   avatar?: string
   bio?: string
+  organization?: string
+  phone?: string
+  linkedinUrl?: string
+  profession?: string
+  currentPosition?: string
+  yearsExperience?: number
+  isActive?: boolean
+  lastLoginAt?: string
+  totalProjectsParticipated?: number
+  averageResponseTime?: number
+  createdAt?: string
+  updatedAt?: string
+  expertiseAreas: ExpertiseArea[]
 }
 
 const getStoredUsers = (): StoredUser[] => {
@@ -78,7 +118,38 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Simular carga inicial
     setTimeout(() => {
-      const currentUser = getCurrentUser()
+      let currentUser = getCurrentUser()
+      
+      // Si no hay usuario o es el usuario demo, crear/actualizar con datos de prueba
+      if (!currentUser || currentUser.email === 'demo@demo.com') {
+        const mockProfile = createMockUserProfile()
+        const mockUser: User = {
+          id: 'user_demo_guerdi_v2',
+          email: 'demo@demo.com',
+          name: mockProfile.name,
+          role: 'MODERATOR',
+          avatar: 'https://ui-avatars.com/api/?name=Guerdi+Lafaurie&background=2DD4BF&color=1F2937&size=96',
+          bio: mockProfile.bio,
+          organization: mockProfile.organization,
+          phone: mockProfile.phone,
+          linkedinUrl: mockProfile.linkedinUrl,
+          profession: mockProfile.profession,
+          currentPosition: mockProfile.currentPosition,
+          yearsExperience: mockProfile.yearsExperience,
+          isActive: mockProfile.isActive,
+          lastLoginAt: mockProfile.lastLoginAt,
+          totalProjectsParticipated: mockProfile.totalProjectsParticipated,
+          averageResponseTime: mockProfile.averageResponseTime,
+          createdAt: mockProfile.createdAt,
+          updatedAt: mockProfile.updatedAt,
+          expertiseAreas: mockProfile.expertiseAreas
+        }
+        
+        // Guardar usuario de prueba
+        setCurrentUser(mockUser)
+        currentUser = mockUser
+      }
+      
       setUser(currentUser)
       setLoading(false)
     }, 300)
@@ -109,7 +180,8 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password, // En producción nunca guardar passwords en plain text
         name: name || email.split('@')[0],
-        role
+        role,
+        expertiseAreas: []
       }
       
       // Guardar en "base de datos" (localStorage)
@@ -121,7 +193,8 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         id: newStoredUser.id,
         email: newStoredUser.email,
         name: newStoredUser.name,
-        role: newStoredUser.role
+        role: newStoredUser.role,
+        expertiseAreas: []
       }
       
       // Iniciar sesión automáticamente
@@ -162,7 +235,20 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         name: storedUser.name,
         role: storedUser.role,
         avatar: storedUser.avatar,
-        bio: storedUser.bio
+        bio: storedUser.bio,
+                  organization: storedUser.organization,
+          phone: storedUser.phone,
+          linkedinUrl: storedUser.linkedinUrl,
+          profession: storedUser.profession,
+          currentPosition: storedUser.currentPosition,
+          yearsExperience: storedUser.yearsExperience,
+          isActive: storedUser.isActive,
+          lastLoginAt: storedUser.lastLoginAt,
+          totalProjectsParticipated: storedUser.totalProjectsParticipated,
+          averageResponseTime: storedUser.averageResponseTime,
+          createdAt: storedUser.createdAt,
+          updatedAt: storedUser.updatedAt,
+          expertiseAreas: storedUser.expertiseAreas || []
       }
       
       setCurrentUser(authenticatedUser)
@@ -198,7 +284,13 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = async (data: { 
     name?: string; 
     avatar?: string; 
-    bio?: string 
+    bio?: string;
+    organization?: string;
+    phone?: string;
+    linkedinUrl?: string;
+    profession?: string;
+    currentPosition?: string;
+    expertiseAreas?: ExpertiseArea[];
   }): Promise<{ success: boolean; error?: string }> => {
     try {
       if (!user) {

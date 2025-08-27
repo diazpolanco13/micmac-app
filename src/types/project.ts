@@ -374,3 +374,32 @@ export const validateProject = (project: Project): { isValid: boolean; errors: s
     errors
   }
 }
+
+// 🎯 SISTEMA DE EXPERTISE SIMPLE - FASE 1
+export type ExperienceType = 'PROFESSIONAL' | 'ACADEMIC' | 'RESEARCH' | 'CONSULTING' | 'PERSONAL'
+export type EducationLevel = 'AUTODIDACTA' | 'TECNICO' | 'UNIVERSITARIO' | 'POSTGRADO' | 'DOCTORADO'
+export type ExpertiseLevel = 'NOVATO' | 'COMPETENTE' | 'EXPERIMENTADO' | 'EXPERTO' | 'MAESTRO'
+export type ExpertisePriority = 'HIGH' | 'MEDIUM' | 'LOW'
+
+export interface ExpertiseArea {
+  name: string
+  yearsExperience: number
+  proficiencyLevel: 1 | 2 | 3 | 4 | 5
+  experienceType: ExperienceType
+  educationLevel?: EducationLevel
+  
+  // Calculados automáticamente
+  calculatedScore: number
+  level: ExpertiseLevel
+  priority: ExpertisePriority
+  
+  createdAt: string
+  updatedAt: string
+}
+
+// Utilidades para el cálculo de scores
+export interface ExpertiseCalculationResult {
+  score: number
+  level: ExpertiseLevel
+  priority: ExpertisePriority
+}
