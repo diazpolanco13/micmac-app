@@ -42,6 +42,83 @@ const sampleVariables: Variable[] = [
   }
 ]
 
+// Función para generar métricas simuladas realistas
+const generateExpertMetrics = (
+  expertId: string, 
+  totalProjects: number, 
+  avgResponseTime: number
+): Expert['performanceMetrics'] => {
+  // Generar métricas basadas en el perfil del experto
+  const baseReliability = Math.max(60, Math.min(98, 85 + Math.random() * 20 - 10))
+  const consistency = Math.max(70, Math.min(99, baseReliability + Math.random() * 10 - 5))
+  const participation = Math.max(65, Math.min(95, 80 + Math.random() * 15))
+  const timeManagement = Math.max(50, Math.min(95, 100 - (avgResponseTime * 10)))
+  const communication = Math.max(60, Math.min(90, 75 + Math.random() * 15))
+
+  // Generar badges basados en métricas
+  const badges = []
+  if (consistency >= 95) {
+    badges.push({
+      type: 'CONSISTENCY',
+      name: 'Experto Consistente',
+      level: 'GOLD',
+      icon: '🥇',
+      earnedAt: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString()
+    })
+  }
+  if (avgResponseTime < 3) {
+    badges.push({
+      type: 'SPEED',
+      name: 'Respuesta Rápida',
+      level: 'SILVER',
+      icon: '⚡',
+      earnedAt: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString()
+    })
+  }
+  if (totalProjects >= 25) {
+    badges.push({
+      type: 'PARTICIPATION',
+      name: 'Veterano MIC MAC',
+      level: 'GOLD',
+      icon: '🎖️',
+      earnedAt: new Date(Date.now() - Math.random() * 120 * 24 * 60 * 60 * 1000).toISOString()
+    })
+  }
+
+  return {
+    overallReliability: Math.round(baseReliability),
+    consistencyScore: Math.round(consistency),
+    participationQuality: Math.round(participation),
+    timeManagement: Math.round(timeManagement),
+    communicationEffectiveness: Math.round(communication),
+    invitationPriority: baseReliability >= 85 ? 'HIGH' : baseReliability >= 70 ? 'MEDIUM' : 'LOW',
+    badges,
+    trends: {
+      last30Days: Math.round(Math.random() * 20 - 10), // -10 a +10
+      improving: Math.random() > 0.3 // 70% probabilidad de estar mejorando
+    },
+    lastCalculated: new Date().toISOString()
+  }
+}
+
+const generateExpertQuickStats = (
+  totalProjects: number,
+  avgResponseTime: number
+): Expert['quickStats'] => {
+  const acceptanceRate = Math.max(70, Math.min(100, 85 + Math.random() * 15))
+  const completionRate = Math.max(75, Math.min(100, 90 + Math.random() * 10))
+  const inconsistencies = Math.floor(Math.random() * Math.max(1, totalProjects * 0.1))
+  
+  return {
+    totalInvitations: totalProjects + Math.floor(Math.random() * 5),
+    acceptanceRate: Math.round(acceptanceRate),
+    completionRate: Math.round(completionRate),
+    averageResponseTimeHours: avgResponseTime,
+    totalInconsistencies: inconsistencies,
+    preferredProjectTypes: ['STRATEGIC', 'TECHNOLOGICAL'].slice(0, Math.floor(Math.random() * 2) + 1)
+  }
+}
+
 // 8 Expertos ficticios diversos para simulación MIC MAC
 export const sampleExperts: Expert[] = [
   {
@@ -62,7 +139,9 @@ export const sampleExperts: Expert[] = [
     totalProjectsParticipated: 23,
     averageResponseTime: 2.1,
     createdAt: '2024-01-10T09:00:00Z',
-    updatedAt: '2024-01-22T09:15:00Z'
+    updatedAt: '2024-01-22T09:15:00Z',
+    performanceMetrics: generateExpertMetrics('expert-1', 23, 2.1),
+    quickStats: generateExpertQuickStats(23, 2.1)
   },
   {
     id: 'expert-2',
@@ -82,7 +161,9 @@ export const sampleExperts: Expert[] = [
     totalProjectsParticipated: 31,
     averageResponseTime: 1.8,
     createdAt: '2024-01-08T10:30:00Z',
-    updatedAt: '2024-01-21T16:30:00Z'
+    updatedAt: '2024-01-21T16:30:00Z',
+    performanceMetrics: generateExpertMetrics('expert-2', 31, 1.8),
+    quickStats: generateExpertQuickStats(31, 1.8)
   },
   {
     id: 'expert-3',
@@ -102,7 +183,9 @@ export const sampleExperts: Expert[] = [
     totalProjectsParticipated: 19,
     averageResponseTime: 3.2,
     createdAt: '2024-01-12T14:00:00Z',
-    updatedAt: '2024-01-22T11:45:00Z'
+    updatedAt: '2024-01-22T11:45:00Z',
+    performanceMetrics: generateExpertMetrics('expert-3', 19, 3.2),
+    quickStats: generateExpertQuickStats(19, 3.2)
   },
   {
     id: 'expert-4',
@@ -122,7 +205,9 @@ export const sampleExperts: Expert[] = [
     totalProjectsParticipated: 28,
     averageResponseTime: 2.9,
     createdAt: '2024-01-05T08:00:00Z',
-    updatedAt: '2024-01-20T08:20:00Z'
+    updatedAt: '2024-01-20T08:20:00Z',
+    performanceMetrics: generateExpertMetrics('expert-4', 28, 2.9),
+    quickStats: generateExpertQuickStats(28, 2.9)
   },
   {
     id: 'expert-5',
@@ -142,7 +227,9 @@ export const sampleExperts: Expert[] = [
     totalProjectsParticipated: 17,
     averageResponseTime: 2.4,
     createdAt: '2024-01-08T10:00:00Z',
-    updatedAt: '2024-01-21T15:10:00Z'
+    updatedAt: '2024-01-21T15:10:00Z',
+    performanceMetrics: generateExpertMetrics('expert-5', 17, 2.4),
+    quickStats: generateExpertQuickStats(17, 2.4)
   },
   {
     id: 'expert-6',
@@ -162,7 +249,9 @@ export const sampleExperts: Expert[] = [
     totalProjectsParticipated: 14,
     averageResponseTime: 1.6,
     createdAt: '2024-01-15T16:30:00Z',
-    updatedAt: '2024-01-22T13:25:00Z'
+    updatedAt: '2024-01-22T13:25:00Z',
+    performanceMetrics: generateExpertMetrics('expert-6', 14, 1.6),
+    quickStats: generateExpertQuickStats(14, 1.6)
   },
   {
     id: 'expert-7',
@@ -182,7 +271,9 @@ export const sampleExperts: Expert[] = [
     totalProjectsParticipated: 22,
     averageResponseTime: 4.1,
     createdAt: '2024-01-03T12:15:00Z',
-    updatedAt: '2024-01-21T10:50:00Z'
+    updatedAt: '2024-01-21T10:50:00Z',
+    performanceMetrics: generateExpertMetrics('expert-7', 22, 4.1),
+    quickStats: generateExpertQuickStats(22, 4.1)
   },
   {
     id: 'expert-8',
@@ -202,7 +293,9 @@ export const sampleExperts: Expert[] = [
     totalProjectsParticipated: 26,
     averageResponseTime: 2.7,
     createdAt: '2024-01-09T09:45:00Z',
-    updatedAt: '2024-01-22T14:40:00Z'
+    updatedAt: '2024-01-22T14:40:00Z',
+    performanceMetrics: generateExpertMetrics('expert-8', 26, 2.7),
+    quickStats: generateExpertQuickStats(26, 2.7)
   }
 ]
 

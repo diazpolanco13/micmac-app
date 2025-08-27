@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui'
 import { Expert } from '@/types/project'
+import ExpertMetricsRadarChart from './ExpertMetricsRadarChart'
 
 interface ExpertDetailModalProps {
   expert: Expert
@@ -26,7 +27,7 @@ export default function ExpertDetailModal({
 
   return (
     <div className="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-dark-bg-secondary rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-dark-bg-secondary rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-dark-bg-tertiary">
           <div className="flex items-center justify-between">
@@ -150,6 +151,9 @@ export default function ExpertDetailModal({
               </div>
             </div>
           </div>
+
+          {/* Gráfico de Métricas de Desempeño */}
+          <ExpertMetricsRadarChart expert={expert} size="large" />
 
           {/* Biografía */}
           {expert.biography && (

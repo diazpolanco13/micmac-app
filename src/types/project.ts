@@ -41,6 +41,38 @@ export interface Expert {
   averageResponseTime: number | null // en horas
   createdAt: string
   updatedAt: string
+  
+  // 🏆 MÉTRICAS DE DESEMPEÑO (campos calculados)
+  performanceMetrics?: {
+    overallReliability: number // 0-100
+    consistencyScore: number // 0-100
+    participationQuality: number // 0-100
+    timeManagement: number // 0-100
+    communicationEffectiveness: number // 0-100
+    invitationPriority: 'HIGH' | 'MEDIUM' | 'LOW' | 'AVOID'
+    badges: Array<{
+      type: string
+      name: string
+      level: string
+      icon: string
+      earnedAt: string
+    }>
+    trends: {
+      last30Days: number // cambio en puntuación
+      improving: boolean
+    }
+    lastCalculated: string
+  }
+  
+  // 📊 ESTADÍSTICAS RÁPIDAS (para UI)
+  quickStats?: {
+    totalInvitations: number
+    acceptanceRate: number // %
+    completionRate: number // %
+    averageResponseTimeHours: number
+    totalInconsistencies: number
+    preferredProjectTypes: string[]
+  }
 }
 
 // Filtros expandidos para expertos

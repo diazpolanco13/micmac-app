@@ -6,6 +6,7 @@ import type { MicMacResults, VariableAnalysis, Expert, VotingResponse } from '@/
 import { generateClassicMicMacMatrix, generateImprovedMicMacMatrix } from '@/utils/micmacCalculations'
 import MicMacMethodSelector from './MicMacMethodSelector'
 import MicMacMethodExplanation from './MicMacMethodExplanation'
+import InconsistencyAlertsPanel from './InconsistencyAlertsPanel'
 import { 
   Camera, Download, RefreshCw, Settings, Info, ChevronRight, ChevronLeft, 
   Plus, Minus, Grid, BarChart3, TrendingUp, Target, Layers, Activity, 
@@ -18,16 +19,34 @@ interface MicMacProfessionalProps {
   className?: string
 }
 
+// Tipos extendidos para incluir inconsistencias
+interface InconsistencyAlert {
+  relation: string
+  variable1: string
+  variable2: string
+  influenceVote: number
+  dependenceVote: number
+  difference: number
+  severity: 'low' | 'medium' | 'high'
+  message: string
+}
+
+interface ExtendedMicMacResults extends MicMacResults {
+  inconsistencyAlerts?: InconsistencyAlert[]
+  qualityScore?: number
+  calculationMethod?: 'average' | 'maximum' | 'weighted'
+}
+
 export default function MicMacProfessional({ projectId, className = '' }: MicMacProfessionalProps) {
   // Estados principales
-  const [results, setResults] = useState<MicMacResults | null>(null)
+  const [results, setResults] = useState<ExtendedMicMacResults | null>(null)
   const [loading, setLoading] = useState(true) // Empezar en loading
   const [calculationMethod, setCalculationMethod] = useState<'classic' | 'hybrid'>('hybrid')
   const [selectedVariable, setSelectedVariable] = useState<number | null>(null)
   const [selectedExpert, setSelectedExpert] = useState<string | null>(null)
   
   // Estados de UI
-  const [activeTab, setActiveTab] = useState<'analysis' | 'matrix' | 'experts' | 'advanced'>('analysis')
+  const [activeTab, setActiveTab] = useState<'analysis' | 'matrix' | 'experts' | 'inconsistencies' | 'advanced'>('analysis')
   const [showGrid, setShowGrid] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
   const [animateChart, setAnimateChart] = useState(true)
@@ -128,25 +147,49 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
           avgDependence: classicResults.averageDependence,
           metodo: 'Clásico (solo INFLUENCE)'
         })
-        setResults(classicResults)
-      } else {
-        // Método Híbrido - usar contexto existente
-        console.log(`🚀 [MicMacProfessional] Aplicando método HÍBRIDO (ambas fases)`)
-        const result = await calculateMicMacResults(projectId)
         
-        if (result.success && result.data) {
-          console.log(`✅ [MicMacProfessional] Cálculo híbrido exitoso:`, {
-            variables: result.data.variables.length,
-            votos: result.data.totalVotes,
-            avgMotricity: result.data.averageMotricity,
-            avgDependence: result.data.averageDependence,
-            metodo: 'Híbrido (INFLUENCE + DEPENDENCE)'
-          })
-          setResults(result.data)
-        } else {
-          console.error(`❌ [MicMacProfessional] Error en cálculo híbrido:`, result.error)
-          throw new Error(`Error calculando resultados híbridos: ${result.error}`)
+        // Para método clásico, no hay alertas de inconsistencia
+        const extendedResults: ExtendedMicMacResults = {
+          ...classicResults,
+          inconsistencyAlerts: [],
+          qualityScore: 100,
+          calculationMethod: 'average'
         }
+        setResults(extendedResults)
+      } else {
+        // Método Híbrido - usar método mejorado con detección de inconsistencias
+        console.log(`🚀 [MicMacProfessional] Aplicando método HÍBRIDO con detección de inconsistencias`)
+        const updatedVotes = getProjectVotes(projectId)
+        const improvedResults = generateImprovedMicMacMatrix(
+          updatedVotes, 
+          project?.variables || [], 
+          'average' // Método de cálculo por defecto
+        )
+        
+        console.log(`✅ [MicMacProfessional] Cálculo híbrido mejorado exitoso:`, {
+          variables: improvedResults.variables.length,
+          votos: improvedResults.totalVotes,
+          avgMotricity: improvedResults.averageMotricity,
+          avgDependence: improvedResults.averageDependence,
+          inconsistencias: improvedResults.inconsistencyAlerts?.length || 0,
+          calidad: improvedResults.qualityScore,
+          metodo: 'Híbrido con validación cruzada'
+        })
+        
+        // Convertir el resultado mejorado al formato extendido
+        const extendedResults: ExtendedMicMacResults = {
+          projectId: improvedResults.projectId,
+          variables: improvedResults.variables,
+          totalVotes: improvedResults.totalVotes,
+          calculatedAt: improvedResults.calculatedAt,
+          averageMotricity: improvedResults.averageMotricity,
+          averageDependence: improvedResults.averageDependence,
+          matrixData: improvedResults.matrixData,
+          inconsistencyAlerts: improvedResults.inconsistencyAlerts || [],
+          qualityScore: improvedResults.qualityScore || 100,
+          calculationMethod: improvedResults.calculationMethod || 'average'
+        }
+        setResults(extendedResults)
       }
       
     } catch (error) {
@@ -225,7 +268,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
         influence,
         votes: expertVotes
       }
-    }).filter(Boolean)
+    }).filter((analysis): analysis is NonNullable<typeof analysis> => analysis !== null)
   }, [results, project, experts, projectId])
 
 
@@ -427,7 +470,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
         </div>
 
         {/* Métricas rápidas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
           <div className="bg-gray-800/50 rounded-lg p-3">
             <div className="flex items-center gap-2 text-blue-400 mb-1">
               <Activity className="h-4 w-4" />
@@ -456,6 +499,32 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
             </div>
             <p className="text-2xl font-bold text-white">{expertAnalysis.length}</p>
           </div>
+          {calculationMethod === 'hybrid' && results?.qualityScore !== undefined && (
+            <div className="bg-gray-800/50 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                {results.qualityScore >= 90 ? (
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                ) : results.qualityScore >= 70 ? (
+                  <AlertCircle className="h-4 w-4 text-yellow-400" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-red-400" />
+                )}
+                <span className="text-xs uppercase tracking-wide text-gray-400">Calidad</span>
+              </div>
+              <p className={`text-2xl font-bold ${
+                results.qualityScore >= 90 ? 'text-green-400' :
+                results.qualityScore >= 70 ? 'text-yellow-400' :
+                'text-red-400'
+              }`}>
+                {results.qualityScore.toFixed(0)}%
+              </p>
+              {results.inconsistencyAlerts && results.inconsistencyAlerts.length > 0 && (
+                <p className="text-xs text-gray-400 mt-1">
+                  {results.inconsistencyAlerts.length} alerta{results.inconsistencyAlerts.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -466,6 +535,11 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
             { id: 'analysis' as const, label: 'Análisis', icon: BarChart3 },
             { id: 'matrix' as const, label: 'Matriz', icon: Grid },
             { id: 'experts' as const, label: 'Expertos', icon: Users },
+            ...(calculationMethod === 'hybrid' ? [{ 
+              id: 'inconsistencies' as const, 
+              label: `Inconsistencias${results?.inconsistencyAlerts?.length ? ` (${results.inconsistencyAlerts.length})` : ''}`, 
+              icon: AlertCircle 
+            }] : []),
             { id: 'advanced' as const, label: 'Avanzado', icon: Settings }
           ].map(tab => (
             <button
@@ -942,13 +1016,13 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                     <div className="flex justify-between">
                       <span className="text-gray-400">Consistencia:</span>
                       <span className="font-bold text-white">
-                        {(expertAnalysis.reduce((sum, e) => sum + e.consistency, 0) / expertAnalysis.length).toFixed(1)}%
+                        {expertAnalysis.length > 0 ? (expertAnalysis.reduce((sum, e) => sum + (e?.consistency || 0), 0) / expertAnalysis.length).toFixed(1) : '0'}%
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Tiempo promedio:</span>
                       <span className="font-bold text-white">
-                        {(expertAnalysis.reduce((sum, e) => sum + e.avgTimeSpent, 0) / expertAnalysis.length).toFixed(0)}s
+                        {expertAnalysis.length > 0 ? (expertAnalysis.reduce((sum, e) => sum + (e?.avgTimeSpent || 0), 0) / expertAnalysis.length).toFixed(0) : '0'}s
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -1055,6 +1129,97 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                         )}
                       </div>
                     ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'inconsistencies' && calculationMethod === 'hybrid' && (
+            <div className="space-y-6">
+              <InconsistencyAlertsPanel
+                alerts={results?.inconsistencyAlerts || []}
+                qualityScore={results?.qualityScore}
+                className="w-full"
+                votes={getProjectVotes(projectId)}
+                experts={experts}
+                variables={project?.variables.map(v => ({ id: v.id, name: v.name })) || []}
+              />
+              
+              {/* Información adicional sobre la validación cruzada */}
+              <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-6">
+                <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
+                  <Info className="h-5 w-5" />
+                  Acerca de la Validación Cruzada
+                </h3>
+                <div className="space-y-4 text-sm text-blue-200">
+                  <p>
+                    El método híbrido utiliza <strong>validación cruzada</strong> para detectar inconsistencias 
+                    entre las evaluaciones de influencia y dependencia. Esto permite identificar relaciones 
+                    donde los expertos tienen perspectivas muy diferentes.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-800/30 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-300 mb-2">¿Cómo funciona?</h4>
+                      <ul className="space-y-2 text-xs">
+                        <li className="flex items-start gap-2">
+                          <span className="text-blue-400 font-bold">1.</span>
+                          <span>Se compara cada voto de influencia (A→B) con su correspondiente de dependencia (B←A)</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-blue-400 font-bold">2.</span>
+                          <span>Diferencias > 1 punto se marcan como inconsistencias</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-blue-400 font-bold">3.</span>
+                          <span>Se calcula un promedio ponderado para minimizar el impacto</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div className="bg-blue-800/30 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-300 mb-2">Interpretación</h4>
+                      <ul className="space-y-2 text-xs">
+                        <li className="flex items-start gap-2">
+                          <span className="text-red-400 font-bold">•</span>
+                          <span><strong>Críticas (>2.0):</strong> Diferencias conceptuales importantes</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-yellow-400 font-bold">•</span>
+                          <span><strong>Moderadas (1.5-2.0):</strong> Perspectivas ligeramente diferentes</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-blue-400 font-bold">•</span>
+                          <span><strong>Leves (1.0-1.5):</strong> Variaciones normales de criterio</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-800/30 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-300 mb-2">Puntuación de Calidad Actual</h4>
+                    <div className="flex items-center justify-between">
+                      <span>
+                        {results?.qualityScore !== undefined ? (
+                          `${results.qualityScore.toFixed(1)}% - ${
+                            results.qualityScore >= 90 ? 'Excelente consistencia' :
+                            results.qualityScore >= 70 ? 'Buena consistencia' :
+                            results.qualityScore >= 50 ? 'Consistencia aceptable' :
+                            'Consistencia mejorable'
+                          }`
+                        ) : 'Calculando...'}
+                      </span>
+                      <div className={`px-3 py-1 rounded text-xs font-bold ${
+                        (results?.qualityScore || 0) >= 90 ? 'bg-green-900 text-green-300' :
+                        (results?.qualityScore || 0) >= 70 ? 'bg-yellow-900 text-yellow-300' :
+                        'bg-red-900 text-red-300'
+                      }`}>
+                        {results?.calculationMethod === 'average' ? 'Promedio' :
+                         results?.calculationMethod === 'maximum' ? 'Máximo' :
+                         results?.calculationMethod === 'weighted' ? 'Ponderado' : 'Híbrido'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@
   "name": "micmac-pro",
   "version": "0.1.0",
   "description": "🚀 MIC MAC Pro - Plataforma de Análisis Prospectivos con Automatización",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -22,8 +23,10 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+
     "@headlessui/react": "^2.2.7",
     "@heroicons/react": "^2.2.0",
+    "@modelcontextprotocol/sdk": "^1.17.4",
     "@prisma/client": "^5.6.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.38.0",
@@ -68,7 +71,11 @@
     "automation",
     "nextjs",
     "supabase",
-    "linear"
+    "linear",
+    "mcp",
+    "context-control",
+    "ai-session",
+    "smart-resume"
   ],
   "author": "Carlos Diaz <diazpolanco13@gmail.com>",
   "license": "MIT"

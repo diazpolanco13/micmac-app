@@ -1,41 +1,44 @@
 'use client'
 
-import { Button } from '@/components/ui'
-import { Expert } from '@/types/project'
-import ExpertMetricsCard from './ExpertMetricsCard'
+import React from 'react'
 import { 
   TrendingUp, TrendingDown, Minus, Clock, Target, Users, 
-  Award, AlertCircle, CheckCircle, Star, Zap, Brain, Edit, Trash2
+  Award, AlertCircle, CheckCircle, Star, Zap, Brain
 } from 'lucide-react'
+import type { Expert } from '@/types/project'
 import { ExpertMetricsUtils } from '@/utils/expertMetricsCalculator'
 
-interface ExpertCardProps {
+interface ExpertMetricsCardProps {
   expert: Expert
-  onEdit: () => void
-  onDelete: () => void
-  onViewDetail: () => void
+  showDetailed?: boolean
+  className?: string
 }
 
-export default function ExpertCard({ 
+export default function ExpertMetricsCard({ 
   expert, 
-  onEdit, 
-  onDelete, 
-  onViewDetail 
-}: ExpertCardProps) {
-  const roleColors = {
-    EXPERT: 'bg-blue-500/20 text-blue-400',
-    MODERATOR: 'bg-purple-500/20 text-purple-400'
-  }
-
-  const roleLabels = {
-    EXPERT: 'Experto',
-    MODERATOR: 'Moderador'
-  }
-
+  showDetailed = false, 
+  className = '' 
+}: ExpertMetricsCardProps) {
   const metrics = expert.performanceMetrics
   const stats = expert.quickStats
 
-  const getReliabilityColor = (priority?: string) => {
+  if (!metrics && !stats) {
+    return (
+      <div className={`bg-gray-800 rounded-lg p-4 ${className}`}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-white font-bold">
+            {expert.name.substring(0, 2).toUpperCase()}
+          </div>
+          <div>
+            <h4 className="font-semibold text-white">{expert.name}</h4>
+            <p className="text-xs text-gray-400">Sin métricas disponibles</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const getReliabilityColor = (priority: string) => {
     switch (priority) {
       case 'HIGH': return 'text-green-400 bg-green-900/20'
       case 'MEDIUM': return 'text-blue-400 bg-blue-900/20'
@@ -45,32 +48,23 @@ export default function ExpertCard({
     }
   }
 
-  const getTrendIcon = (trend?: number) => {
-    if (!trend) return <Minus className="h-3 w-3 text-gray-400" />
+  const getTrendIcon = (trend: number) => {
     if (trend > 5) return <TrendingUp className="h-3 w-3 text-green-400" />
     if (trend < -5) return <TrendingDown className="h-3 w-3 text-red-400" />
     return <Minus className="h-3 w-3 text-gray-400" />
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-all hover:scale-[1.02] duration-300">
+    <div className={`bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-all ${className}`}>
       {/* Header del experto */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-              {expert.avatar ? (
-                <img 
-                  src={expert.avatar} 
-                  alt={expert.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                expert.name.substring(0, 2).toUpperCase()
-              )}
+              {expert.name.substring(0, 2).toUpperCase()}
             </div>
             {metrics?.invitationPriority && (
-              <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs ${
+              <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
                 getReliabilityColor(metrics.invitationPriority)
               }`}>
                 {metrics.invitationPriority === 'HIGH' ? '🔥' : 
@@ -80,22 +74,26 @@ export default function ExpertCard({
             )}
           </div>
           
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-white truncate">{expert.name}</h3>
-            <p className="text-xs text-gray-400 truncate">{expert.organization}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors[expert.role]}`}>
-                {roleLabels[expert.role]}
-              </span>
-              {metrics?.trends && getTrendIcon(metrics.trends.last30Days)}
-            </div>
+          <div>
+            <h4 className="font-semibold text-white">{expert.name}</h4>
+            <p className="text-xs text-gray-400">{expert.organization}</p>
+            {metrics && (
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                  getReliabilityColor(metrics.invitationPriority)
+                }`}>
+                  {ExpertMetricsUtils.getReliabilityLabel(metrics.invitationPriority)}
+                </span>
+                {metrics.trends && getTrendIcon(metrics.trends.last30Days)}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Badges */}
         {metrics?.badges && metrics.badges.length > 0 && (
           <div className="flex gap-1">
-            {metrics.badges.slice(0, 2).map((badge, index) => (
+            {metrics.badges.slice(0, 3).map((badge, index) => (
               <span 
                 key={index}
                 className="text-lg"
@@ -135,7 +133,7 @@ export default function ExpertCard({
 
       {/* Estadísticas rápidas */}
       {stats && (
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 text-gray-400">
               <Users className="h-3 w-3" />
@@ -174,56 +172,69 @@ export default function ExpertCard({
         </div>
       )}
 
-      {/* Áreas de expertise */}
-      <div className="mb-4">
-        <div className="flex flex-wrap gap-1">
-          {expert.expertiseAreas.slice(0, 2).map((exp) => (
-            <span
-              key={exp}
-              className="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"
-            >
-              {exp}
-            </span>
-          ))}
-          {expert.expertiseAreas.length > 2 && (
-            <span className="px-2 py-1 text-gray-400 text-xs">
-              +{expert.expertiseAreas.length - 2}
-            </span>
+      {/* Detalles expandidos */}
+      {showDetailed && metrics && (
+        <div className="mt-4 pt-4 border-t border-gray-700 space-y-3">
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="text-center">
+              <div className={`text-sm font-bold ${ExpertMetricsUtils.getScoreColor(metrics.participationQuality)}`}>
+                {metrics.participationQuality}%
+              </div>
+              <div className="text-gray-400">Participación</div>
+            </div>
+            <div className="text-center">
+              <div className={`text-sm font-bold ${ExpertMetricsUtils.getScoreColor(metrics.timeManagement)}`}>
+                {metrics.timeManagement}%
+              </div>
+              <div className="text-gray-400">Puntualidad</div>
+            </div>
+            <div className="text-center">
+              <div className={`text-sm font-bold ${ExpertMetricsUtils.getScoreColor(metrics.communicationEffectiveness)}`}>
+                {metrics.communicationEffectiveness}%
+              </div>
+              <div className="text-gray-400">Comunicación</div>
+            </div>
+          </div>
+
+          {/* Tendencia de los últimos 30 días */}
+          {metrics.trends && (
+            <div className="bg-gray-700/30 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-400">Tendencia (30 días)</span>
+                <div className="flex items-center gap-1">
+                  {getTrendIcon(metrics.trends.last30Days)}
+                  <span className={`text-xs font-medium ${
+                    metrics.trends.last30Days > 0 ? 'text-green-400' :
+                    metrics.trends.last30Days < 0 ? 'text-red-400' : 'text-gray-400'
+                  }`}>
+                    {metrics.trends.last30Days > 0 ? '+' : ''}{metrics.trends.last30Days}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Áreas de expertise preferidas */}
+          {stats?.preferredProjectTypes && stats.preferredProjectTypes.length > 0 && (
+            <div>
+              <div className="text-xs text-gray-400 mb-2">Especialización</div>
+              <div className="flex flex-wrap gap-1">
+                {stats.preferredProjectTypes.slice(0, 3).map(type => (
+                  <span key={type} className="px-2 py-1 bg-blue-900/30 text-blue-300 text-xs rounded">
+                    {type}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
         </div>
-      </div>
+      )}
 
-      {/* Acciones */}
-      <div className="flex items-center gap-2">
-        <Button
-          ghost
-          size="sm"
-          onClick={onViewDetail}
-          className="flex-1 text-xs"
-        >
-          Ver Perfil
-        </Button>
-        <button
-          onClick={onEdit}
-          className="p-2 hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-white"
-          title="Editar"
-        >
-          <Edit className="h-4 w-4" />
-        </button>
-        <button
-          onClick={onDelete}
-          className="p-2 hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-red-400"
-          title="Eliminar"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Última actualización de métricas */}
+      {/* Última actualización */}
       {metrics?.lastCalculated && (
         <div className="mt-3 pt-3 border-t border-gray-700">
           <p className="text-xs text-gray-500">
-            Métricas: {new Date(metrics.lastCalculated).toLocaleDateString('es-ES')}
+            Actualizado: {new Date(metrics.lastCalculated).toLocaleDateString('es-ES')}
           </p>
         </div>
       )}
