@@ -82,7 +82,7 @@ export default function AppLayout({ children, onNewProject }: AppLayoutProps) {
   return (
     <div className="h-screen overflow-hidden bg-gray-50 dark:bg-dark-bg-primary">
       {/* Fixed Navbar */}
-              <Navbar 
+      <Navbar 
         onNewProject={onNewProject} 
         onToggleSidebar={toggleSidebar}
         sidebarState={sidebarState}

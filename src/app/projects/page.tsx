@@ -6,6 +6,7 @@ import { useMockData } from '@/contexts/MockDataContext'
 import { useRouter } from 'next/navigation'
 import { Project } from '@/types/project'
 import { Button } from '@/components/ui'
+import { ProjectsSkeleton } from '@/components/ui/LoadingStates'
 import CreateProjectModal from '@/components/projects/CreateProjectModal'
 import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import ProjectsList from '@/components/projects/ProjectsList'
@@ -180,12 +181,7 @@ export default function ProjectsPage() {
 
         {/* Contenido basado en la vista activa */}
         {loadingProjects ? (
-          <div className="card p-12">
-            <div className="flex items-center justify-center">
-              <div className="animate-pulse-slow rounded-full h-8 w-8 bg-micmac-primary-500"></div>
-              <span className="ml-3 text-dark-text-secondary">Cargando proyectos...</span>
-            </div>
-          </div>
+          <ProjectsSkeleton />
         ) : (
           <div className="space-y-6">
             {activeView === 'active' && (

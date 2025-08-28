@@ -165,7 +165,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       
       // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       const users = getStoredUsers()
       
@@ -219,7 +219,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       
       // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 600))
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       const users = getStoredUsers()
       const storedUser = users.find(u => u.email === email && u.password === password)
@@ -269,7 +269,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       
       // Simular delay
-      await new Promise(resolve => setTimeout(resolve, 300))
+      await new Promise(resolve => setTimeout(resolve, 50))
       
       setCurrentUser(null)
       setUser(null)
@@ -298,7 +298,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 400))
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       const users = getStoredUsers()
       const userIndex = users.findIndex(u => u.id === user.id)

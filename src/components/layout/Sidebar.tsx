@@ -4,13 +4,10 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import {
   CalendarIcon,
-  ChartPieIcon,
-  DocumentDuplicateIcon,
   FolderIcon,
   HomeIcon,
   UsersIcon,
   UserIcon,
-  CogIcon,
   BeakerIcon,
   ChartBarIcon,
   PresentationChartLineIcon
@@ -18,6 +15,9 @@ import {
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useState, useEffect } from 'react'
 import { useSidebarState, type SidebarState } from '@/hooks/useWindowSize'
+import { useActiveRoute, type NavigationItem } from '@/hooks/useActiveRoute'
+import { useRouter } from 'next/navigation'
+import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 
 function classNames(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(' ')
@@ -32,6 +32,9 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
   const { user, signOut } = useMockAuth()
   const [mounted, setMounted] = useState(false)
   const responsiveState = useSidebarState()
+  const { activeParent, activeChild, isActive, isParentActive } = useActiveRoute()
+  const { startLoading } = useNavigationLoading()
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
@@ -43,65 +46,113 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
   const isCollapsed = state === 'collapsed'
   const isExpanded = state === 'expanded'
 
-  // Navegación específica por rol
-  const moderatorNavigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, current: true },
-    { name: 'Mi Perfil', href: '/profile', icon: UserIcon, current: false },
+  // Función para manejar navegación con redirecciones inteligentes
+  const handleNavigation = (href: string, itemName: string) => {
+    let finalRoute = href
+    
+    // Redirecciones especiales
+    if (href === '/projects/new') {
+      // Crear proyecto abre modal, redirigir a projects
+      finalRoute = '/projects'
+    } else {
+      // Rutas que van a "En Desarrollo"
+      const enDesarrolloRoutes = [
+        '/projects/templates',
+        '/projects/archived', 
+        '/experts/invite',
+        '/experts/performance',
+        '/analysis/matrices',
+        '/analysis/variables',
+        '/reports',
+        '/documents',
+        '/settings',
+        '/my-projects',
+        '/voting/pending',
+        '/voting/history',
+        '/voting/my-analysis'
+      ]
+      
+      if (enDesarrolloRoutes.includes(href)) {
+        finalRoute = '/en-desarrollo'
+      } else if (href === '/analysis/micmac') {
+        // Redirección inteligente para análisis MIC MAC
+        finalRoute = '/projects'
+      }
+    }
+    
+    // Iniciar loading y navegar
+    startLoading(finalRoute)
+    router.push(finalRoute)
+  }
+
+  // Navegación específica por rol - SIMPLIFICADA
+  const moderatorNavigation: NavigationItem[] = [
+    { 
+      name: 'Dashboard', 
+      href: '/dashboard', 
+      icon: HomeIcon
+    },
+    { 
+      name: 'Mi Perfil', 
+      href: '/profile', 
+      icon: UserIcon
+    },
     {
       name: 'Proyectos',
       icon: FolderIcon,
-      current: false,
       children: [
-        { name: 'Todos los Proyectos', href: '/projects', current: false },
-        { name: 'Crear Proyecto', href: '/projects/new', current: false },
-        { name: 'Plantillas', href: '/projects/templates', current: false },
-        { name: 'Archivados', href: '/projects/archived', current: false },
+        { name: 'Todos los Proyectos', href: '/projects', icon: FolderIcon },
+        { name: 'Crear Proyecto', href: '/projects/new', icon: FolderIcon },
+        { name: 'Plantillas', href: '/projects/templates', icon: FolderIcon },
+        { name: 'Archivados', href: '/projects/archived', icon: FolderIcon },
       ],
     },
-    {
-      name: 'Expertos',
-      icon: UsersIcon,
-      current: false,
-      children: [
-        { name: 'Gestionar Expertos', href: '/experts', current: false },
-        { name: 'Invitar Expertos', href: '/experts/invite', current: false },
-        { name: 'Rendimiento', href: '/experts/performance', current: false },
-      ],
+    { 
+      name: 'Expertos', 
+      href: '/experts', 
+      icon: UsersIcon
     },
-    {
-      name: 'Análisis',
-      icon: BeakerIcon,
-      current: false,
-      children: [
-        { name: 'MIC MAC', href: '/analysis/micmac', current: false },
-        { name: 'Matrices', href: '/analysis/matrices', current: false },
-        { name: 'Variables', href: '/analysis/variables', current: false },
-      ],
+    { 
+      name: 'Calendario', 
+      href: '/calendar', 
+      icon: CalendarIcon
     },
-    { name: 'Resultados', href: '/results', icon: ChartBarIcon, current: false },
-    { name: 'Reportes', href: '/reports', icon: ChartPieIcon, current: false },
-    { name: 'Calendario', href: '/calendar', icon: CalendarIcon, current: false },
-    { name: 'Documentos', href: '/documents', icon: DocumentDuplicateIcon, current: false },
-    { name: 'Configuración', href: '/settings', icon: CogIcon, current: false },
+    { 
+      name: 'Análisis MIC MAC', 
+      href: '/analysis/micmac', 
+      icon: BeakerIcon
+    },
+    { 
+      name: 'Resultados', 
+      href: '/results', 
+      icon: ChartBarIcon
+    },
   ]
 
-  const expertNavigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, current: true },
-    { name: 'Mi Perfil', href: '/profile', icon: UserIcon, current: false },
-    { name: 'Mis Proyectos', href: '/my-projects', icon: FolderIcon, current: false },
+  const expertNavigation: NavigationItem[] = [
+    { 
+      name: 'Dashboard', 
+      href: '/dashboard', 
+      icon: HomeIcon
+    },
+    { 
+      name: 'Mi Perfil', 
+      href: '/profile', 
+      icon: UserIcon
+    },
+    { 
+      name: 'Calendario', 
+      href: '/calendar', 
+      icon: CalendarIcon
+    },
     {
-      name: 'Participación',
+      name: 'Votaciones',
       icon: PresentationChartLineIcon,
-      current: false,
       children: [
-        { name: 'Votaciones Pendientes', href: '/voting/pending', current: false },
-        { name: 'Historial', href: '/voting/history', current: false },
-        { name: 'Mis Análisis', href: '/voting/my-analysis', current: false },
+        { name: 'Pendientes', href: '/voting/pending', icon: PresentationChartLineIcon },
+        { name: 'Historial', href: '/voting/history', icon: PresentationChartLineIcon },
       ],
     },
-    { name: 'Resultados', href: '/results', icon: ChartBarIcon, current: false },
-    { name: 'Calendario', href: '/calendar', icon: CalendarIcon, current: false },
-    { name: 'Documentos', href: '/documents', icon: DocumentDuplicateIcon, current: false },
   ]
 
   const navigation = user.role === 'MODERATOR' ? moderatorNavigation : expertNavigation
@@ -111,7 +162,7 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
       {/* Mobile backdrop - solo cuando está expandido en móvil */}
       {isExpanded && responsiveState === 'hidden' && (
         <div 
-          className="fixed inset-0 z-40 bg-gray-900/50"
+          className="fixed inset-0 z-[60] bg-gray-900/50"
           onClick={onToggle}
         />
       )}
@@ -121,7 +172,7 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
         'flex flex-col transition-all duration-300 ease-in-out',
         // Positioning basado en el estado responsivo
         responsiveState === 'hidden' 
-          ? 'fixed left-0 z-40 top-16 bottom-0' // Móvil: fixed overlay
+          ? 'fixed left-0 z-[60] top-16 bottom-0' // Móvil: fixed overlay con z-index más alto que navbar (z-50)
           : 'static h-full', // Tablet/Desktop: static
         // Width basado en el estado actual
         isCollapsed ? 'w-16' : 'w-64',
@@ -166,40 +217,20 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
               isCollapsed ? "px-2" : "px-6"
             )}>
               <ul role="list" className="space-y-1">
-                {navigation.map((item) => (
-                  <li key={item.name}>
-                    {!item.children ? (
-                      <a
-                        href={item.href}
-                        title={isCollapsed ? item.name : undefined}
-                        className={classNames(
-                          item.current 
-                            ? 'bg-micmac-primary-50 dark:bg-micmac-primary-500/20 text-micmac-primary-700 dark:text-micmac-primary-300' 
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                          'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold transition-colors',
-                          isCollapsed ? 'justify-center' : ''
-                        )}
-                      >
-                        <item.icon 
-                          aria-hidden="true" 
-                          className={classNames(
-                            'size-6 shrink-0',
-                            item.current 
-                              ? 'text-micmac-primary-600 dark:text-micmac-primary-400' 
-                              : 'text-gray-400 dark:text-gray-500'
-                          )} 
-                        />
-                        {!isCollapsed && item.name}
-                      </a>
-                    ) : (
-                      <Disclosure as="div">
-                        <DisclosureButton
+                {navigation.map((item) => {
+                  const itemIsActive = item.href ? isActive(item.href) : isParentActive(item)
+                  
+                  return (
+                    <li key={item.name}>
+                      {!item.children ? (
+                        <button
+                          onClick={() => item.href && handleNavigation(item.href, item.name)}
                           title={isCollapsed ? item.name : undefined}
                           className={classNames(
-                            item.current 
+                            itemIsActive 
                               ? 'bg-micmac-primary-50 dark:bg-micmac-primary-500/20 text-micmac-primary-700 dark:text-micmac-primary-300' 
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                            'group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold transition-colors',
+                            'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold transition-colors w-full text-left',
                             isCollapsed ? 'justify-center' : ''
                           )}
                         >
@@ -207,46 +238,73 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
                             aria-hidden="true" 
                             className={classNames(
                               'size-6 shrink-0',
-                              item.current 
+                              itemIsActive 
                                 ? 'text-micmac-primary-600 dark:text-micmac-primary-400' 
                                 : 'text-gray-400 dark:text-gray-500'
                             )} 
                           />
+                          {!isCollapsed && item.name}
+                        </button>
+                      ) : (
+                        <Disclosure as="div" defaultOpen={isParentActive(item)}>
+                          <DisclosureButton
+                            title={isCollapsed ? item.name : undefined}
+                            className={classNames(
+                              itemIsActive 
+                                ? 'bg-micmac-primary-50 dark:bg-micmac-primary-500/20 text-micmac-primary-700 dark:text-micmac-primary-300' 
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                              'group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold transition-colors',
+                              isCollapsed ? 'justify-center' : ''
+                            )}
+                          >
+                            <item.icon 
+                              aria-hidden="true" 
+                              className={classNames(
+                                'size-6 shrink-0',
+                                itemIsActive 
+                                  ? 'text-micmac-primary-600 dark:text-micmac-primary-400' 
+                                  : 'text-gray-400 dark:text-gray-500'
+                              )} 
+                            />
+                            {!isCollapsed && (
+                              <>
+                                {item.name}
+                                <ChevronRightIcon
+                                  aria-hidden="true"
+                                  className="ml-auto size-5 shrink-0 text-gray-400 dark:text-gray-500 group-data-[open]:rotate-90 group-data-[open]:text-gray-500 dark:group-data-[open]:text-gray-400 transition-transform"
+                                />
+                              </>
+                            )}
+                          </DisclosureButton>
+                          
                           {!isCollapsed && (
-                            <>
-                              {item.name}
-                              <ChevronRightIcon
-                                aria-hidden="true"
-                                className="ml-auto size-5 shrink-0 text-gray-400 dark:text-gray-500 group-data-[open]:rotate-90 group-data-[open]:text-gray-500 dark:group-data-[open]:text-gray-400 transition-transform"
-                              />
-                            </>
+                            <DisclosurePanel as="ul" className="mt-1 px-2">
+                              {item.children.map((subItem) => {
+                                const subItemIsActive = subItem.href ? isActive(subItem.href) : false
+                                
+                                return (
+                                  <li key={subItem.name}>
+                                    <button
+                                      onClick={() => subItem.href && handleNavigation(subItem.href, subItem.name)}
+                                      className={classNames(
+                                        subItemIsActive 
+                                          ? 'bg-micmac-primary-50 dark:bg-micmac-primary-500/20 text-micmac-primary-700 dark:text-micmac-primary-300' 
+                                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                                        'block rounded-md py-2 pl-9 pr-2 text-sm/6 transition-colors w-full text-left'
+                                      )}
+                                    >
+                                      {subItem.name}
+                                    </button>
+                                  </li>
+                                )
+                              })}
+                            </DisclosurePanel>
                           )}
-                        </DisclosureButton>
-                        
-                        {!isCollapsed && (
-                          <DisclosurePanel as="ul" className="mt-1 px-2">
-                            {item.children.map((subItem) => (
-                              <li key={subItem.name}>
-                                <DisclosureButton
-                                  as="a"
-                                  href={subItem.href}
-                                  className={classNames(
-                                    subItem.current 
-                                      ? 'bg-micmac-primary-50 dark:bg-micmac-primary-500/20 text-micmac-primary-700 dark:text-micmac-primary-300' 
-                                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                                    'block rounded-md py-2 pl-9 pr-2 text-sm/6 transition-colors'
-                                  )}
-                                >
-                                  {subItem.name}
-                                </DisclosureButton>
-                              </li>
-                            ))}
-                          </DisclosurePanel>
-                        )}
-                      </Disclosure>
-                    )}
-                  </li>
-                ))}
+                        </Disclosure>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
             

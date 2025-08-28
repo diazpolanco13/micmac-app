@@ -121,7 +121,7 @@ export default function ProjectEditModal({
     setIsSubmitting(true)
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       const updatedProject: Project = {
         ...project,
@@ -149,7 +149,7 @@ export default function ProjectEditModal({
     
     setIsSubmitting(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 100))
       onProjectDeleted(project.id)
       handleClose()
     } catch (error) {

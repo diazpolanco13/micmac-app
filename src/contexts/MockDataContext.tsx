@@ -140,7 +140,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   const refreshProjects = async () => {
     setLoadingProjects(true)
     try {
-      await delay(300) // Simular delay de red
+      await delay(50) // Simular delay de red
       setProjects([...mockProjects]) // Crear copia para evitar mutaciones
     } catch (error) {
       console.error('Error loading mock projects:', error)
@@ -153,7 +153,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   const refreshExperts = async () => {
     setLoadingExperts(true)
     try {
-      await delay(200)
+      await delay(50)
       
       // Si no hay expertos globales, extraer de proyectos mock y crear más completos
       if (globalMockExperts.length === 0) {
@@ -254,7 +254,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   }) => {
     try {
       setLoadingProjects(true)
-      await delay(500) // Simular creación en servidor
+      await delay(100) // Simular creación en servidor
       
       const newProject = createMockProject(data)
       setProjects(prev => [...prev])
@@ -271,7 +271,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   const updateProject = async (id: string, data: Partial<Project>) => {
     try {
       setLoadingProjects(true)
-      await delay(300)
+      await delay(50)
       
       const updatedProject = updateMockProject(id, data)
       if (!updatedProject) {
@@ -297,7 +297,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   const deleteProject = async (id: string) => {
     try {
       setLoadingProjects(true)
-      await delay(200)
+      await delay(50)
       
       const success = deleteMockProject(id)
       if (!success) {
@@ -329,7 +329,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     color?: string
   }) => {
     try {
-      await delay(200)
+      await delay(50)
       
       const project = mockProjects.find(p => p.id === projectId)
       if (!project) {
@@ -362,7 +362,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
 
   const updateVariable = async (id: string, data: Partial<Variable>) => {
     try {
-      await delay(200)
+      await delay(50)
       
       // Encontrar la variable en todos los proyectos
       let foundVariable: Variable | null = null
@@ -398,7 +398,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
 
   const deleteVariable = async (id: string) => {
     try {
-      await delay(200)
+      await delay(50)
       
       // Encontrar y eliminar la variable
       for (const project of mockProjects) {
@@ -454,7 +454,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
 
   const createExpert = async (data: ExpertFormData) => {
     try {
-      await delay(300)
+      await delay(50)
       
       // Validar email único
       const existingExpert = globalMockExperts.find(e => e.email.toLowerCase() === data.email.toLowerCase())
@@ -500,7 +500,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
 
   const updateExpert = async (id: string, data: Partial<ExpertFormData>) => {
     try {
-      await delay(200)
+      await delay(50)
       
       const expertIndex = globalMockExperts.findIndex(e => e.id === id)
       if (expertIndex === -1) {
@@ -540,7 +540,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
 
   const deleteExpert = async (id: string) => {
     try {
-      await delay(200)
+      await delay(50)
       
       const expertIndex = globalMockExperts.findIndex(e => e.id === id)
       if (expertIndex === -1) {
@@ -854,7 +854,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   const calculateMicMacResults = async (projectId: string): Promise<{ success: boolean; data?: MicMacResults; error?: string }> => {
     try {
       console.log(`🧮 [MockDataContext] Iniciando calculateMicMacResults para: ${projectId}`)
-      await delay(800) // Simular procesamiento complejo
+      await delay(150) // Simular procesamiento complejo
       
       const project = projects.find(p => p.id === projectId)
       if (!project) {
@@ -1002,7 +1002,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   
   async function simulateExpertVoting(projectId: string, expertId: string): Promise<{ success: boolean; votes?: VotingResponse[]; error?: string }> {
     try {
-      await delay(500) // Simular tiempo de procesamiento
+      await delay(100) // Simular tiempo de procesamiento
       
       const project = mockProjects.find(p => p.id === projectId)
       if (!project) {
@@ -1106,7 +1106,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
         }
         
         // Pequeña pausa entre expertos para realismo
-        await delay(200)
+        await delay(50)
       }
       
       console.log(`✅ [MockDataContext] Simulación completada: ${totalVotes} votos totales`)

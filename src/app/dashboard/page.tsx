@@ -8,6 +8,7 @@ import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui'
+import { DashboardSkeleton } from '@/components/ui/LoadingStates'
 import CreateProjectModal from '@/components/projects/CreateProjectModal'
 import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import AppLayout from '@/components/layout/AppLayout'
@@ -73,12 +74,9 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-micmac-dark flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-pulse-slow rounded-full h-8 w-8 bg-micmac-primary-500 mx-auto mb-4"></div>
-          <p className="text-dark-text-secondary">Cargando dashboard...</p>
-        </div>
-      </div>
+      <AppLayout>
+        <DashboardSkeleton />
+      </AppLayout>
     )
   }
 
@@ -266,10 +264,7 @@ function ModeratorContent({ projects, loading, filter, setFilter, onEditProject 
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-pulse-slow rounded-full h-8 w-8 bg-micmac-primary-500"></div>
-          <span className="ml-3 text-dark-text-secondary">Cargando proyectos...</span>
-        </div>
+        <DashboardSkeleton />
       ) : projects.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📊</div>

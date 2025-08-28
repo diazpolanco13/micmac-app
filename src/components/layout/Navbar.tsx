@@ -3,6 +3,8 @@
 import { Menu, MenuButton, MenuItem, MenuItems, Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
+import { useRouter } from 'next/navigation'
 
 function classNames(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(' ')
@@ -18,12 +20,31 @@ interface NavbarProps {
 
 export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
   const { user, signOut } = useMockAuth()
+  const { startLoading } = useNavigationLoading()
+  const router = useRouter()
 
   const userNavigation = [
     { name: 'Tu Perfil', href: '/profile' },
     { name: 'Configuración', href: '/settings' },
     { name: 'Cerrar Sesión', href: '#', action: signOut },
   ]
+
+  // Función para manejar navegación con loading
+  const handleNavigation = (href: string) => {
+    if (href === '#') return // Enlaces sin navegación
+
+    // Redirecciones especiales (igual que en Sidebar)
+    let finalRoute = href
+    const enDesarrolloRoutes = ['/settings']
+    
+    if (enDesarrolloRoutes.includes(href)) {
+      finalRoute = '/en-desarrollo'
+    }
+    
+    // Iniciar loading y navegar
+    startLoading(finalRoute)
+    router.push(finalRoute)
+  }
 
   if (!user) return null
 
@@ -115,13 +136,19 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
                     
                     {userNavigation.map((item) => (
                       <MenuItem key={item.name}>
-                        <a
-                          href={item.href}
-                          onClick={item.action ? (e: React.MouseEvent) => { e.preventDefault(); item.action!() } : undefined}
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 data-[focus]:bg-gray-100 dark:data-[focus]:bg-gray-700 data-[focus]:outline-none"
+                        <button
+                          onClick={(e: React.MouseEvent) => {
+                            e.preventDefault()
+                            if (item.action) {
+                              item.action()
+                            } else {
+                              handleNavigation(item.href)
+                            }
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 data-[focus]:bg-gray-100 dark:data-[focus]:bg-gray-700 data-[focus]:outline-none"
                         >
                           {item.name}
-                        </a>
+                        </button>
                       </MenuItem>
                     ))}
                   </MenuItems>
@@ -147,70 +174,75 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
           className="lg:hidden absolute left-0 right-0 z-50 mt-2 mx-4"
         >
           <div className="bg-white dark:bg-gray-900 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            
-            {/* Mobile User Section */}
-            <div className="flex items-center space-x-3 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="size-10 rounded-full bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center outline outline-1 -outline-offset-1 outline-black/5 dark:outline-white/10">
-                <span className="text-white font-semibold">
-                  {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-base font-medium text-gray-800 dark:text-gray-200 truncate">
-                  {user.name || user.email.split('@')[0]}
+              {/* Mobile User Section */}
+              <div className="flex items-center space-x-3 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="size-10 rounded-full bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center outline outline-1 -outline-offset-1 outline-black/5 dark:outline-white/10">
+                  <span className="text-white font-semibold">
+                    {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                  </span>
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                  {user.email}
+                <div className="flex-1 min-w-0">
+                  <div className="text-base font-medium text-gray-800 dark:text-gray-200 truncate">
+                    {user.name || user.email.split('@')[0]}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {user.email}
+                  </div>
+                  <div className="text-xs text-micmac-primary-500 dark:text-micmac-primary-400 font-medium">
+                    {user.role === 'MODERATOR' ? '👨‍💼 Moderador' : '👨‍🔬 Experto'}
+                  </div>
                 </div>
-                <div className="text-xs text-micmac-primary-500 dark:text-micmac-primary-400 font-medium">
-                  {user.role === 'MODERATOR' ? '👨‍💼 Moderador' : '👨‍🔬 Experto'}
-                </div>
-              </div>
-              <button
-                type="button"
-                className="flex-shrink-0 rounded-full p-2 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <span className="sr-only">Ver notificaciones</span>
-                <BellIcon aria-hidden="true" className="size-6" />
-              </button>
-            </div>
-            
-            {/* Mobile Actions */}
-            <div className="pt-4 space-y-3">
-              {/* New Project Button - Solo para Moderadores */}
-              {user.role === 'MODERATOR' && (
                 <button
-                  onClick={onNewProject}
-                  className="w-full inline-flex justify-center items-center rounded-md bg-micmac-primary-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-micmac-primary-600 transition-colors"
+                  type="button"
+                  className="flex-shrink-0 rounded-full p-2 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  Nuevo Proyecto
+                  <span className="sr-only">Ver notificaciones</span>
+                  <BellIcon aria-hidden="true" className="size-6" />
                 </button>
-              )}
+              </div>
               
-              {/* Mobile Sidebar Toggle */}
-              <button
-                onClick={onToggleSidebar}
-                className="w-full inline-flex justify-center items-center rounded-md bg-gray-100 dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <Bars3Icon className="h-5 w-5 mr-2" />
-                Abrir Navegación
-              </button>
-              
-              {/* Mobile User Navigation */}
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                {userNavigation.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    onClick={item.action ? (e: React.MouseEvent) => { e.preventDefault(); item.action!() } : undefined}
-                    className="block rounded-md px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+              {/* Mobile Actions */}
+              <div className="pt-4 space-y-3">
+                {/* New Project Button - Solo para Moderadores */}
+                {user.role === 'MODERATOR' && (
+                  <button
+                    onClick={onNewProject}
+                    className="w-full inline-flex justify-center items-center rounded-md bg-micmac-primary-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-micmac-primary-600 transition-colors"
                   >
-                    {item.name}
-                  </a>
-                ))}
+                    Nuevo Proyecto
+                  </button>
+                )}
+                
+                {/* Mobile Sidebar Toggle */}
+                <button
+                  onClick={onToggleSidebar}
+                  className="w-full inline-flex justify-center items-center rounded-md bg-gray-100 dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Bars3Icon className="h-5 w-5 mr-2" />
+                  Abrir Navegación
+                </button>
+                
+                {/* Mobile User Navigation */}
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                  {userNavigation.map((item) => (
+                    <button
+                      key={item.name}
+                      onClick={(e: React.MouseEvent) => {
+                        e.preventDefault()
+                        if (item.action) {
+                          item.action()
+                        } else {
+                          handleNavigation(item.href)
+                        }
+                      }}
+                      className="block w-full text-left rounded-md px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
         </PopoverPanel>
       </Popover>
     </>
