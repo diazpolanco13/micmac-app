@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import { MockAuthProvider } from '@/contexts/MockAuthContext';
 import { MockDataProvider } from '@/contexts/MockDataContext';
 import { ToastProvider } from '@/contexts/ToastContext';
-import { NavigationLoadingProvider } from '@/contexts/NavigationLoadingContext';
+import { NavigationLoadingProvider, NavigationLoadingPortal } from '@/contexts/NavigationLoadingContext';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -26,6 +26,7 @@ export default function RootLayout({
             <MockDataProvider>
               <NavigationLoadingProvider>
                 {children}
+                <NavigationLoadingPortal />
               </NavigationLoadingProvider>
             </MockDataProvider>
           </MockAuthProvider>

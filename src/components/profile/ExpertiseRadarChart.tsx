@@ -40,8 +40,8 @@ export default function ExpertiseRadarChart({ expertiseAreas }: ExpertiseRadarCh
   }
 
   return (
-    <div className="h-full w-full">      
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-full w-full" style={{ minHeight: '300px' }}>      
+      <ResponsiveContainer width="100%" height="100%" minHeight={300}>
         <RadarChart data={radarData} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
           <PolarGrid 
             stroke="#374151"

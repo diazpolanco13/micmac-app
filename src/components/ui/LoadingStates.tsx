@@ -65,8 +65,16 @@ export function NavigationLoading({ route }: { route: string }) {
   }
 
   return (
-    <div className="bg-gray-800/95 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 shadow-2xl transform transition-all duration-300 hover:scale-105 pointer-events-auto">
-      <div className="flex items-center space-x-3">
+    <div 
+      className="bg-gray-800 border-2 border-blue-500 rounded-xl p-4 shadow-2xl transform transition-all duration-300 pointer-events-none"
+      style={{
+        backgroundColor: 'rgba(31, 41, 55, 0.95)',
+        backdropFilter: 'blur(8px)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 15px rgba(59, 130, 246, 0.3)'
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl"></div>
+      <div className="relative flex items-center space-x-3">
         <div className="relative">
           <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse-glow"></div>
           <SparklesIcon className="absolute inset-0 h-5 w-5 text-white animate-spin-slow" />
@@ -81,9 +89,6 @@ export function NavigationLoading({ route }: { route: string }) {
           </div>
         </div>
       </div>
-      
-      {/* Efecto de brillo sutil */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 animate-shimmer"></div>
     </div>
   )
 }

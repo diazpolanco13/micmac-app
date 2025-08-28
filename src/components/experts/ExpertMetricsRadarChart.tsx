@@ -139,8 +139,8 @@ export default function ExpertMetricsRadarChart({
       </div>
 
       {/* Gráfico de Radar */}
-      <div className="p-4">
-        <ResponsiveContainer width="100%" height={config.height}>
+      <div className="p-4" style={{ minHeight: config.height }}>
+        <ResponsiveContainer width="100%" height={config.height} minHeight={config.height}>
           <RadarChart data={radarData} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
             <PolarGrid 
               stroke="#374151" 

@@ -72,17 +72,6 @@ export function NavigationLoadingProvider({ children }: NavigationLoadingProvide
       stopLoading
     }}>
       {children}
-      
-      {/* Componente de loading original con animaciones fabulosas */}
-      {mounted && isLoading && targetRoute && (
-        <div 
-          className={`fixed top-20 right-6 z-[99999] pointer-events-none ${
-            isExiting ? 'animate-slide-out-smooth' : 'animate-slide-in-smooth'
-          }`}
-        >
-          <NavigationLoading route={targetRoute} />
-        </div>
-      )}
     </NavigationLoadingContext.Provider>
   )
 }
@@ -110,4 +99,56 @@ export function useLoadingRouter() {
   return {
     navigateWithLoading
   }
+}
+
+/**
+ * Componente que renderiza el NavigationLoading
+ * DEBE ser usado en el RootLayout para evitar problemas de clipping
+ */
+export function NavigationLoadingPortal() {
+  const [mounted, setMounted] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
+  const pathname = usePathname()
+  const context = useContext(NavigationLoadingContext)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (context?.isLoading && context?.targetRoute && pathname === context?.targetRoute) {
+      // Iniciar animación de salida
+      setIsExiting(true)
+      
+      // Delay para la animación de salida suave
+      const exitTimer = setTimeout(() => {
+        setIsExiting(false)
+      }, 600)
+      
+      return () => clearTimeout(exitTimer)
+    }
+  }, [pathname, context?.targetRoute, context?.isLoading])
+
+  if (!context || !mounted || !context.isLoading || !context.targetRoute) {
+    return null
+  }
+
+  // Debug removido - sistema funcionando
+
+  return (
+    <div 
+      className={`fixed pointer-events-none ${
+        isExiting ? 'animate-slide-out-smooth' : 'animate-slide-in-smooth'
+      }`}
+      style={{
+        position: 'fixed',
+        top: '5rem',
+        right: '1.5rem',
+        zIndex: 200,
+        pointerEvents: 'none'
+      }}
+    >
+      <NavigationLoading route={context.targetRoute} />
+    </div>
+  )
 }
