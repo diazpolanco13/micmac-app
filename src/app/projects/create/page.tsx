@@ -11,6 +11,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import TabsNavigation, { TabId } from '@/components/ui/TabsNavigation'
 import VariableEditModal from '@/components/ui/VariableEditModal'
 import ExpertSelector from '@/components/projects/ExpertSelector'
+import ProgrammingTab from '@/components/projects/ProgrammingTab'
 import { ProjectType, Expert } from '@/types/project'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
@@ -1092,169 +1093,24 @@ export default function CreateProjectPage() {
         )}
 
         {activeTab === 'scheduling' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  📅 Programación de Votaciones
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Configura el período de votación y zona horaria del proyecto
-                </p>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                formData.startDate && formData.endDate
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-              }`}>
-                {formData.startDate && formData.endDate ? '✅ Programado' : '⚠️ Pendiente'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Zona Horaria */}
-              <div className="lg:col-span-3">
-                <TimezoneSelector
-                  label="Zona Horaria del Proyecto"
-                  value={formData.timezone}
-                  onChange={(timezone) => handleInputChange('timezone', timezone)}
-                  disabled={isSubmitting}
-                  error={errors.timezone}
-                />
-              </div>
-
-              {/* Fecha de Inicio */}
-              <div>
-                <DateTimePicker
-                  label="Fecha y Hora de Inicio *"
-                  value={formData.startDate}
-                  onChange={(date) => handleInputChange('startDate', date)}
-                  disabled={isSubmitting}
-                  error={errors.startDate}
-                  placeholder="Cuándo inicia la votación"
-                />
-              </div>
-
-              {/* Fecha de Finalización */}
-              <div>
-                <DateTimePicker
-                  label="Fecha y Hora de Finalización *"
-                  value={formData.endDate}
-                  onChange={(date) => handleInputChange('endDate', date)}
-                  minDate={formData.startDate}
-                  disabled={isSubmitting}
-                  error={errors.endDate}
-                  placeholder="Cuándo termina la votación"
-                />
-              </div>
-
-              {/* Recordatorio */}
-              <div>
-                <label htmlFor="reminder-days" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Recordatorio (días antes)
-                </label>
-                <Input
-                  id="reminder-days"
-                  type="number"
-                  min="0"
-                  max="30"
-                  value={formData.reminderDays}
-                  onChange={(e) => handleInputChange('reminderDays', parseInt(e.target.value) || 0)}
-                  disabled={isSubmitting}
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Se enviará recordatorio a los expertos
-                </p>
-              </div>
-            </div>
-
-            {/* Configuración adicional */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                ⚙️ Configuración Avanzada
-              </h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <input
-                    id="allow-late-voting"
-                    type="checkbox"
-                    checked={formData.allowLateVoting}
-                    onChange={(e) => handleInputChange('allowLateVoting', e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    disabled={isSubmitting}
-                  />
-                  <label htmlFor="allow-late-voting" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                    Permitir votaciones después de la fecha límite
-                  </label>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
-                  Los votos tardíos se marcarán como tales en los resultados
-                </p>
-              </div>
-            </div>
-
-            {/* Resumen de programación */}
-            {formData.startDate && formData.endDate && (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-white text-xs">
-                    ✓
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-green-900 dark:text-green-100">
-                      Proyecto Programado
-                    </h4>
-                    <p className="text-sm text-green-800 dark:text-green-200 mt-1">
-                      📅 <strong>Inicio:</strong> {formData.startDate.toLocaleString('es-ES', { 
-                        timeZone: formData.timezone,
-                        dateStyle: 'full',
-                        timeStyle: 'short'
-                      })}
-                    </p>
-                    <p className="text-sm text-green-800 dark:text-green-200">
-                      📋 <strong>Fin:</strong> {formData.endDate.toLocaleString('es-ES', {
-                        timeZone: formData.timezone,
-                        dateStyle: 'full', 
-                        timeStyle: 'short'
-                      })}
-                    </p>
-                    <p className="text-sm text-green-800 dark:text-green-200">
-                      🌍 <strong>Zona horaria:</strong> {formData.timezone}
-                    </p>
-                    <p className="text-xs text-green-700 dark:text-green-300 mt-2">
-                      Duración: {Math.ceil((formData.endDate.getTime() - formData.startDate.getTime()) / (1000 * 60 * 60 * 24))} días
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Botón de configuración rápida */}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <Button
-                type="button"
-                onClick={() => {
-                  const now = new Date()
-                  const startDate = addHours(now, 2) // 2 horas desde ahora
-                  const endDate = addDays(now, 7) // 7 días desde ahora
-                  
-                  setFormData(prev => ({
-                    ...prev,
-                    startDate,
-                    endDate,
-                    timezone: 'America/Caracas',
-                    reminderDays: 1,
-                    allowLateVoting: false
-                  }))
-                }}
-                ghost
-                className="w-full sm:w-auto"
-              >
-                ⏱️ Configuración Rápida (7 días)
-              </Button>
-            </div>
-          </div>
+          <ProgrammingTab
+            startDate={formData.startDate || new Date()}
+            endDate={formData.endDate || addDays(new Date(), 7)}
+            timezone={formData.timezone}
+            reminderDays={formData.reminderDays}
+            allowLateVoting={formData.allowLateVoting}
+            onUpdate={({ startDate, endDate, timezone, reminderDays, allowLateVoting }) => {
+              setFormData(prev => ({
+                ...prev,
+                startDate,
+                endDate,
+                timezone,
+                reminderDays,
+                allowLateVoting
+              }))
+            }}
+            projects={[]} // Por ahora vacío, se puede conectar con proyectos existentes
+          />
         )}
       </div>
 

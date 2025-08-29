@@ -6,6 +6,7 @@ import { useEffect } from 'react'
 import AppLayout from '@/components/layout/AppLayout'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui'
+import Calendar from '@/components/ui/Calendar'
 import { 
   CalendarIcon,
   PlusIcon,
@@ -55,56 +56,32 @@ export default function CalendarPage() {
           </Button>
         </div>
 
-        {/* Placeholder para el calendario */}
-        <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="p-6 bg-blue-500/10 rounded-full">
-              <CalendarIcon className="h-16 w-16 text-blue-400" />
-            </div>
+        {/* Calendario Global */}
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-white mb-2">
+              Calendario Global de Proyectos
+            </h2>
+            <p className="text-gray-300">
+              Visualiza y gestiona todos los proyectos MIC MAC programados
+            </p>
           </div>
           
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Sistema de Calendario en Desarrollo
-          </h2>
-          
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            El sistema completo de calendario estará disponible próximamente. Incluirá:
-          </p>
+          <Calendar
+            projects={[]} // Por ahora vacío, se conectará con proyectos reales
+            className="bg-white dark:bg-gray-800"
+          />
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            <div className="bg-gray-700/50 rounded-lg p-4">
-              <ClockIcon className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-              <h3 className="font-semibold text-white mb-2">Programación de Consultas</h3>
-              <p className="text-sm text-gray-400">Programa proyectos MIC MAC para fechas futuras</p>
-            </div>
-            
-            <div className="bg-gray-700/50 rounded-lg p-4">
-              <CalendarIcon className="h-8 w-8 text-green-400 mx-auto mb-3" />
-              <h3 className="font-semibold text-white mb-2">Vista Mensual</h3>
-              <p className="text-sm text-gray-400">Visualiza todos los proyectos en calendario</p>
-            </div>
-            
-            <div className="bg-gray-700/50 rounded-lg p-4">
-              <PlusIcon className="h-8 w-8 text-purple-400 mx-auto mb-3" />
-              <h3 className="font-semibold text-white mb-2">Invitaciones Automáticas</h3>
-              <p className="text-sm text-gray-400">Envío automático de invitaciones a expertos</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              color="primary"
-              onClick={() => router.push('/projects')}
-            >
-              Ver Proyectos Actuales
-            </Button>
-            <Button
-              ghost
-              onClick={() => router.push('/dashboard')}
-            >
-              Volver al Dashboard
-            </Button>
-          </div>
+        {/* Botón de navegación */}
+        <div className="flex justify-center">
+          <Button
+            ghost
+            onClick={() => router.push('/dashboard')}
+            className="flex items-center gap-2"
+          >
+            Volver al Dashboard
+          </Button>
         </div>
       </div>
     </AppLayout>
