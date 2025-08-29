@@ -319,7 +319,7 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
             {/* User section */}
             <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700">
               <div className={classNames(
-                'flex items-center text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors',
+                'flex items-center text-sm/6 font-semibold text-gray-900 dark:text-gray-100 transition-colors',
                 isCollapsed 
                   ? 'justify-center px-2 py-4' 
                   : 'gap-x-4 px-6 py-4'
@@ -330,13 +330,28 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
                   </span>
                 </div>
                 {!isCollapsed && (
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">
-                      {user.name || user.email.split('@')[0]}
-                    </span>
-                    <span className="text-xs text-micmac-primary-500 dark:text-micmac-primary-400">
-                      {user.role === 'MODERATOR' ? '👨‍💼 Moderador' : '👨‍🔬 Experto'}
-                    </span>
+                  <div className="flex-1 flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {user.name || user.email.split('@')[0]}
+                      </span>
+                      <span className="text-xs text-micmac-primary-500 dark:text-micmac-primary-400">
+                        {user.role === 'MODERATOR' ? '👨‍💼 Moderador' : '👨‍🔬 Experto'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        startLoading('/auth')
+                        await signOut()
+                        router.push('/auth')
+                      }}
+                      className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+                      title="Cerrar sesión"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                    </button>
                   </div>
                 )}
               </div>

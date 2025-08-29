@@ -133,8 +133,12 @@ export function NavigationLoadingPortal() {
     return null
   }
 
-  // Debug removido - sistema funcionando
+  // Para transiciones de auth, renderizar loading de pantalla completa
+  if (context.targetRoute === '/dashboard' || context.targetRoute === '/auth') {
+    return <NavigationLoading route={context.targetRoute} />
+  }
 
+  // Para otras navegaciones, usar el loading de esquina superior derecha
   return (
     <div 
       className={`fixed pointer-events-none ${

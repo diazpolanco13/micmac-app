@@ -111,6 +111,40 @@ const setCurrentUser = (user: User | null) => {
   }
 }
 
+// Función para inicializar usuarios demo
+const initializeDemoUsers = () => {
+  const users = getStoredUsers()
+  
+  // Usuarios demo para testing
+  const demoUsers = [
+    {
+      id: 'demo_moderator',
+      email: 'demo@demo.com',
+      password: 'demo123',
+      name: 'Demo Moderator',
+      role: 'MODERATOR' as UserRole,
+      expertiseAreas: []
+    },
+    {
+      id: 'demo_expert',
+      email: 'expert@micmac.com',
+      password: 'demo123',
+      name: 'Demo Expert',
+      role: 'EXPERT' as UserRole,
+      expertiseAreas: []
+    }
+  ]
+  
+  // Agregar usuarios demo si no existen
+  demoUsers.forEach(demoUser => {
+    if (!users.find(u => u.email === demoUser.email)) {
+      users.push(demoUser as StoredUser)
+    }
+  })
+  
+  setStoredUsers(users)
+}
+
 export function MockAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -118,37 +152,13 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Simular carga inicial
     setTimeout(() => {
+      // Inicializar usuarios demo
+      initializeDemoUsers()
+      
       let currentUser = getCurrentUser()
       
-      // Si no hay usuario o es el usuario demo, crear/actualizar con datos de prueba
-      if (!currentUser || currentUser.email === 'demo@demo.com') {
-        const mockProfile = createMockUserProfile()
-        const mockUser: User = {
-          id: 'user_demo_guerdi_v2',
-          email: 'demo@demo.com',
-          name: mockProfile.name,
-          role: 'MODERATOR',
-          avatar: 'https://ui-avatars.com/api/?name=Guerdi+Lafaurie&background=2DD4BF&color=1F2937&size=96',
-          bio: mockProfile.bio,
-          organization: mockProfile.organization,
-          phone: mockProfile.phone,
-          linkedinUrl: mockProfile.linkedinUrl,
-          profession: mockProfile.profession,
-          currentPosition: mockProfile.currentPosition,
-          yearsExperience: mockProfile.yearsExperience,
-          isActive: mockProfile.isActive,
-          lastLoginAt: mockProfile.lastLoginAt,
-          totalProjectsParticipated: mockProfile.totalProjectsParticipated,
-          averageResponseTime: mockProfile.averageResponseTime,
-          createdAt: mockProfile.createdAt,
-          updatedAt: mockProfile.updatedAt,
-          expertiseAreas: mockProfile.expertiseAreas
-        }
-        
-        // Guardar usuario de prueba
-        setCurrentUser(mockUser)
-        currentUser = mockUser
-      }
+      // Solo mantener el usuario si existe y es válido
+      // NO crear automáticamente un usuario demo
       
       setUser(currentUser)
       setLoading(false)

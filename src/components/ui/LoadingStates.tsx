@@ -59,9 +59,15 @@ export function NavigationLoading({ route }: { route: string }) {
       '/calendar': 'Calendario',
       '/results': 'Resultados',
       '/en-desarrollo': 'En Desarrollo',
-      '/analysis/micmac': 'Análisis MIC MAC'
+      '/analysis/micmac': 'Análisis MIC MAC',
+      '/auth': 'Autenticación'
     }
     return routeMap[route] || 'Cargando página'
+  }
+
+  // Para transiciones de auth, usar un loading más elegante
+  if (route === '/dashboard' || route === '/auth') {
+    return <AuthTransitionLoading route={route} />
   }
 
   return (
@@ -87,6 +93,71 @@ export function NavigationLoading({ route }: { route: string }) {
           <div className="w-32 h-1.5 bg-gray-700/50 rounded-full mt-2 overflow-hidden">
             <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-loading-bar-smooth shadow-sm"></div>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Loading elegante para transiciones de autenticación
+ */
+export function AuthTransitionLoading({ route }: { route: string }) {
+  const getAuthMessage = (route: string) => {
+    const messages = {
+      '/dashboard': {
+        title: 'Accediendo a la plataforma',
+        subtitle: 'Configurando tu espacio de trabajo...',
+        icon: '🚀'
+      },
+      '/auth': {
+        title: 'Cerrando sesión',
+        subtitle: 'Hasta pronto...',
+        icon: '👋'
+      }
+    }
+    return messages[route] || {
+      title: 'Cargando',
+      subtitle: 'Un momento...',
+      icon: '⏳'
+    }
+  }
+
+  const message = getAuthMessage(route)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Efectos de fondo */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-transparent to-purple-900/10"></div>
+      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      
+      <div className="relative z-10 text-center">
+        {/* Icono principal */}
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6 shadow-2xl animate-bounce">
+          <span className="text-3xl">{message.icon}</span>
+        </div>
+        
+        {/* Título */}
+        <h2 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
+          {message.title}
+        </h2>
+        
+        {/* Subtítulo */}
+        <p className="text-gray-400 text-lg mb-8 animate-pulse">
+          {message.subtitle}
+        </p>
+        
+        {/* Barra de progreso elegante */}
+        <div className="w-64 h-2 bg-gray-700 rounded-full mx-auto overflow-hidden mb-6">
+          <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-full animate-loading-bar-smooth shadow-lg"></div>
+        </div>
+        
+        {/* Puntos de carga */}
+        <div className="flex justify-center space-x-2">
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
         </div>
       </div>
     </div>

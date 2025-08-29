@@ -6,6 +6,8 @@
  */
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 
 interface WelcomeProps {
   title?: string
@@ -17,6 +19,13 @@ export default function Welcome({
   subtitle = "Análisis Prospectivos Automatizados" 
 }: WelcomeProps) {
   const [isVisible, setIsVisible] = useState(true)
+  const router = useRouter()
+  const { startLoading } = useNavigationLoading()
+
+  const handleGoToAuth = () => {
+    startLoading('/auth')
+    router.push('/auth')
+  }
 
   if (!isVisible) {
     return null
@@ -59,7 +68,7 @@ export default function Welcome({
             {/* Botones de acción */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <button 
-                onClick={() => window.location.href = '/auth'}
+                onClick={handleGoToAuth}
                 className="btn-primary group"
               >
                 <span className="flex items-center gap-2">
@@ -89,7 +98,7 @@ export default function Welcome({
               <p className="mb-2">👥 <strong>Usuarios Demo:</strong></p>
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <span className="px-3 py-1 bg-micmac-primary-500/20 rounded-full text-micmac-primary-300">
-                  📊 Moderador: mod@micmac.com / demo123
+                  📊 Moderador: demo@demo.com / demo123
                 </span>
                 <span className="px-3 py-1 bg-micmac-secondary-500/20 rounded-full text-micmac-secondary-300">
                   🧑‍🔬 Experto: expert@micmac.com / demo123

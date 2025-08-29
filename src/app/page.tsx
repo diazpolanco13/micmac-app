@@ -2,23 +2,30 @@
 
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useRouter } from 'next/navigation'
+import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 import { useEffect, useState } from 'react'
 import Welcome from '@/components/Welcome'
 
 export default function Home() {
   const { user, loading } = useMockAuth()
+  const { startLoading } = useNavigationLoading()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard')
+    if (!loading && user && !redirecting) {
+      setRedirecting(true)
+      startLoading('/dashboard')
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
     }
-  }, [user, loading, router])
+  }, [user, loading, router, redirecting, startLoading])
 
   // Evitar hydration mismatch
   if (!mounted) {
@@ -40,8 +47,15 @@ export default function Home() {
     )
   }
 
-  if (user) {
-    return null // Se redirigirá al dashboard
+  if (user || redirecting) {
+    return (
+      <div className="min-h-screen bg-micmac-dark flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-pulse-slow rounded-full h-12 w-12 bg-micmac-primary-500 mx-auto mb-4"></div>
+          <p className="text-dark-text-secondary">Redirigiendo al dashboard...</p>
+        </div>
+      </div>
+    )
   }
 
   return <Welcome />

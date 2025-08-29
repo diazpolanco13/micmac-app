@@ -6,7 +6,9 @@
  */
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 
 interface LoginFormProps {
   onToggleMode: () => void
@@ -15,6 +17,8 @@ interface LoginFormProps {
 
 export default function LoginForm({ onToggleMode, className = '' }: LoginFormProps) {
   const { signIn, loading } = useMockAuth()
+  const { startLoading } = useNavigationLoading()
+  const router = useRouter()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -34,6 +38,12 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
     
     if (signInError) {
       setError(signInError)
+    } else {
+      // ✨ Redirección exitosa con loading visual
+      startLoading('/dashboard')
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
     }
   }
 
@@ -42,6 +52,23 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
       ...prev,
       [e.target.name]: e.target.value
     }))
+  }
+
+  // Función para login rápido con usuarios demo
+  const handleDemoLogin = async (email: string, password: string) => {
+    setFormData({ email, password })
+    setError(null)
+    
+    const { error: signInError } = await signIn(email, password)
+    
+    if (signInError) {
+      setError(signInError)
+    } else {
+      startLoading('/dashboard')
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
+    }
   }
 
   return (
@@ -124,12 +151,37 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
           </button>
         </div>
 
-        {/* Demo users para testing */}
+        {/* Demo users para testing con login rápido */}
         <div className="mt-6 p-4 bg-dark-bg-tertiary/30 rounded-xl border border-dark-bg-tertiary">
-          <p className="text-xs text-dark-text-secondary mb-2 font-medium">Demo Users:</p>
-          <div className="space-y-1 text-xs text-dark-text-muted">
-            <div>📊 Moderador: mod@micmac.com / demo123</div>
-            <div>👨‍🔬 Experto: expert@micmac.com / demo123</div>
+          <p className="text-xs text-dark-text-secondary mb-3 font-medium">🚀 Acceso Rápido Demo:</p>
+          <div className="space-y-2">
+            <button
+              onClick={() => handleDemoLogin('demo@demo.com', 'demo123')}
+              disabled={loading}
+              className="w-full text-left p-2 bg-micmac-primary-500/10 hover:bg-micmac-primary-500/20 rounded-lg border border-micmac-primary-500/20 hover:border-micmac-primary-500/40 transition-all disabled:opacity-50"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">👨‍💼</span>
+                <div>
+                  <div className="text-sm font-medium text-micmac-primary-300">Moderador Demo</div>
+                  <div className="text-xs text-dark-text-muted">demo@demo.com</div>
+                </div>
+              </div>
+            </button>
+            
+            <button
+              onClick={() => handleDemoLogin('expert@micmac.com', 'demo123')}
+              disabled={loading}
+              className="w-full text-left p-2 bg-micmac-secondary-500/10 hover:bg-micmac-secondary-500/20 rounded-lg border border-micmac-secondary-500/20 hover:border-micmac-secondary-500/40 transition-all disabled:opacity-50"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">👨‍🔬</span>
+                <div>
+                  <div className="text-sm font-medium text-micmac-secondary-300">Experto Demo</div>
+                  <div className="text-xs text-dark-text-muted">expert@micmac.com</div>
+                </div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
