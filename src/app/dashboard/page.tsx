@@ -14,6 +14,9 @@ import AppLayout from '@/components/layout/AppLayout'
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
 import DashboardProjects from '@/components/dashboard/DashboardProjects'
 import RecentActivity from '@/components/dashboard/RecentActivity'
+import ProjectEvolutionChart from '@/components/dashboard/ProjectEvolutionChart'
+import ProjectStatusChart from '@/components/dashboard/ProjectStatusChart'
+import ExpertPerformanceChart from '@/components/dashboard/ExpertPerformanceChart'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 import type { Project } from '@/types/project'
@@ -202,21 +205,26 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Header del Dashboard */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-full mb-6">
-            <ChartBarIcon className="h-10 w-10 text-blue-400" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        {/* Header del Dashboard - Compacto */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-xl">
+              <ChartBarIcon className="h-6 w-6 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">
+                Dashboard MIC MAC Pro
+              </h1>
+              <p className="text-gray-400 text-sm">
+                {user.name || user.email} • {user.role === 'MODERATOR' ? 'Moderador' : 'Experto'}
+              </p>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Dashboard MIC MAC Pro
-          </h1>
-          <p className="text-gray-400 text-lg">
-            Bienvenido, {user.name || user.email}
-          </p>
-          <p className="text-gray-500 text-sm">
-            {user.role === 'MODERATOR' ? 'Moderador' : 'Experto'} • Último acceso: {new Date().toLocaleDateString('es-ES')}
-          </p>
+          <div className="text-right">
+            <p className="text-gray-400 text-sm">Último acceso</p>
+            <p className="text-white text-sm font-medium">{new Date().toLocaleDateString('es-ES')}</p>
+          </div>
         </div>
 
         {/* Métricas del Dashboard */}
@@ -260,57 +268,63 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Contenido Principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Proyectos del Usuario */}
-          <div className="lg:col-span-2">
-            <DashboardProjects
-              projects={userProjects}
-              title={user.role === 'MODERATOR' ? 'Mis Proyectos' : 'Proyectos Activos'}
-              userRole={user.role as 'MODERATOR' | 'EXPERT'}
-              onEditProject={handleEditProject}
-              showCreateButton={user.role === 'MODERATOR'}
-              onCreateProject={handleCreateProject}
-            />
-          </div>
-
-          {/* Actividad Reciente */}
-          <div className="lg:col-span-1">
-            <RecentActivity 
-              activities={recentActivities}
-              maxItems={6}
-            />
-          </div>
-        </div>
-
-        {/* Sistema de Automatización */}
-        <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <h3 className="text-lg font-semibold text-white">
-              Sistema de Automatización Activo
+        {/* Gráficos Principales */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Gráfico de Evolución de Proyectos */}
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-3">
+              <div className="w-2 h-6 bg-gradient-to-b from-blue-400 to-purple-500 rounded-full"></div>
+              Evolución de Proyectos
             </h3>
+            <div className="h-64">
+              <ProjectEvolutionChart projects={projects} />
+            </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-green-400">✏️</span>
-              <span className="text-gray-300">@CursorTesting</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-green-400">📄</span>
-              <span className="text-gray-300">@CursorGit</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-green-400">📊</span>
-              <span className="text-gray-300">@CursorLinear</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-green-400">📚</span>
-              <span className="text-gray-300">@CursorDocs</span>
+
+          {/* Distribución por Estado */}
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-3">
+              <div className="w-2 h-6 bg-gradient-to-b from-emerald-400 to-teal-500 rounded-full"></div>
+              Distribución por Estado
+            </h3>
+            <div className="h-64">
+              <ProjectStatusChart projects={projects} />
             </div>
           </div>
         </div>
+
+        {/* Performance de Expertos - Solo Moderadores */}
+        {user.role === 'MODERATOR' && (
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-3">
+              <div className="w-2 h-6 bg-gradient-to-b from-orange-400 to-red-500 rounded-full"></div>
+              Performance de Expertos
+            </h3>
+            <div className="h-80">
+              <ExpertPerformanceChart experts={experts} />
+            </div>
+          </div>
+        )}
+
+        {/* Proyectos del Usuario */}
+        <DashboardProjects
+          projects={userProjects}
+          title={user.role === 'MODERATOR' ? 'Mis Proyectos' : 'Proyectos Activos'}
+          userRole={user.role as 'MODERATOR' | 'EXPERT'}
+          onEditProject={handleEditProject}
+          showCreateButton={false}
+          onCreateProject={handleCreateProject}
+        />
+
+        {/* Actividad Reciente - Ancho Completo */}
+        <RecentActivity 
+          activities={recentActivities}
+          maxItems={12}
+          fullWidth={true}
+        />
+
+
+
       </div>
     </AppLayout>
   ) 

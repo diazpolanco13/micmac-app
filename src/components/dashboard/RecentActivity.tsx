@@ -24,9 +24,10 @@ interface Activity {
 interface RecentActivityProps {
   activities: Activity[]
   maxItems?: number
+  fullWidth?: boolean
 }
 
-export default function RecentActivity({ activities, maxItems = 5 }: RecentActivityProps) {
+export default function RecentActivity({ activities, maxItems = 5, fullWidth = false }: RecentActivityProps) {
   const recentActivities = activities
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
     .slice(0, maxItems)
@@ -82,51 +83,136 @@ export default function RecentActivity({ activities, maxItems = 5 }: RecentActiv
 
   if (recentActivities.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+          <div className="w-2 h-8 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-full"></div>
           Actividad Reciente
         </h3>
         <div className="text-center py-8">
-          <ClockIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-2xl flex items-center justify-center">
+            <ClockIcon className="h-8 w-8 text-cyan-400" />
+          </div>
+          <p className="text-slate-400">
             No hay actividad reciente
+          </p>
+          <p className="text-slate-500 text-sm mt-2">
+            Las actividades aparecerán cuando interactúes con el sistema
           </p>
         </div>
       </div>
     )
   }
 
+  // Generar estado de conexión aleatorio para demo
+  const getConnectionStatus = (activity: Activity) => {
+    const hash = activity.id.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0)
+      return a & a
+    }, 0)
+    return Math.abs(hash) % 3 === 0 // ~33% probabilidad de estar desconectado
+  }
+
+  if (fullWidth) {
+    return (
+      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+          <div className="w-2 h-8 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-full"></div>
+          Actividad Reciente y Estado de Conexión
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {recentActivities.map((activity) => {
+            const isConnected = !getConnectionStatus(activity)
+            return (
+              <div
+                key={activity.id}
+                className="group p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 hover:border-slate-600/50 hover:bg-slate-800/50 transition-all duration-200"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="flex-shrink-0 p-2 bg-slate-700/50 rounded-lg group-hover:scale-110 transition-transform duration-200">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white mb-1 truncate">
+                      {activity.title}
+                    </p>
+                    <p className="text-xs text-slate-400 font-medium bg-slate-700/30 px-2 py-1 rounded-md inline-block">
+                      {formatTimeAgo(activity.timestamp)}
+                    </p>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-slate-300 leading-relaxed mb-3 line-clamp-2">
+                  {activity.description}
+                </p>
+                
+                <div className="flex items-center justify-between">
+                  {activity.projectName && (
+                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-700/30 rounded-md">
+                      <DocumentTextIcon className="h-3 w-3 text-slate-400" />
+                      <span className="text-xs text-slate-400 truncate max-w-20">{activity.projectName}</span>
+                    </div>
+                  )}
+                  
+                  {/* Indicador de Conexión */}
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}></div>
+                    <span className={`text-xs font-medium ${isConnected ? 'text-green-400' : 'text-gray-400'}`}>
+                      {isConnected ? 'Conectado' : 'Desconectado'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        
+        {activities.length > maxItems && (
+          <div className="mt-6 pt-4 border-t border-slate-700/50 text-center">
+            <button className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105">
+              <ClockIcon className="h-4 w-4" />
+              Ver todas las actividades ({activities.length})
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+    <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+      <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+        <div className="w-2 h-8 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-full"></div>
         Actividad Reciente
       </h3>
       
-      <div className="space-y-4">
+      <div className="space-y-3">
         {recentActivities.map((activity) => (
           <div
             key={activity.id}
-            className={`flex items-start gap-3 p-3 rounded-lg border ${getActivityColor(activity.type)}`}
+            className="group flex items-start gap-3 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 hover:border-slate-600/50 hover:bg-slate-800/50 transition-all duration-200"
           >
-            <div className="flex-shrink-0 mt-1">
+            <div className="flex-shrink-0 mt-1 p-2 bg-slate-700/50 rounded-lg group-hover:scale-110 transition-transform duration-200">
               {getActivityIcon(activity.type)}
             </div>
             
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <p className="text-sm font-semibold text-white mb-1">
                 {activity.title}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-sm text-slate-300 leading-relaxed">
                 {activity.description}
               </p>
               {activity.projectName && (
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                  Proyecto: {activity.projectName}
-                </p>
+                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-slate-700/30 rounded-md">
+                  <DocumentTextIcon className="h-3 w-3 text-slate-400" />
+                  <span className="text-xs text-slate-400">{activity.projectName}</span>
+                </div>
               )}
             </div>
             
-            <div className="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex-shrink-0 text-xs text-slate-400 font-medium bg-slate-700/30 px-2 py-1 rounded-md">
               {formatTimeAgo(activity.timestamp)}
             </div>
           </div>
@@ -134,8 +220,9 @@ export default function RecentActivity({ activities, maxItems = 5 }: RecentActiv
       </div>
       
       {activities.length > maxItems && (
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
-          <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+        <div className="mt-6 pt-4 border-t border-slate-700/50 text-center">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105">
+            <ClockIcon className="h-4 w-4" />
             Ver todas las actividades ({activities.length})
           </button>
         </div>
