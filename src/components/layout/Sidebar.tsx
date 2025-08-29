@@ -110,7 +110,7 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
       icon: FolderIcon,
       children: [
         { name: 'Todos los Proyectos', href: '/projects', icon: FolderIcon },
-        { name: 'Crear Proyecto', href: '/projects/new', icon: FolderIcon },
+        { name: 'Crear Proyecto', href: '/projects/create', icon: FolderIcon },
         { name: 'Plantillas', href: '/projects/templates', icon: FolderIcon },
         { name: 'Archivados', href: '/projects/archived', icon: FolderIcon },
       ],

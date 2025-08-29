@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useRouter } from 'next/navigation'
+import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 import { Project } from '@/types/project'
 import { Button } from '@/components/ui'
 import { ProjectsSkeleton } from '@/components/ui/LoadingStates'
@@ -21,6 +22,7 @@ export default function ProjectsPage() {
     refreshProjects 
   } = useMockData()
   const router = useRouter()
+  const { startLoading } = useNavigationLoading()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
@@ -83,9 +85,8 @@ export default function ProjectsPage() {
   }
 
   const handleEditProject = (project: Project) => {
-    setCurrentProject(project)
-    setSelectedProject(project)
-    setIsEditModalOpen(true)
+    startLoading(`/projects/create?edit=${project.id}`)
+    router.push(`/projects/create?edit=${project.id}`)
   }
 
   if (loading) {
@@ -127,7 +128,10 @@ export default function ProjectsPage() {
               />
               <Button 
                 color="primary"
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={() => {
+                  startLoading('/projects/create')
+                  router.push('/projects/create')
+                }}
               >
                 + Nuevo Proyecto
               </Button>

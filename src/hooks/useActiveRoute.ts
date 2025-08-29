@@ -32,12 +32,21 @@ export function useActiveRoute(): ActiveRouteInfo {
       // Exact match para rutas principales
       if (href === pathname) return true
       
-      // Para rutas dinámicas como /projects/[id]
-      if (href === '/projects' && pathname.startsWith('/projects/')) return true
-      if (href === '/experts' && pathname.startsWith('/experts/')) return true
+      // Para rutas dinámicas específicas
+      if (href === '/projects' && pathname.startsWith('/projects/')) {
+        // Solo activar /projects si estamos exactamente en /projects
+        // No para subrutas como /projects/create
+        return pathname === '/projects'
+      }
+      if (href === '/experts' && pathname.startsWith('/experts/')) {
+        // Solo activar /experts si estamos exactamente en /experts
+        return pathname === '/experts'
+      }
       
-      // Para subrutas específicas
-      if (pathname.startsWith(href) && href !== '/') return true
+      // Para subrutas específicas (pero no para rutas raíz)
+      if (pathname.startsWith(href) && href !== '/' && href !== '/projects' && href !== '/experts') {
+        return true
+      }
       
       return false
     }
@@ -64,6 +73,7 @@ export function useActiveRoute(): ActiveRouteInfo {
       '/dashboard': 'Dashboard',
       '/profile': 'Mi Perfil',
       '/projects': 'Proyectos',
+      '/projects/create': 'Proyectos',
       '/projects/new': 'Proyectos',
       '/projects/templates': 'Proyectos', 
       '/projects/archived': 'Proyectos',
@@ -94,6 +104,8 @@ export function useActiveRoute(): ActiveRouteInfo {
         activeChild = 'Votación MIC MAC'
       } else if (pathname.includes('/results')) {
         activeChild = 'Resultados MIC MAC'
+      } else if (pathname === '/projects/create' || pathname.startsWith('/projects/create?')) {
+        activeChild = 'Crear Proyecto'
       } else {
         activeChild = 'Todos los Proyectos'
       }
@@ -108,6 +120,9 @@ export function useActiveRoute(): ActiveRouteInfo {
       switch (pathname) {
         case '/projects':
           activeChild = 'Todos los Proyectos'
+          break
+        case '/projects/create':
+          activeChild = 'Crear Proyecto'
           break
         case '/projects/new':
           activeChild = 'Crear Proyecto'

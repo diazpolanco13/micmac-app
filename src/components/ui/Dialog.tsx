@@ -44,7 +44,8 @@ export function Dialog({
               sizes[size],
               'w-full bg-dark-bg-secondary rounded-2xl shadow-2xl ring-1 ring-dark-bg-tertiary border border-dark-bg-tertiary/50',
               'transition duration-300 will-change-transform data-[closed]:translate-y-12 data-[closed]:opacity-0 data-[enter]:ease-out data-[leave]:ease-in data-[closed]:data-[enter]:scale-95',
-              'max-h-[calc(100vh-7rem)] overflow-hidden'
+              'max-h-[calc(100vh-7rem)] overflow-hidden',
+              'p-6 sm:p-8' // Padding interno agregado
             )}
           >
             {children}

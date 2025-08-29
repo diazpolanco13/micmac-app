@@ -7,13 +7,15 @@ import ExpertMetricsRadarChart from './ExpertMetricsRadarChart'
 interface ExpertDetailModalProps {
   expert: Expert
   onClose: () => void
-  onEdit: () => void
+  onEdit?: () => void
+  showEditButton?: boolean
 }
 
 export default function ExpertDetailModal({ 
   expert, 
   onClose, 
-  onEdit 
+  onEdit,
+  showEditButton = true
 }: ExpertDetailModalProps) {
   const roleColors = {
     EXPERT: 'bg-blue-500/20 text-blue-400',
@@ -55,8 +57,13 @@ export default function ExpertDetailModal({
                 </span>
               </div>
             </div>
-            <Button ghost onClick={onClose} className="h-8 w-8 p-0">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <Button 
+              ghost 
+              onClick={onClose} 
+              className="h-10 w-10 p-0 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg"
+              title="Cerrar"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </Button>
@@ -224,9 +231,11 @@ export default function ExpertDetailModal({
             <Button ghost onClick={onClose}>
               Cerrar
             </Button>
-            <Button color="primary" onClick={onEdit}>
-              Editar Experto
-            </Button>
+            {showEditButton && onEdit && (
+              <Button color="primary" onClick={onEdit}>
+                Editar Experto
+              </Button>
+            )}
           </div>
         </div>
       </div>

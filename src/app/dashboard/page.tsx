@@ -68,8 +68,8 @@ export default function DashboardPage() {
   }
 
   const handleEditProject = (project: any) => {
-    setSelectedProject(project)
-    setIsEditModalOpen(true)
+    startLoading(`/projects/create?edit=${project.id}`)
+    router.push(`/projects/create?edit=${project.id}`)
   }
 
   if (loading) {
