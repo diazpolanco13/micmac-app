@@ -85,10 +85,18 @@ export function useActiveRoute(): ActiveRouteInfo {
       '/en-desarrollo': null, // Página especial sin padre
     }
 
-    // Para rutas dinámicas
+    // Actualizar el mapeo de rutas dinámicas
     if (pathname.startsWith('/projects/') && pathname !== '/projects') {
       activeParent = 'Proyectos'
-      activeChild = 'Todos los Proyectos'
+      
+      // Detectar subrutas específicas
+      if (pathname.includes('/vote')) {
+        activeChild = 'Votación MIC MAC'
+      } else if (pathname.includes('/results')) {
+        activeChild = 'Resultados MIC MAC'
+      } else {
+        activeChild = 'Todos los Proyectos'
+      }
     } else if (pathname.startsWith('/experts/') && pathname !== '/experts') {
       activeParent = 'Expertos'
       activeChild = 'Gestionar Expertos'

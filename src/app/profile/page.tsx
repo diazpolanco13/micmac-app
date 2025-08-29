@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Button, Input } from '@/components/ui'
 import { useToast } from '@/contexts/ToastContext'
 import ExpertiseAreasSection from '@/components/profile/ExpertiseAreasSection'
@@ -146,6 +147,9 @@ export default function ProfilePage() {
   return (
     <AppLayout>
       <div className="w-full max-w-7xl mx-auto relative">
+        {/* Breadcrumbs */}
+        <Breadcrumbs />
+        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gradient mb-2">

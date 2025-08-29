@@ -6,6 +6,7 @@ import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import AppLayout from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Project, VotingResponse } from '@/types/project'
 import VotingMatrix from '@/components/voting/VotingMatrix'
 
@@ -190,6 +191,9 @@ export default function VotingPage() {
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto py-6">
+        {/* Breadcrumbs */}
+        <Breadcrumbs />
+        
         {/* Header del proyecto */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -229,10 +233,18 @@ export default function VotingPage() {
                 </button>
               )}
               
-              <div className="text-right">
-                <div className="text-sm text-dark-text-secondary">Variables</div>
-                <div className="text-2xl font-bold text-micmac-primary-400">
-                  {project.variables.length}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => router.push(`/projects/${project.id}/results`)}
+                  className="px-4 py-2 bg-micmac-primary-600 hover:bg-micmac-primary-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                >
+                  📊 Ver Resultados
+                </button>
+                <div className="text-right">
+                  <div className="text-sm text-dark-text-secondary">Variables</div>
+                  <div className="text-2xl font-bold text-micmac-primary-400">
+                    {project.variables.length}
+                  </div>
                 </div>
               </div>
             </div>

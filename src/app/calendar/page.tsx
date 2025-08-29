@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useEffect } from 'react'
 import AppLayout from '@/components/layout/AppLayout'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui'
 import { 
   CalendarIcon,
@@ -35,6 +36,9 @@ export default function CalendarPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Breadcrumbs */}
+        <Breadcrumbs />
+        
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

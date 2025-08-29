@@ -4,6 +4,7 @@ import { useMockData } from '@/contexts/MockDataContext'
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import AppLayout from '@/components/layout/AppLayout'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import MicMacProfessional from '@/components/results/MicMacProfessional'
 import type { Project } from '@/types/project'
 
@@ -64,6 +65,9 @@ export default function ProjectResultsPage() {
   return (
     <AppLayout>
       <div className="w-full max-w-7xl mx-auto">
+        {/* Breadcrumbs */}
+        <Breadcrumbs />
+        
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -123,13 +127,19 @@ export default function ProjectResultsPage() {
         <div className="mt-8 flex justify-center gap-4">
           <button
             onClick={() => router.push(`/projects/${projectId}/vote`)}
-            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
           >
             🗳️ Ver Votación
           </button>
           <button
+            onClick={() => router.push('/projects')}
+            className="px-6 py-3 bg-micmac-primary-600 hover:bg-micmac-primary-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            📁 Todos los Proyectos
+          </button>
+          <button
             onClick={() => window.print()}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
           >
             🖨️ Exportar Resultados
           </button>

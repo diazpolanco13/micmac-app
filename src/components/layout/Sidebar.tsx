@@ -13,6 +13,7 @@ import {
   PresentationChartLineIcon
 } from '@heroicons/react/24/outline'
 import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useMockData } from '@/contexts/MockDataContext'
 import { useState, useEffect } from 'react'
 import { useSidebarState, type SidebarState } from '@/hooks/useWindowSize'
 import { useActiveRoute, type NavigationItem } from '@/hooks/useActiveRoute'
@@ -30,6 +31,7 @@ interface SidebarProps {
 
 export default function Sidebar({ state, onToggle }: SidebarProps) {
   const { user, signOut } = useMockAuth()
+  const { projects } = useMockData()
   const [mounted, setMounted] = useState(false)
   const responsiveState = useSidebarState()
   const { activeParent, activeChild, isActive, isParentActive } = useActiveRoute()
@@ -76,7 +78,13 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
         finalRoute = '/en-desarrollo'
       } else if (href === '/analysis/micmac') {
         // Redirección inteligente para análisis MIC MAC
-        finalRoute = '/projects'
+        // Si hay un proyecto activo, ir directamente a su votación
+        const activeProject = projects?.find(p => p.status === 'ACTIVE')
+        if (activeProject) {
+          finalRoute = `/projects/${activeProject.id}/vote`
+        } else {
+          finalRoute = '/projects'
+        }
       }
     }
     
