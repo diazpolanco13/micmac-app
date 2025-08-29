@@ -42,7 +42,7 @@ export default function ResultsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="container-app space-y-6">
         {/* Breadcrumbs */}
         <Breadcrumbs />
         

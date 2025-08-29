@@ -104,7 +104,7 @@ export default function ProjectsPage() {
 
   return (
     <AppLayout onNewProject={() => setIsCreateModalOpen(true)}>
-      <div className="w-full max-w-7xl mx-auto">
+      <div className="container-app">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gradient mb-2">
             🗂️ Gestión de Proyectos

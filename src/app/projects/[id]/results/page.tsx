@@ -64,7 +64,7 @@ export default function ProjectResultsPage() {
 
   return (
     <AppLayout>
-      <div className="w-full max-w-7xl mx-auto">
+      <div className="container-app">
         {/* Breadcrumbs */}
         <Breadcrumbs />
         

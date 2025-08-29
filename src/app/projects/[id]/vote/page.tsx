@@ -156,7 +156,7 @@ export default function VotingPage() {
   if (error) {
     return (
       <AppLayout>
-        <div className="max-w-2xl mx-auto py-8">
+        <div className="container-app py-8">
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-6 text-center">
             <div className="text-red-400 text-4xl mb-4">⚠️</div>
             <h2 className="text-xl font-semibold text-red-400 mb-2">Error de Acceso</h2>
@@ -177,7 +177,7 @@ export default function VotingPage() {
   if (!project) {
     return (
       <AppLayout>
-        <div className="max-w-2xl mx-auto py-8">
+        <div className="container-app py-8">
           <div className="text-center">
             <p className="text-dark-text-secondary">Proyecto no encontrado</p>
           </div>
@@ -190,7 +190,7 @@ export default function VotingPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto py-6">
+      <div className="container-app py-6">
         {/* Breadcrumbs */}
         <Breadcrumbs />
         

@@ -146,7 +146,7 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
-      <div className="w-full max-w-7xl mx-auto relative">
+      <div className="container-app relative">
         {/* Breadcrumbs */}
         <Breadcrumbs />
         

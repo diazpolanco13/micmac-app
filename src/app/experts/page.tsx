@@ -121,7 +121,7 @@ export default function ExpertsPage() {
 
   return (
     <AppLayout>
-      <div className="w-full max-w-7xl mx-auto">
+      <div className="container-app">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">

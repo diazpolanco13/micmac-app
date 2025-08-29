@@ -115,7 +115,7 @@ export default function EnDesarrolloPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="container-app space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-center">
           <div className="flex justify-center mb-4">
