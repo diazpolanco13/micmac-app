@@ -307,7 +307,7 @@ function ExpertSelectionTab({ selectedExperts, onExpertsChange, expectedExperts 
 
   // Ordenar por puntuación de confiabilidad (descendente)
   const sortedAvailable = filteredAvailable.sort((a, b) => 
-    (b.reliabilityScore || 0) - (a.reliabilityScore || 0)
+    (b.performanceMetrics?.overallReliability || 0) - (a.performanceMetrics?.overallReliability || 0)
   )
 
   // Obtener todas las áreas de expertise para el filtro
@@ -618,9 +618,9 @@ export default function CreateProjectPage() {
           description: v.description || '',
           order: index
         })),
-        startDate: projectToEdit.startDate ? new Date(projectToEdit.startDate) : addHours(new Date(), 2),
-        endDate: projectToEdit.endDate ? new Date(projectToEdit.endDate) : addDays(new Date(), 7),
-        timezone: projectToEdit.timezone || 'America/Caracas',
+        startDate: addHours(new Date(), 2), // TODO: Conectar con campos reales del proyecto
+        endDate: addDays(new Date(), 7), // TODO: Conectar con campos reales del proyecto
+        timezone: 'America/Caracas', // TODO: Conectar con campo real del proyecto
         expectedExperts: projectToEdit.expectedExperts,
         expertEmails: projectToEdit.projectExperts.map(pe => pe.expert.email),
         selectedExperts: projectToEdit.projectExperts.map(pe => pe.expert),
@@ -802,7 +802,7 @@ export default function CreateProjectPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <Breadcrumbs />
       
       {/* Header */}
