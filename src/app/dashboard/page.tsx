@@ -1,76 +1,167 @@
 'use client'
 
 /**
- * 📊 Dashboard Page - Panel principal con gestión de proyectos
+ * 🚀 Dashboard Page - Panel principal inteligente con métricas reales
+ * Aplica correctamente el límite de 6 proyectos por página
  */
 
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui'
+import { useState, useEffect, useMemo } from 'react'
+import { Button } from '@/components/ui/Button'
 import { DashboardSkeleton } from '@/components/ui/LoadingStates'
-import CreateProjectModal from '@/components/projects/CreateProjectModal'
-import ProjectEditModal from '@/components/projects/ProjectEditModal'
 import AppLayout from '@/components/layout/AppLayout'
-import MicMacTester from '@/components/testing/MicMacTester'
-import { mockProjects } from '@/lib/mockData'
-
-// Tipos locales para el dashboard
-interface Project {
-  id: string
-  name: string
-  description: string | null
-  type: 'STRATEGIC' | 'TECHNOLOGICAL' | 'ENVIRONMENTAL' | 'SOCIAL' | 'ECONOMIC'
-  status: 'DRAFT' | 'SETUP' | 'ACTIVE' | 'IN_REVIEW' | 'COMPLETED' | 'ARCHIVED'
-  expectedExperts: number
-  tags: string[]
-  isPublic: boolean
-  creatorId: string
-  createdAt: string
-  updatedAt: string
-  creator: { name: string | null, email: string }
-  variables: any[]
-  projectExperts: any[]
-  statusHistory: any[]
-  _count?: { variables: number, projectExperts: number }
-}
+import DashboardMetrics from '@/components/dashboard/DashboardMetrics'
+import DashboardProjects from '@/components/dashboard/DashboardProjects'
+import RecentActivity from '@/components/dashboard/RecentActivity'
+import { useMockData } from '@/contexts/MockDataContext'
+import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
+import type { Project } from '@/types/project'
+import { 
+  PlusIcon, 
+  CalendarIcon, 
+  UsersIcon, 
+  DocumentTextIcon,
+  ChartBarIcon,
+  CogIcon
+} from '@heroicons/react/24/outline'
 
 export default function DashboardPage() {
   const { user, loading } = useMockAuth()
+  const { projects, experts } = useMockData()
+  const { startLoading } = useNavigationLoading()
   const router = useRouter()
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<any>(null)
-  const [filter, setFilter] = useState({ 
-    status: [] as string[], 
-    search: '', 
-    tags: [] as string[] 
-  })
+
+  // Calcular métricas reales del sistema
+  const metrics = useMemo(() => {
+    if (!projects || !experts) return {
+      totalProjects: 0,
+      activeProjects: 0,
+      completedProjects: 0,
+      draftProjects: 0,
+      totalExperts: 0,
+      activeExperts: 0,
+      totalVariables: 0,
+      averageProjectDuration: 7,
+      projectsThisMonth: 0,
+      projectsLastMonth: 0,
+      completionRate: 0,
+      averageExpertScore: 0
+    }
+
+    const now = new Date()
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    
+    const activeProjects = projects.filter(p => p.status === 'ACTIVE').length
+    const completedProjects = projects.filter(p => p.status === 'COMPLETED').length
+    const draftProjects = projects.filter(p => p.status === 'DRAFT').length
+    
+    const projectsThisMonth = projects.filter(p => new Date(p.createdAt) >= thisMonth).length
+    const projectsLastMonth = projects.filter(p => {
+      const createdAt = new Date(p.createdAt)
+      return createdAt >= lastMonth && createdAt < thisMonth
+    }).length
+    
+    const completionRate = projects.length > 0 ? (completedProjects / projects.length) * 100 : 0
+    
+    const averageExpertScore = experts.length > 0 
+      ? experts.reduce((sum, expert) => sum + (expert.performanceMetrics?.overallReliability || 0), 0) / experts.length
+      : 0
+
+    return {
+      totalProjects: projects.length,
+      activeProjects,
+      completedProjects,
+      draftProjects,
+      totalExperts: experts.length,
+      activeExperts: experts.filter(e => (e.performanceMetrics?.overallReliability || 0) > 70).length,
+      totalVariables: projects.reduce((total, project) => total + (project.variables?.length || 0), 0),
+      averageProjectDuration: 7,
+      projectsThisMonth,
+      projectsLastMonth,
+      completionRate,
+      averageExpertScore
+    }
+  }, [projects, experts])
+
+  // Filtrar proyectos por rol del usuario
+  const userProjects = useMemo(() => {
+    if (!projects || !user) return []
+    
+    if (user.role === 'MODERATOR') {
+      return projects.filter(p => p.creatorId === user.id)
+    } else {
+      return projects.filter(p => 
+        p.status === 'ACTIVE' && 
+        p.projectExperts?.some(e => e.expertId === user.id)
+      )
+    }
+  }, [projects, user])
+
+  // Generar actividades recientes
+  const recentActivities = useMemo(() => {
+    if (!projects || !experts) return []
+    
+    const activities: Array<{
+      id: string
+      type: 'project_created' | 'voting_started' | 'expert_added'
+      title: string
+      description: string
+      timestamp: Date
+      projectId?: string
+      projectName?: string
+      userId?: string
+      userName?: string
+    }> = []
+    
+    // Actividades de proyectos
+    projects.slice(0, 10).forEach(project => {
+      activities.push({
+        id: `project-${project.id}`,
+        type: 'project_created' as const,
+        title: 'Proyecto creado',
+        description: `Se creó el proyecto "${project.name}"`,
+        timestamp: new Date(project.createdAt),
+        projectId: project.id,
+        projectName: project.name,
+        userId: project.creatorId
+      })
+      
+      if (project.status === 'ACTIVE') {
+        activities.push({
+          id: `voting-${project.id}`,
+          type: 'voting_started' as const,
+          title: 'Votación iniciada',
+          description: `Se inició la votación en "${project.name}"`,
+          timestamp: new Date(project.updatedAt),
+          projectId: project.id,
+          projectName: project.name
+        })
+      }
+    })
+    
+    // Actividades de expertos
+    experts.slice(0, 5).forEach(expert => {
+      activities.push({
+        id: `expert-${expert.id}`,
+        type: 'expert_added' as const,
+        title: 'Experto agregado',
+        description: `Se agregó "${expert.name}" al sistema`,
+        timestamp: new Date(),
+        userId: expert.id,
+        userName: expert.name
+      })
+    })
+    
+    return activities
+  }, [projects, experts])
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth')
     }
   }, [user, loading, router])
-
-  const handleProjectCreated = () => {
-    setIsCreateModalOpen(false)
-  }
-
-  const handleProjectUpdated = () => {
-    setIsEditModalOpen(false)
-    setSelectedProject(null)
-  }
-
-  const handleProjectDeleted = () => {
-    setIsEditModalOpen(false)
-    setSelectedProject(null)
-  }
-
-  const handleEditProject = (project: any) => {
-    startLoading(`/projects/create?edit=${project.id}`)
-    router.push(`/projects/create?edit=${project.id}`)
-  }
 
   if (loading) {
     return (
@@ -81,345 +172,146 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return null // Se redirigirá a /auth
+    return null
   }
 
-  // Usar mock projects localmente
-  const projects = mockProjects
-  const loadingProjects = false
+  const handleCreateProject = () => {
+    startLoading('/projects/create')
+    router.push('/projects/create')
+  }
 
-  // Filtrar proyectos localmente
-  const filteredProjects = projects.filter((project: any) => {
-    const statusMatch = filter.status.length === 0 || filter.status.includes(project.status.toLowerCase())
-    const searchMatch = !filter.search || 
-      project.name.toLowerCase().includes(filter.search.toLowerCase()) ||
-      project.description?.toLowerCase().includes(filter.search.toLowerCase())
-    const tagsMatch = filter.tags.length === 0 || 
-      filter.tags.some(tag => project.tags.includes(tag))
-    
-    return statusMatch && searchMatch && tagsMatch
-  })
+  const handleEditProject = (project: Project) => {
+    startLoading(`/projects/create?edit=${project.id}`)
+    router.push(`/projects/create?edit=${project.id}`)
+  }
 
-  const stats = {
-    active: projects.filter((p: any) => p.status === 'ACTIVE').length,
-    completed: projects.filter((p: any) => p.status === 'COMPLETED').length,
-    experts: projects.reduce((total: number, p: any) => total + (p._count?.projectExperts || p.projectExperts.length), 0)
+  const handleViewAllProjects = () => {
+    startLoading('/projects')
+    router.push('/projects')
+  }
+
+  const handleViewCalendar = () => {
+    startLoading('/calendar')
+    router.push('/calendar')
+  }
+
+  const handleViewExperts = () => {
+    startLoading('/experts')
+    router.push('/experts')
   }
 
   return (
-    <AppLayout onNewProject={() => setIsCreateModalOpen(true)}>
-      <div className="w-full max-w-7xl mx-auto">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gradient mb-2">
+    <AppLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Header del Dashboard */}
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-full mb-6">
+            <ChartBarIcon className="h-10 w-10 text-blue-400" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">
             Dashboard MIC MAC Pro
           </h1>
-          <p className="text-dark-text-secondary">
-            Bienvenido, <span className="text-dark-text-primary font-medium">{user.name || user.email}</span>
+          <p className="text-gray-400 text-lg">
+            Bienvenido, {user.name || user.email}
+          </p>
+          <p className="text-gray-500 text-sm">
+            {user.role === 'MODERATOR' ? 'Moderador' : 'Experto'} • Último acceso: {new Date().toLocaleDateString('es-ES')}
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="card p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-micmac-primary-500/20 rounded-lg">
-                <div className="w-6 h-6 text-micmac-primary-400">📊</div>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-dark-text-secondary">
-                  Proyectos Activos
-                </h3>
-                <div className="text-2xl font-bold text-dark-text-primary">{stats.active}</div>
-              </div>
-            </div>
-          </div>
+        {/* Métricas del Dashboard */}
+        <DashboardMetrics 
+          userRole={user.role as 'MODERATOR' | 'EXPERT'}
+          metrics={metrics}
+        />
+
+        {/* Acciones Rápidas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Button
+            onClick={handleCreateProject}
+            className="h-24 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+          >
+            <PlusIcon className="h-8 w-8" />
+            <span className="text-sm font-medium">Nuevo Proyecto</span>
+          </Button>
           
-          <div className="card p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-micmac-secondary-500/20 rounded-lg">
-                <div className="w-6 h-6 text-micmac-secondary-400">✅</div>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-dark-text-secondary">
-                  Completados
-                </h3>
-                <div className="text-2xl font-bold text-dark-text-primary">{stats.completed}</div>
-              </div>
-            </div>
-          </div>
+          <Button
+            onClick={handleViewAllProjects}
+            className="h-24 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+          >
+            <DocumentTextIcon className="h-8 w-8" />
+            <span className="text-sm font-medium">Ver Proyectos</span>
+          </Button>
           
-          <div className="card p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-micmac-accent-500/20 rounded-lg">
-                <div className="w-6 h-6 text-micmac-accent-400">👥</div>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-dark-text-secondary">
-                  Expertos Activos
-                </h3>
-                <div className="text-2xl font-bold text-dark-text-primary">{stats.experts}</div>
-              </div>
-            </div>
+          <Button
+            onClick={handleViewCalendar}
+            className="h-24 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+          >
+            <CalendarIcon className="h-8 w-8" />
+            <span className="text-sm font-medium">Calendario</span>
+          </Button>
+          
+          <Button
+            onClick={handleViewExperts}
+            className="h-24 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+          >
+            <UsersIcon className="h-8 w-8" />
+            <span className="text-sm font-medium">Expertos</span>
+          </Button>
+        </div>
+
+        {/* Contenido Principal */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Proyectos del Usuario */}
+          <div className="lg:col-span-2">
+            <DashboardProjects
+              projects={userProjects}
+              title={user.role === 'MODERATOR' ? 'Mis Proyectos' : 'Proyectos Activos'}
+              userRole={user.role as 'MODERATOR' | 'EXPERT'}
+              onEditProject={handleEditProject}
+              showCreateButton={user.role === 'MODERATOR'}
+              onCreateProject={handleCreateProject}
+            />
+          </div>
+
+          {/* Actividad Reciente */}
+          <div className="lg:col-span-1">
+            <RecentActivity 
+              activities={recentActivities}
+              maxItems={6}
+            />
           </div>
         </div>
 
-        {/* Content based on role */}
-        {user.role === 'MODERATOR' ? (
-          <ModeratorContent 
-            projects={filteredProjects} 
-            loading={loadingProjects}
-            filter={filter}
-            setFilter={setFilter}
-            onEditProject={handleEditProject}
-          />
-        ) : (
-          <ExpertContent 
-            projects={filteredProjects}
-            loading={loadingProjects}
-            user={user}
-            onEditProject={handleEditProject}
-          />
-        )}
-
-        {/* Status de Automatización */}
-        <div className="card p-6 mt-8">
+        {/* Sistema de Automatización */}
+        <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="status-indicator status-active"></div>
-            <h3 className="text-lg font-semibold text-dark-text-primary">
-              🤖 Sistema de Automatización Activo
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <h3 className="text-lg font-semibold text-white">
+              Sistema de Automatización Activo
             </h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-micmac-secondary-400">🧪</span>
-              <span className="text-dark-text-secondary">@CursorTesting</span>
+              <span className="text-green-400">✏️</span>
+              <span className="text-gray-300">@CursorTesting</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-micmac-secondary-400">📝</span>
-              <span className="text-dark-text-secondary">@CursorGit</span>
+              <span className="text-green-400">📄</span>
+              <span className="text-gray-300">@CursorGit</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-micmac-secondary-400">📊</span>
-              <span className="text-dark-text-secondary">@CursorLinear</span>
+              <span className="text-green-400">📊</span>
+              <span className="text-gray-300">@CursorLinear</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-micmac-secondary-400">📚</span>
-              <span className="text-dark-text-secondary">@CursorDocs</span>
+              <span className="text-green-400">📚</span>
+              <span className="text-gray-300">@CursorDocs</span>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Modal de Crear Proyecto */}
-      <CreateProjectModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onProjectCreated={handleProjectCreated}
-      />
-
-      {/* Modal de Editar Proyecto */}
-      <ProjectEditModal
-        project={selectedProject}
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false)
-          setSelectedProject(null)
-        }}
-        onProjectUpdated={handleProjectUpdated}
-        onProjectDeleted={handleProjectDeleted}
-      />
     </AppLayout>
-  )
-}
-
-function ModeratorContent({ projects, loading, filter, setFilter, onEditProject }: {
-  projects: Project[]
-  loading: boolean
-  filter: { status: string[]; search: string; tags: string[] }
-  setFilter: (fn: (prev: any) => any) => void
-  onEditProject: (project: Project) => void
-}) {
-  return (
-    <div className="card p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-dark-text-primary">
-          Mis Proyectos
-        </h2>
-        <div className="flex gap-2">
-          <select 
-            className="px-3 py-2 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-lg text-dark-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-micmac-primary-500"
-            onChange={(e) => setFilter((prev: any) => ({ ...prev, status: e.target.value ? [e.target.value] : [] }))}
-          >
-            <option value="">Todos los estados</option>
-            <option value="draft">📝 Borradores</option>
-            <option value="setup">🛠️ Configuración</option>
-            <option value="active">🚀 Activos</option>
-            <option value="in_review">🔍 En Revisión</option>
-            <option value="completed">✅ Completados</option>
-            <option value="archived">📦 Archivados</option>
-          </select>
-        </div>
-      </div>
-
-      {loading ? (
-        <DashboardSkeleton />
-      ) : projects.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-lg font-medium text-dark-text-primary mb-2">
-            No hay proyectos
-          </h3>
-          <p className="text-dark-text-secondary mb-6">
-            Comienza creando tu primer análisis prospectivo MIC MAC
-          </p>
-          <Button color="primary">
-            + Crear Primer Proyecto
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <ProjectCard 
-              key={project.id} 
-              project={project}
-              onEdit={() => onEditProject(project)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ExpertContent({ projects, loading, user, onEditProject }: {
-  projects: Project[]
-  loading: boolean
-  user: { email: string; id: string }
-  onEditProject: (project: Project) => void
-}) {
-  // Filtrar proyectos donde el usuario actual es experto
-  const myProjects = projects.filter(p => 
-    p.projectExperts.some((pe: any) => pe.expert?.email === user.email)
-  )
-  
-  return (
-    <div className="space-y-6">
-      {/* Invitaciones */}
-      <div className="card p-6">
-        <h2 className="text-xl font-semibold text-dark-text-primary mb-4">
-          📩 Invitaciones Pendientes
-        </h2>
-        <div className="text-center py-8">
-          <p className="text-dark-text-muted">No hay invitaciones pendientes</p>
-        </div>
-      </div>
-
-      {/* Mis Participaciones */}
-      <div className="card p-6">
-        <h2 className="text-xl font-semibold text-dark-text-primary mb-4">
-          🗳️ Mis Participaciones
-        </h2>
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-pulse-slow rounded-full h-6 w-6 bg-micmac-primary-500"></div>
-            <span className="ml-3 text-dark-text-secondary">Cargando...</span>
-          </div>
-        ) : myProjects.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-dark-text-muted">No hay participaciones activas</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {myProjects.map((project) => (
-              <ProjectCard 
-                key={project.id} 
-                project={project}
-                onEdit={() => onEditProject(project)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-      
-      {/* 🧪 TESTING COMPONENT - Solo para desarrollo */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-12">
-          <MicMacTester />
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ProjectCard({ project, onEdit }: { 
-  project: Project
-  onEdit?: () => void 
-}) {
-  const statusColors = {
-    DRAFT: 'bg-gray-500/20 text-gray-400',
-    SETUP: 'bg-yellow-500/20 text-yellow-400',
-    ACTIVE: 'bg-micmac-primary-500/20 text-micmac-primary-300',
-    IN_REVIEW: 'bg-purple-500/20 text-purple-400',
-    COMPLETED: 'bg-micmac-secondary-500/20 text-micmac-secondary-300',
-    ARCHIVED: 'bg-gray-600/20 text-gray-500'
-  }
-
-  const statusLabels = {
-    DRAFT: 'Borrador',
-    SETUP: 'Configuración',
-    ACTIVE: 'Activo',
-    IN_REVIEW: 'En Revisión',
-    COMPLETED: 'Completado',
-    ARCHIVED: 'Archivado'
-  }
-
-  return (
-    <div 
-      className="card-glow p-6 cursor-pointer transition-all duration-300 hover:scale-105"
-      onClick={onEdit}
-    >
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="font-semibold text-dark-text-primary line-clamp-2">
-          {project.name}
-        </h3>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[project.status]}`}>
-          {statusLabels[project.status]}
-        </span>
-      </div>
-      
-      <p className="text-sm text-dark-text-secondary mb-4 line-clamp-3">
-        {project.description}
-      </p>
-      
-      <div className="flex items-center justify-between text-sm text-dark-text-muted">
-        <div className="flex items-center gap-4">
-          <span>📊 {project._count?.variables || project.variables.length} variables</span>
-          <span>👥 {project._count?.projectExperts || project.projectExperts.length} expertos</span>
-        </div>
-        <div className="text-xs">
-          {new Date(project.updatedAt).toLocaleDateString()}
-        </div>
-      </div>
-      
-      {project.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-3">
-          {project.tags.slice(0, 3).map((tag: string) => (
-            <span
-              key={tag}
-              className="px-2 py-1 bg-dark-bg-tertiary text-dark-text-muted rounded text-xs"
-            >
-              {tag}
-            </span>
-          ))}
-          {project.tags.length > 3 && (
-            <span className="px-2 py-1 text-dark-text-muted text-xs">
-              +{project.tags.length - 3}
-            </span>
-          )}
-        </div>
-      )}
-    </div>
-  )
+  ) 
 }

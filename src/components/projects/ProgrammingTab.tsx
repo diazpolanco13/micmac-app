@@ -5,8 +5,8 @@ import { CalendarIcon, ClockIcon, GlobeAltIcon, BellIcon, CheckCircleIcon } from
 import Calendar from '../ui/Calendar'
 import DateTimePicker from '../ui/DateTimePicker'
 import TimezoneSelector from '../ui/TimezoneSelector'
-import Button from '../ui/Button'
-import Input from '../ui/Input'
+import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
 
 interface ProgrammingTabProps {
   startDate: Date
@@ -174,7 +174,7 @@ export default function ProgrammingTab({
       {/* Calendario Grande */}
       <div className="mb-8">
         <Calendar
-          selectedDate={selectedDate}
+          selectedDate={selectedDate || undefined}
           onDateSelect={setSelectedDate}
           startDate={localStartDate}
           endDate={localEndDate}
