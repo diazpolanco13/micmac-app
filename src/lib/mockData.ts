@@ -444,7 +444,9 @@ export const mockProjects: Project[] = [
         name: 'ESC1 - INVASIÓN MILITAR',
         description: 'Despliegue de una cabeza de playa por parte del cuerpo de infantería de marina de los EEUU en costas venezolanas, para derrocar al GB. "Esquema Panamá".',
         projectId: 'proj-geopolitico',
-        createdBy: 'user-1',
+
+        category: null,
+        color: null,
         createdAt: '2024-01-25T10:00:00Z',
         updatedAt: '2024-01-25T10:00:00Z',
         order: 1
@@ -454,7 +456,9 @@ export const mockProjects: Project[] = [
         name: 'ESC2 - CUARENTENA NAVAL',
         description: 'Bloqueo naval por parte de la armada de los EE.UU., a las costas venezolanas para generar asfixia económica y controlar el tráfico marítimo hacia Venezuela.',
         projectId: 'proj-geopolitico',
-        createdBy: 'user-1',
+
+        category: null,
+        color: null,
         createdAt: '2024-01-25T10:00:00Z',
         updatedAt: '2024-01-25T10:00:00Z',
         order: 2
@@ -464,7 +468,9 @@ export const mockProjects: Project[] = [
         name: 'ESC3 - OPERACIÓN QUIRÚRGICA',
         description: 'Acción mercenaria con el empleo de operadores de fuerzas especiales y el apoyo logístico del dispositivo naval desplegado por los EE.UU.',
         projectId: 'proj-geopolitico',
-        createdBy: 'user-1',
+
+        category: null,
+        color: null,
         createdAt: '2024-01-25T10:00:00Z',
         updatedAt: '2024-01-25T10:00:00Z',
         order: 3
@@ -474,7 +480,9 @@ export const mockProjects: Project[] = [
         name: 'ESC4 - OPERACIÓN PSICOLÓGICA',
         description: 'Uso de fake-news y guerra cognitiva para quebrar la moral de los funcionarios del aparato de seguridad del estado venezolano.',
         projectId: 'proj-geopolitico',
-        createdBy: 'user-1',
+
+        category: null,
+        color: null,
         createdAt: '2024-01-25T10:00:00Z',
         updatedAt: '2024-01-25T10:00:00Z',
         order: 4
@@ -484,7 +492,9 @@ export const mockProjects: Project[] = [
         name: 'ESC5 - ATAQUE DE FALSA BANDERA',
         description: 'Los buques de la Armada de EE.UU. simularían un ataque de fuerzas navales venezolanas, similar al "Incidente de Tonkín".',
         projectId: 'proj-geopolitico',
-        createdBy: 'user-1',
+
+        category: null,
+        color: null,
         createdAt: '2024-01-25T10:00:00Z',
         updatedAt: '2024-01-25T10:00:00Z',
         order: 5
@@ -500,18 +510,31 @@ export const mockProjects: Project[] = [
       invitedBy: 'user-1',
       respondedAt: '2024-01-25T10:30:00Z',
       lastActivity: '2024-01-25T14:30:00Z',
-      expert: expert,
-      notes: 'Experto asignado para análisis geopolítico Venezuela-EEUU'
+      votingProgress: 0,
+      notes: 'Experto asignado para análisis geopolítico Venezuela-EEUU',
+      emailNotifications: true,
+      inAppNotifications: true,
+      reminderNotifications: true,
+      updatedAt: '2024-01-25T14:30:00Z',
+      expert: expert
     })),
     statusHistory: [
       {
-        status: 'DRAFT',
+        id: 'status-geo-1',
+        projectId: 'proj-geopolitico',
+        from: null,
+        to: 'DRAFT',
+        changedBy: 'user-1',
         reason: 'Proyecto creado',
         notes: 'Estado inicial del proyecto',
         changedAt: '2024-01-25T10:00:00Z'
       },
       {
-        status: 'ACTIVE',
+        id: 'status-geo-2',
+        projectId: 'proj-geopolitico',
+        from: 'DRAFT',
+        to: 'ACTIVE',
+        changedBy: 'user-1',
         reason: 'Proyecto activado para votación',
         notes: 'Ejercicio modelo geopolítico listo para simulación',
         changedAt: '2024-01-25T10:30:00Z'

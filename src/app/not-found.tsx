@@ -86,7 +86,7 @@ export default function NotFound() {
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <Button
-            variant="ghost"
+            ghost
             className="flex items-center justify-center gap-2 text-gray-300 hover:text-white hover:bg-gray-800"
             onClick={() => router.back()}
           >
@@ -96,7 +96,7 @@ export default function NotFound() {
           
           <Link href="/dashboard">
             <Button
-              variant="primary"
+              color="primary"
               className="flex items-center justify-center gap-2 bg-gradient-to-r from-micmac-primary-600 to-micmac-secondary-600 hover:from-micmac-primary-500 hover:to-micmac-secondary-500"
             >
               <HomeIcon className="h-4 w-4" />

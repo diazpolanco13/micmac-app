@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -535,7 +535,8 @@ function ExpertSelectionTab({ selectedExperts, onExpertsChange, expectedExperts 
   )
 }
 
-export default function CreateProjectPage() {
+// Componente interno que usa useSearchParams
+function CreateProjectPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { createProject, projects } = useMockData()
@@ -1423,5 +1424,20 @@ export default function CreateProjectPage() {
         isNew={isNewVariable}
       />
     </AppLayout>
+  )
+}
+
+// Componente principal con Suspense boundary
+export default function CreateProjectPage() {
+  return (
+    <Suspense fallback={
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+        </div>
+      </AppLayout>
+    }>
+      <CreateProjectPageContent />
+    </Suspense>
   )
 }

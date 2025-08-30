@@ -1168,7 +1168,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-blue-400 font-bold">2.</span>
-                          <span>Diferencias > 1 punto se marcan como inconsistencias</span>
+                          <span>Diferencias mayores a 1 punto se marcan como inconsistencias</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-blue-400 font-bold">3.</span>
@@ -1182,11 +1182,11 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                       <ul className="space-y-2 text-xs">
                         <li className="flex items-start gap-2">
                           <span className="text-red-400 font-bold">•</span>
-                          <span><strong>Críticas (>2.0):</strong> Diferencias conceptuales importantes</span>
+                          <span><strong>Críticas (mayor a 2.0):</strong> Diferencias conceptuales importantes</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-yellow-400 font-bold">•</span>
-                          <span><strong>Moderadas (1.5-2.0):</strong> Perspectivas ligeramente diferentes</span>
+                          <span><strong>Moderadas (entre 1.5 y 2.0):</strong> Perspectivas ligeramente diferentes</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-blue-400 font-bold">•</span>

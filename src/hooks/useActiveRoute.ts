@@ -69,7 +69,7 @@ export function useActiveRoute(): ActiveRouteInfo {
     let activeChild: string | null = null
 
     // Mapeo de rutas a padres
-    const routeParentMap: Record<string, string> = {
+    const routeParentMap: Record<string, string | null> = {
       '/dashboard': 'Dashboard',
       '/profile': 'Mi Perfil',
       '/projects': 'Proyectos',

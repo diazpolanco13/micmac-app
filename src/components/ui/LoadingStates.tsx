@@ -114,9 +114,9 @@ export function AuthTransitionLoading({ route }: { route: string }) {
         title: 'Cerrando sesión',
         subtitle: 'Hasta pronto...',
         icon: '👋'
-      }
+      } as const
     }
-    return messages[route] || {
+    return (messages as Record<string, { title: string; subtitle: string; icon: string }>)[route] || {
       title: 'Cargando',
       subtitle: 'Un momento...',
       icon: '⏳'

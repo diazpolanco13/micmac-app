@@ -70,7 +70,7 @@ export default function VotingCell({
           <Button
             key={value}
             size="sm"
-            variant={selectedValue === value ? "default" : "outline"}
+            {...(selectedValue === value ? { color: "primary" } : { outline: true })}
             onClick={() => handleVote(value)}
             disabled={disabled}
             className={`h-auto py-3 px-2 text-center transition-all ${
