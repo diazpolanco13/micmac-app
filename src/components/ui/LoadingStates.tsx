@@ -60,13 +60,13 @@ export function NavigationLoading({ route }: { route: string }) {
       '/results': 'Resultados',
       '/en-desarrollo': 'En Desarrollo',
       '/analysis/micmac': 'Análisis MIC MAC',
-      '/auth': 'Autenticación'
+      '/': 'Autenticación'
     }
     return routeMap[route] || 'Cargando página'
   }
 
   // Para transiciones de auth, usar un loading más elegante
-  if (route === '/dashboard' || route === '/auth') {
+  if (route === '/dashboard' || route === '/') {
     return <AuthTransitionLoading route={route} />
   }
 
@@ -110,7 +110,7 @@ export function AuthTransitionLoading({ route }: { route: string }) {
         subtitle: 'Configurando tu espacio de trabajo...',
         icon: '🚀'
       },
-      '/auth': {
+      '/': {
         title: 'Cerrando sesión',
         subtitle: 'Hasta pronto...',
         icon: '👋'

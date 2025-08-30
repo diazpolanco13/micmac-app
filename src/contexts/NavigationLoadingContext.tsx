@@ -134,7 +134,7 @@ export function NavigationLoadingPortal() {
   }
 
   // Para transiciones de auth, renderizar loading de pantalla completa
-  if (context.targetRoute === '/dashboard' || context.targetRoute === '/auth') {
+  if (context.targetRoute === '/dashboard' || context.targetRoute === '/') {
     return <NavigationLoading route={context.targetRoute} />
   }
 

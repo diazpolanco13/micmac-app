@@ -34,7 +34,7 @@ export default function VotingPage() {
     if (authLoading || loadingProjects) return
 
     if (!user) {
-      router.push('/auth')
+      router.push('/')
       return
     }
 

@@ -34,7 +34,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/auth')
+      router.push('/')
     }
   }, [user, loading, router])
 

@@ -20,7 +20,7 @@ export default function CalendarPage() {
   // Redirigir si no está autenticado
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/auth')
+      router.push('/')
     }
   }, [user, loading, router])
 

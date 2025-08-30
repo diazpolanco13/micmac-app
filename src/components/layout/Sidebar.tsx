@@ -341,9 +341,9 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
                     </div>
                     <button
                       onClick={async () => {
-                        startLoading('/auth')
+                        startLoading('/')
                         await signOut()
-                        router.push('/auth')
+                        router.push('/')
                       }}
                       className="p-1 text-gray-400 hover:text-red-400 transition-colors"
                       title="Cerrar sesión"
