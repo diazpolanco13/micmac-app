@@ -287,7 +287,7 @@ export default function DashboardPage() {
               <div className="w-2 h-6 bg-gradient-to-b from-emerald-400 to-teal-500 rounded-full"></div>
               Distribución por Estado
             </h3>
-            <div className="h-64">
+            <div className="h-72">
               <ProjectStatusChart projects={projects} />
             </div>
           </div>

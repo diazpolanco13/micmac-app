@@ -22,7 +22,7 @@ export default function ExpertiseRadarChart({ expertiseAreas }: ExpertiseRadarCh
   const radarData = expertiseAreas.map(area => ({
     area: area.name.length > 15 ? area.name.substring(0, 15) + '...' : area.name,
     fullName: area.name,
-    score: area.calculatedScore,
+    score: area.calculatedScore || area.yearsExperience * 10 || 50, // Fallback si no hay calculatedScore
     level: area.level
   }))
 

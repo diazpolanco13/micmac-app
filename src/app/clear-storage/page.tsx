@@ -12,7 +12,10 @@ export default function ClearStoragePage() {
       console.log('🧹 Limpiando localStorage...')
       localStorage.removeItem('micmac_current_user')
       localStorage.removeItem('micmac_mock_users')
-      console.log('✅ localStorage limpiado')
+      localStorage.removeItem('micmac_mock_projects')
+      localStorage.removeItem('micmac_mock_experts')
+      localStorage.removeItem('micmac_mock_votes')
+      console.log('✅ localStorage limpiado - Perfiles demo actualizados')
       
       // Redireccionar después de limpiar
       setTimeout(() => {
@@ -29,7 +32,7 @@ export default function ClearStoragePage() {
           Limpiando datos...
         </h1>
         <p className="text-dark-text-secondary">
-          Recargando datos de prueba del General Guerdi Lafaurie
+          Actualizando perfiles demo: Carlos Díaz Polanco y Dra. Ana María Guerrero
         </p>
       </div>
     </div>

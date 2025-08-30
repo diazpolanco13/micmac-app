@@ -160,10 +160,11 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* Perfil compacto */}
-        <div className="card p-5 mb-6">
-          {/* DIV SUPERIOR - Botón de editar centrado a la derecha */}
-          <div className="w-full flex justify-end mb-0">
+        {/* PERFIL UNIFICADO - Un solo panel con toda la información */}
+        <div className="card p-8 mb-6">
+          {/* Header con botón de editar */}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-bold text-dark-text-primary">Información Personal</h2>
             <Button 
               ghost 
               onClick={handleEditClick}
@@ -176,102 +177,123 @@ export default function ProfilePage() {
             </Button>
           </div>
 
-          {/* CONTENIDO PRINCIPAL - 3 divs separados */}
-          <div className="flex gap-6">
-            {/* DIV LOGO - Avatar centrado vertical y horizontalmente */}
-            <div className="w-50 flex items-center justify-center">
-              <div className="flex flex-col items-center">
-                {formData.avatar ? (
-                  <img
-                    src={formData.avatar}
-                    alt="Avatar"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-dark-bg-tertiary shadow-lg"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Usuario')}&background=2DD4BF&color=1F2937&size=128`
-                    }}
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-                    {(formData.name || formData.email || 'U').charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-            </div>
+          {/* Layout unificado con toda la información */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* DIV INFORMACIÓN - Datos del usuario */}
-            <div className="flex-1 space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold text-dark-text-primary mb-1">
-                  {formData.name || 'Sin nombre'}
-                </h2>
-                <p className="text-dark-text-secondary mb-2">
-                  {formData.email}
-                </p>
-                <div className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${
-                  formData.role === 'MODERATOR'
-                    ? 'bg-micmac-secondary-500/20 text-micmac-secondary-300'
-                    : 'bg-micmac-primary-500/20 text-micmac-primary-300'
-                }`}>
-                  {formData.role === 'MODERATOR' ? '🛡️ Moderador' : '👨‍🔬 Experto'}
-                </div>
-              </div>
-              
-              {/* Profesión y Cargo */}
-              {(formData.profession || formData.currentPosition) && (
-                <div className="space-y-2">
-                  {formData.profession && (
-                    <div className="text-sm text-dark-text-primary font-medium">
-                      🎓 {formData.profession}
-                    </div>
-                  )}
-                  {formData.currentPosition && (
-                    <div className="text-sm text-dark-text-secondary">
-                      💼 {formData.currentPosition}
-                    </div>
-                  )}
+            {/* Avatar y datos básicos */}
+            <div className="lg:col-span-3 text-center">
+              {formData.avatar ? (
+                <img
+                  src={formData.avatar}
+                  alt="Avatar"
+                  className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-micmac-primary-500/20 shadow-lg"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Usuario')}&background=2DD4BF&color=1F2937&size=128`
+                  }}
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-micmac-primary-500 to-micmac-secondary-500 flex items-center justify-center text-3xl font-bold text-white mx-auto mb-4 shadow-lg">
+                  {(formData.name || formData.email || 'U').charAt(0).toUpperCase()}
                 </div>
               )}
               
+              <h1 className="text-2xl font-bold text-dark-text-primary mb-2">
+                {formData.name || 'Sin nombre'}
+              </h1>
+              
+              <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-6 ${
+                formData.role === 'MODERATOR'
+                  ? 'bg-emerald-500/20 text-emerald-400'
+                  : 'bg-blue-500/20 text-blue-400'
+              }`}>
+                {formData.role === 'MODERATOR' ? 'Moderador' : 'Experto'}
+              </div>
+
               {/* Información de contacto */}
-              <div className="space-y-1 text-sm text-dark-text-secondary">
-                {formData.organization && (
-                  <div>📍 {formData.organization}</div>
-                )}
+              <div className="space-y-3 text-left">
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-gray-400">📧</span>
+                  <span className="text-dark-text-secondary">{formData.email}</span>
+                </div>
                 {formData.phone && (
-                  <div>📞 {formData.phone}</div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-gray-400">📱</span>
+                    <span className="text-dark-text-secondary">{formData.phone}</span>
+                  </div>
                 )}
                 {formData.linkedinUrl && (
-                  <div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-gray-400">💼</span>
                     <a 
                       href={formData.linkedinUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300"
+                      className="text-blue-400 hover:text-blue-300 transition-colors"
                     >
-                      💼 LinkedIn
+                      Ver perfil ↗
                     </a>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* DIV RADAR - Chart de expertise separado */}
-            <div className="w-80 hidden lg:flex flex-col items-center justify-center">
-              <div className="w-full h-64">
+            {/* Información profesional */}
+            <div className="lg:col-span-6">
+              <h3 className="text-lg font-semibold text-dark-text-primary mb-4 flex items-center gap-2">
+                💼 Información Profesional
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {formData.profession && (
+                  <div className="p-3 bg-dark-bg-tertiary/20 rounded-lg">
+                    <p className="text-xs text-dark-text-muted mb-1">Profesión</p>
+                    <p className="text-dark-text-primary font-medium">{formData.profession}</p>
+                  </div>
+                )}
+                
+                {formData.currentPosition && (
+                  <div className="p-3 bg-dark-bg-tertiary/20 rounded-lg">
+                    <p className="text-xs text-dark-text-muted mb-1">Cargo Actual</p>
+                    <p className="text-dark-text-primary font-medium">{formData.currentPosition}</p>
+                  </div>
+                )}
+                
+                {formData.organization && (
+                  <div className="p-3 bg-dark-bg-tertiary/20 rounded-lg">
+                    <p className="text-xs text-dark-text-muted mb-1">Organización</p>
+                    <p className="text-dark-text-primary font-medium">{formData.organization}</p>
+                  </div>
+                )}
+                
+                {formData.yearsExperience > 0 && (
+                  <div className="p-3 bg-dark-bg-tertiary/20 rounded-lg">
+                    <p className="text-xs text-dark-text-muted mb-1">Experiencia</p>
+                    <p className="text-dark-text-primary font-medium">{formData.yearsExperience} años</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Descripción */}
+              {formData.bio && (
+                <div>
+                  <h4 className="text-sm font-semibold text-dark-text-primary mb-2">📝 Descripción</h4>
+                  <div className="p-4 bg-dark-bg-tertiary/20 rounded-lg">
+                    <p className="text-dark-text-secondary text-sm leading-relaxed">{formData.bio}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Fortalezas */}
+            <div className="lg:col-span-3">
+              <h3 className="text-lg font-semibold text-dark-text-primary mb-4 text-center flex items-center justify-center gap-2">
+                📊 Fortalezas
+              </h3>
+              <div className="h-80 flex items-center justify-center">
                 <ExpertiseRadarChart expertiseAreas={formData.expertiseAreas} />
               </div>
             </div>
           </div>
-          
-          {/* Biografía */}
-          {formData.bio && (
-            <div className="mt-6 pt-4 border-t border-dark-bg-tertiary">
-              <h4 className="text-sm font-medium text-dark-text-primary mb-2">Descripción personal</h4>
-              <p className="text-dark-text-secondary text-sm leading-relaxed">
-                {formData.bio}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Áreas de Expertise - Protagonista */}
@@ -294,7 +316,7 @@ export default function ProfilePage() {
           />
           
           {/* Sidebar */}
-          <div className={`absolute top-0 right-0 h-full w-[480px] bg-dark-bg-secondary border-l border-dark-bg-tertiary shadow-2xl transform transition-all duration-300 ease-out ${
+          <div className={`absolute top-0 right-0 h-full w-[420px] bg-dark-bg-secondary border-l border-dark-bg-tertiary shadow-2xl transform transition-all duration-300 ease-out ${
             showSidebar ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
           }`}>
               <div className="flex flex-col h-full">
@@ -314,39 +336,110 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Contenido scrolleable */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {/* Nombre */}
-                  <div>
-                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                      Nombre completo
-                    </label>
-                    <Input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Ingresa tu nombre completo"
-                      disabled={isSaving}
-                    />
+                <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                  
+                  {/* SECCIÓN: Información Básica */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-dark-text-primary border-b border-dark-bg-tertiary pb-2">
+                      Información Básica
+                    </h4>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Nombre completo
+                      </label>
+                      <Input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Tu nombre completo"
+                        disabled={isSaving}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Avatar (URL de imagen)
+                      </label>
+                      <Input
+                        type="url"
+                        name="avatar"
+                        value={formData.avatar}
+                        onChange={handleInputChange}
+                        placeholder="https://ejemplo.com/avatar.jpg"
+                        disabled={isSaving}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Descripción personal
+                      </label>
+                      <textarea
+                        name="bio"
+                        value={formData.bio}
+                        onChange={handleInputChange}
+                        placeholder="Cuéntanos sobre ti, tu experiencia..."
+                        rows={3}
+                        disabled={isSaving}
+                        className="w-full px-3 py-2 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-md text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 resize-vertical"
+                      />
+                    </div>
                   </div>
 
-                  {/* Avatar URL */}
-                  <div>
-                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                      Avatar (URL de imagen)
-                    </label>
-                    <Input
-                      type="url"
-                      name="avatar"
-                      value={formData.avatar}
-                      onChange={handleInputChange}
-                      placeholder="https://ejemplo.com/avatar.jpg"
-                      disabled={isSaving}
-                    />
-                  </div>
+                  {/* SECCIÓN: Información Profesional */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-dark-text-primary border-b border-dark-bg-tertiary pb-2">
+                      Información Profesional
+                    </h4>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                          Profesión
+                        </label>
+                        <Input
+                          type="text"
+                          name="profession"
+                          value={formData.profession}
+                          onChange={handleInputChange}
+                          placeholder="Ingeniero, Abogado..."
+                          disabled={isSaving}
+                        />
+                      </div>
 
-                  {/* Organización y Teléfono en la misma fila */}
-                  <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                          Años de Experiencia
+                        </label>
+                        <Input
+                          type="number"
+                          name="yearsExperience"
+                          value={formData.yearsExperience}
+                          onChange={handleInputChange}
+                          placeholder="15"
+                          min="0"
+                          max="60"
+                          disabled={isSaving}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
+                        Cargo Actual
+                      </label>
+                      <Input
+                        type="text"
+                        name="currentPosition"
+                        value={formData.currentPosition}
+                        onChange={handleInputChange}
+                        placeholder="Director, Consultor Senior..."
+                        disabled={isSaving}
+                      />
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-dark-text-primary mb-2">
                         Organización
@@ -360,7 +453,14 @@ export default function ProfilePage() {
                         disabled={isSaving}
                       />
                     </div>
+                  </div>
 
+                  {/* SECCIÓN: Información de Contacto */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-dark-text-primary border-b border-dark-bg-tertiary pb-2">
+                      Información de Contacto
+                    </h4>
+                    
                     <div>
                       <label className="block text-sm font-medium text-dark-text-primary mb-2">
                         Teléfono
@@ -370,88 +470,24 @@ export default function ProfilePage() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        placeholder="+1 234 567 8900"
-                        disabled={isSaving}
-                      />
-                    </div>
-                  </div>
-
-                  {/* LinkedIn */}
-                  <div>
-                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                      LinkedIn Profile
-                    </label>
-                    <Input
-                      type="url"
-                      name="linkedinUrl"
-                      value={formData.linkedinUrl}
-                      onChange={handleInputChange}
-                      placeholder="https://linkedin.com/in/tu-perfil"
-                      disabled={isSaving}
-                    />
-                  </div>
-
-                  {/* Profesión Principal y Cargo Actual */}
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                        Profesión Principal
-                      </label>
-                      <Input
-                        type="text"
-                        name="profession"
-                        value={formData.profession}
-                        onChange={handleInputChange}
-                        placeholder="Ej: Ingeniero, Abogado, Médico..."
+                        placeholder="+57 300 123 4567"
                         disabled={isSaving}
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                        Cargo Actual
+                        LinkedIn
                       </label>
                       <Input
-                        type="text"
-                        name="currentPosition"
-                        value={formData.currentPosition}
+                        type="url"
+                        name="linkedinUrl"
+                        value={formData.linkedinUrl}
                         onChange={handleInputChange}
-                        placeholder="Ej: Director General, Consultor Senior..."
+                        placeholder="https://linkedin.com/in/tu-perfil"
                         disabled={isSaving}
                       />
                     </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                        Años de Experiencia Total
-                      </label>
-                      <Input
-                        type="number"
-                        name="yearsExperience"
-                        value={formData.yearsExperience}
-                        onChange={handleInputChange}
-                        placeholder="Ej: 15"
-                        min="0"
-                        max="60"
-                        disabled={isSaving}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Descripción personal */}
-                  <div>
-                    <label className="block text-sm font-medium text-dark-text-primary mb-2">
-                      Descripción personal
-                    </label>
-                    <textarea
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleInputChange}
-                      placeholder="Cuéntanos sobre ti, tu experiencia y áreas de expertise..."
-                      rows={4}
-                      disabled={isSaving}
-                      className="w-full px-3 py-2 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-md text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 resize-vertical"
-                    />
                   </div>
                 </div>
 
@@ -490,8 +526,8 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+          </div>
         </div>
-      </div>
-    </AppLayout>
-  )
-}
+      </AppLayout>
+    )
+  }

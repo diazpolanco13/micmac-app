@@ -63,14 +63,14 @@ export default function ProjectStatusChart({ projects }: ProjectStatusChartProps
 
   const CustomLegend = ({ payload }: any) => {
     return (
-      <div className="flex flex-wrap justify-center gap-4 mt-4">
+      <div className="flex flex-wrap justify-center gap-3 mt-2 px-2">
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2">
             <div 
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-gray-300 text-sm">
+            <span className="text-gray-300 text-xs">
               {entry.value} ({entry.payload.percentage}%)
             </span>
           </div>
@@ -98,9 +98,9 @@ export default function ProjectStatusChart({ projects }: ProjectStatusChartProps
           <Pie
             data={chartData}
             cx="50%"
-            cy="40%"
-            innerRadius={60}
-            outerRadius={100}
+            cy="45%"
+            innerRadius={50}
+            outerRadius={80}
             paddingAngle={2}
             dataKey="value"
           >

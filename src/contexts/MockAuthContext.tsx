@@ -121,17 +121,95 @@ const initializeDemoUsers = () => {
       id: 'demo_moderator',
       email: 'demo@demo.com',
       password: 'demo123',
-      name: 'Demo Moderator',
+      name: 'Carlos Díaz Polanco',
       role: 'MODERATOR' as UserRole,
-      expertiseAreas: []
+      avatar: '👨‍💼',
+      bio: 'Especialista en análisis prospectivos y metodologías MIC MAC con más de 15 años de experiencia en consultoría estratégica. Apasionado por la transformación digital y el análisis de escenarios futuros.',
+      organization: 'MIC MAC Pro Consulting',
+      phone: '+57 300 123 4567',
+      linkedinUrl: 'https://linkedin.com/in/carlos-diaz-polanco',
+      profession: 'Consultor en Prospectiva Estratégica',
+      currentPosition: 'Director de Análisis Prospectivos',
+      yearsExperience: 15,
+      isActive: true,
+      lastLoginAt: new Date().toISOString(),
+      totalProjectsParticipated: 47,
+      averageResponseTime: 2.5,
+      createdAt: '2024-01-15T10:00:00Z',
+      updatedAt: new Date().toISOString(),
+      expertiseAreas: [
+        {
+          name: 'Análisis Prospectivo',
+          level: 'EXPERTO' as ExpertiseLevel,
+          yearsExperience: 15,
+          description: 'Metodologías avanzadas de prospectiva estratégica y construcción de escenarios'
+        },
+        {
+          name: 'Metodología MIC MAC',
+          level: 'EXPERTO' as ExpertiseLevel,
+          yearsExperience: 12,
+          description: 'Implementación y optimización de análisis estructural MIC MAC'
+        },
+        {
+          name: 'Gestión de Proyectos',
+          level: 'AVANZADO' as ExpertiseLevel,
+          yearsExperience: 10,
+          description: 'Coordinación de equipos multidisciplinarios en proyectos de consultoría'
+        }
+      ]
     },
     {
       id: 'demo_expert',
       email: 'expert@micmac.com',
       password: 'demo123',
-      name: 'Demo Expert',
+      name: 'Dra. Ana María Guerrero',
       role: 'EXPERT' as UserRole,
-      expertiseAreas: []
+      avatar: '👩‍🔬',
+      bio: 'Doctora en Ingeniería de Sistemas con especialización en análisis de variables complejas y modelado predictivo. Investigadora activa en universidades de prestigio con múltiples publicaciones en revistas indexadas.',
+      organization: 'Universidad Nacional de Colombia',
+      phone: '+57 310 987 6543',
+      linkedinUrl: 'https://linkedin.com/in/ana-guerrero-phd',
+      profession: 'Doctora en Ingeniería de Sistemas',
+      currentPosition: 'Profesora Titular - Investigadora Senior',
+      yearsExperience: 18,
+      isActive: true,
+      lastLoginAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 horas atrás
+      totalProjectsParticipated: 73,
+      averageResponseTime: 1.8,
+      createdAt: '2023-08-20T14:30:00Z',
+      updatedAt: new Date().toISOString(),
+      expertiseAreas: [
+        {
+          name: 'Sistemas Complejos',
+          level: 'EXPERTO' as ExpertiseLevel,
+          yearsExperience: 18,
+          description: 'Análisis y modelado de sistemas complejos adaptativos'
+        },
+        {
+          name: 'Inteligencia Artificial',
+          level: 'EXPERTO' as ExpertiseLevel,
+          yearsExperience: 12,
+          description: 'Machine Learning aplicado a análisis predictivo y prospectiva'
+        },
+        {
+          name: 'Análisis de Datos',
+          level: 'EXPERTO' as ExpertiseLevel,
+          yearsExperience: 15,
+          description: 'Procesamiento y análisis estadístico avanzado de grandes volúmenes de datos'
+        },
+        {
+          name: 'Investigación Académica',
+          level: 'EXPERTO' as ExpertiseLevel,
+          yearsExperience: 16,
+          description: 'Metodología de investigación científica y publicación académica'
+        },
+        {
+          name: 'Sostenibilidad Ambiental',
+          level: 'AVANZADO' as ExpertiseLevel,
+          yearsExperience: 8,
+          description: 'Análisis de impacto ambiental y desarrollo sostenible'
+        }
+      ]
     }
   ]
   
