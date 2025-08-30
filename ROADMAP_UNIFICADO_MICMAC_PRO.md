@@ -8,11 +8,12 @@
 
 **MIC MAC Pro** es una plataforma web colaborativa para análisis prospectivos metodológicos que ha evolucionado desde un MVP básico hasta un sistema profesional casi completo con funcionalidades avanzadas de análisis, gestión de expertos y experiencia de usuario optimizada.
 
-### 🎯 ESTADO GLOBAL (29 AGOSTO 2025)
-- **Progreso General:** ~97% COMPLETADO
-- **MVP Status:** 99% ALCANZADO  
+### 🎯 ESTADO GLOBAL (30 AGOSTO 2025)
+- **Progreso General:** ~85% COMPLETADO
+- **MVP Status:** 85% ALCANZADO  
 - **Sistema Principal:** OPERATIVO CON MOCK DATA
-- **Estado Técnico:** LISTO PARA PRODUCCIÓN (pendiente BD real)
+- **Estado Técnico:** LISTO PARA TESTING EN PRODUCCIÓN
+- **Próximo Hito:** INTEGRACIÓN COMPLETA CON BASE DE DATOS REAL
 
 ---
 
@@ -231,6 +232,36 @@
 
 ---
 
+### 🔧 FASE 13: CORRECCIONES CRÍTICAS Y LOGIN UNIFICADO (30 Agosto 2025)
+**Estado:** ✅ COMPLETADA
+
+#### Correcciones de TypeScript y Build
+- [x] **Errores de TypeScript corregidos completamente:**
+  - [x] Corregidos tipos en mockData.ts (ProjectExpert interface)
+  - [x] Corregido statusHistory con propiedades correctas (StatusChange interface)
+  - [x] Agregado Suspense boundary en /projects/create para useSearchParams()
+  - [x] Build exitoso sin errores críticos (✓ Compiled successfully)
+  - [x] Linting perfecto (✓ Linting and checking validity of types)
+  - [x] Todas las páginas generadas correctamente (16/16)
+
+#### Sistema de Login Unificado
+- [x] **Eliminada duplicación de interfaces de login:**
+  - [x] Movido login correcto de /auth a / (página principal)
+  - [x] Eliminado componente Welcome.tsx (versión antigua)
+  - [x] Eliminada carpeta /auth (ya no necesaria)
+  - [x] URL más limpia: micmacpro.com/ en lugar de /auth
+  - [x] Flujo simplificado: página principal ES el login
+  - [x] Redirección automática inteligente según estado de usuario
+
+#### Estado Técnico Alcanzado
+- [x] **Sistema completamente funcional con datos mock**
+- [x] **Build optimizado para producción**
+- [x] **Sin errores de compilación o linting**
+- [x] **Preparado para testing en producción**
+- [x] **Login unificado y experiencia de usuario mejorada**
+
+---
+
 ### 🚀 FASE 12: DASHBOARD INTELIGENTE (29 Agosto 2025)
 **Estado:** ✅ COMPLETADA
 
@@ -261,38 +292,58 @@
 
 ---
 
-## ❌ TAREAS PENDIENTES PARA COMPLETAR MVP
+## 🚨 TAREAS PENDIENTES PARA COMPLETAR MVP
 
-### 🚨 PRIORIDAD MÁXIMA (1-2 días)
+### 🔥 PRIORIDAD CRÍTICA - INTEGRACIÓN BD REAL (5-7 días)
 
-#### 1. SISTEMA DE CALENDARIO Y PROGRAMACIÓN
-- [ ] Implementar pestaña "Programación" completa
-- [ ] Integrar DateTimePicker y TimezoneSelector
-- [ ] Conectar con estados de proyecto
+#### 1. CONEXIÓN BASE DE DATOS REAL
+- [ ] **Configurar variables de entorno en servidor Contabo**
+- [ ] **Desplegar BD PostgreSQL en Supabase**
+- [ ] **Ejecutar migraciones Prisma (npx prisma db push)**
+- [ ] **Configurar conexión DATABASE_URL**
+- [ ] **Seed inicial de datos básicos**
+
+#### 2. MIGRACIÓN COMPLETA DE MOCK DATA A BD REAL
+- [ ] **Migrar MockDataContext → API Routes reales**
+- [ ] **Reemplazar useMockData por fetch/API calls**
+- [ ] **Migrar sistema de proyectos a BD real**
+- [ ] **Migrar sistema de expertos a BD real**
+- [ ] **Migrar sistema de votación a persistencia real**
+- [ ] **Migrar resultados MIC MAC a BD real**
+
+#### 3. INTEGRACIÓN FRONTEND ↔ BACKEND REAL
+- [ ] **ProjectsList → /api/projects**
+- [ ] **ExpertsList → /api/experts**
+- [ ] **VotingSystem → /api/evaluations**
+- [ ] **Dashboard metrics → APIs reales**
+- [ ] **Manejo de errores de red y BD**
+- [ ] **Loading states para APIs reales**
+- [ ] **Optimistic updates donde sea apropiado**
+
+### 🚨 PRIORIDAD ALTA - FUNCIONALIDADES RESTANTES (2-3 días)
+
+#### 4. SISTEMA DE CALENDARIO Y PROGRAMACIÓN
+- [ ] Conectar pestaña "Programación" con BD real
+- [ ] Integrar fechas de proyecto con calendario
+- [ ] Estados de proyecto basados en fechas
 - [ ] Validación de fechas y programación
-- [ ] Página `/calendar` funcional
-- [ ] Vista mensual con proyectos
+- [ ] Página `/calendar` con datos reales
 
-#### 2. ESTADOS DE PROYECTO Y VISIBILIDAD
-- [ ] Crear un estado general que agrupe a todos los usaurios en ORGANIZACION. 
-- [ ] Conectar estados con nueva experiencia
-- [ ] Transiciones automáticas de estado
-- [ ] Dashboard diferenciado por rol
+#### 5. ESTADOS DE PROYECTO Y ROLES
+- [ ] Crear sistema de organizaciones
+- [ ] Dashboard diferenciado por rol (MODERATOR/EXPERT)
 - [ ] Visibilidad según estado y rol
+- [ ] Transiciones automáticas de estado
+- [ ] Permisos granulares por rol
 
-### 🔥 PRIORIDAD ALTA - INTEGRACIÓN BD REAL (3-5 días)
+### ⚠️ PRIORIDAD MEDIA - OPTIMIZACIONES (1-2 días)
 
-#### 3. CONEXIÓN BASE DE DATOS REAL
-- [ ] Configurar variables de entorno
-- [ ] Desplegar BD en Supabase
-- [ ] Ejecutar migraciones
-- [ ] Migrar datos de MockData a BD real
-
-#### 4. INTEGRACIÓN FRONTEND ↔ BACKEND
-- [ ] Migrar ProjectsList a APIs reales
-- [ ] Migrar ExpertsList a APIs reales
-- [ ] Migrar VotingSystem a persistencia real
-- [ ] Manejo de errores de red y BD
+#### 6. TESTING Y OPTIMIZACIÓN
+- [ ] Testing end-to-end con BD real
+- [ ] Manejo de errores de conexión
+- [ ] Performance con datos reales
+- [ ] Validación de datos en APIs
+- [ ] Logs y monitoreo básico
 
 ---
 
@@ -311,12 +362,22 @@ Visualización:               ████████████████�
 Dashboard Inteligente:       ████████████████████ 100%
 ```
 
-### ⚠️ Componentes Pendientes
+### ⚠️ Componentes Pendientes (CRÍTICOS PARA MVP REAL)
 ```
-Calendario/Programación:      ████████░░░░░░░░░░░░  40%
-Estados de Proyecto:          ████████████░░░░░░░░  60%
 Base de Datos Real:          ░░░░░░░░░░░░░░░░░░░░   0%
 APIs Reales:                 ░░░░░░░░░░░░░░░░░░░░   0%
+Migración MockData→BD:       ░░░░░░░░░░░░░░░░░░░░   0%
+Calendario/Programación:     ████████░░░░░░░░░░░░  40%
+Estados de Proyecto:         ████████████░░░░░░░░  60%
+Sistema de Roles:            ██████░░░░░░░░░░░░░░  30%
+```
+
+### 🎯 Progreso Real vs Mock
+```
+Sistema con Mock Data:       ████████████████████ 100%
+Sistema con BD Real:         ░░░░░░░░░░░░░░░░░░░░   0%
+Preparación para Testing:    ████████████████████ 100%
+MVP Producción Real:         ████████░░░░░░░░░░░░  40%
 ```
 
 ---
@@ -344,28 +405,37 @@ APIs Reales:                 ░░░░░░░░░░░░░░░░░
 - Sistema de votación 2 fases
 
 ### ✅ Agosto 2025
-- **Sistema 99% completado**
+- **Sistema Mock 100% completado**
 - **Experiencia de creación revolucionaria**
 - **Navegación inteligente implementada**
 - **UI/UX completamente optimizada**
 - **✅ Calendario completo implementado**
-- **✅ Base de datos real integrada (Prisma + PostgreSQL)**
-- **✅ APIs backend funcionales**
 - **✅ Dashboard inteligente completamente refactorizado**
 - **✅ Sistema de métricas en tiempo real**
 - **✅ Componentes modulares del dashboard**
 - **✅ Contención visual y responsividad**
+- **✅ Errores de TypeScript corregidos completamente**
+- **✅ Login unificado en página principal**
+- **✅ Build exitoso y preparado para testing en producción**
+
+### 🚨 Agosto 2025 - REALIDAD TÉCNICA
+- **❌ Base de datos real NO integrada (solo schema preparado)**
+- **❌ APIs backend NO funcionales (solo estructura)**
+- **❌ Sistema funciona 100% con Mock Data**
+- **⚠️ Preparado para testing, NO para producción real**
 
 ---
 
 ## 🚀 ROADMAP FUTURO (Post-MVP)
 
-### 📅 Septiembre 2025
-- ✅ **Completar calendario y programación** - IMPLEMENTADO
-- ✅ **Integrar base de datos real** - IMPLEMENTADO
+### 📅 Septiembre 2025 - INTEGRACIÓN BD REAL (CRÍTICO)
+- [ ] **🔥 PRIORIDAD MÁXIMA: Configurar BD PostgreSQL en Supabase**
+- [ ] **🔥 PRIORIDAD MÁXIMA: Migrar MockDataContext → API Routes**
+- [ ] **🔥 PRIORIDAD MÁXIMA: Conectar frontend con BD real**
+- [ ] **🔥 PRIORIDAD MÁXIMA: Testing completo con datos reales**
 - [ ] Conectar calendario con proyectos reales (fechas)
-- [ ] Deploy en producción
-- [ ] Testing end-to-end
+- [ ] Deploy REAL en producción (no solo testing)
+- [ ] Sistema de roles y permisos granulares
 
 ### 📅 Octubre 2025
 - [ ] Sistema de notificaciones
@@ -432,34 +502,43 @@ APIs Reales:                 ░░░░░░░░░░░░░░░░░
 
 ## 🎉 CONCLUSIÓN
 
-**MIC MAC Pro** ha evolucionado de una idea conceptual a un **sistema casi completo (99%)** que supera las expectativas iniciales. Con solo **1 día de trabajo** para conectar el calendario con los proyectos reales, el proyecto estará listo para producción.
+**MIC MAC Pro** ha evolucionado de una idea conceptual a un **sistema de testing funcional (85%)** con una experiencia de usuario excepcional. El sistema está **completamente funcional con Mock Data** y preparado para testing en producción, pero requiere **integración completa con base de datos real** para ser un MVP verdaderamente funcional.
 
-### 🏆 Logros Destacados
-- ✅ **MVP funcional al 99%**
+### 🏆 Logros Destacados (Sistema Mock)
+- ✅ **Sistema Mock funcional al 100%**
 - ✅ **Experiencia de usuario excepcional**
-- ✅ **Sistema robusto y escalable**
+- ✅ **UI/UX completamente optimizada**
 - ✅ **Metodología MIC MAC digitalizada**
 - ✅ **Calendario completo implementado**
-- ✅ **Base de datos real integrada**
-- ✅ **Dashboard inteligente completamente refactorizado**
+- ✅ **Dashboard inteligente refactorizado**
 - ✅ **Sistema de métricas en tiempo real**
-- ✅ **Preparado para producción**
+- ✅ **Errores de TypeScript corregidos**
+- ✅ **Login unificado implementado**
+- ✅ **Build exitoso para testing**
 
-### 🎯 Próximos Pasos Inmediatos
-1. ✅ **Completar sistema de calendario** - IMPLEMENTADO
-2. ✅ **Integrar base de datos real** - IMPLEMENTADO
-3. **Conectar calendario con proyectos** (1 día)
-4. Deploy a producción
-5. Lanzamiento oficial
+### 🚨 Realidad Técnica Actual
+- **❌ Base de datos real NO conectada**
+- **❌ APIs backend NO funcionales**
+- **❌ MockDataContext debe ser migrado**
+- **❌ Sistema funciona solo con datos ficticios**
+- **⚠️ Preparado para TESTING, no producción real**
+
+### 🎯 Próximos Pasos Críticos (5-7 días)
+1. **🔥 PRIORIDAD MÁXIMA: Configurar Supabase PostgreSQL**
+2. **🔥 PRIORIDAD MÁXIMA: Migrar MockDataContext → API Routes**
+3. **🔥 PRIORIDAD MÁXIMA: Conectar frontend con BD real**
+4. **🔥 PRIORIDAD MÁXIMA: Testing end-to-end con datos reales**
+5. Deploy REAL a producción (no solo testing)
+6. Lanzamiento oficial del MVP funcional
 
 ---
 
 **Documento Maestro de Roadmap**
 - **Creado:** 29 de Agosto 2025
-- **Versión:** 1.2 ACTUALIZADA
+- **Versión:** 1.3 ACTUALIZADA - REALIDAD TÉCNICA
 - **Estado:** Documento de referencia definitivo
-- **Mantenimiento:** Actualización mensual
-- **Última actualización:** Dashboard inteligente completamente refactorizado
+- **Mantenimiento:** Actualización semanal durante integración BD
+- **Última actualización:** 30 Agosto 2025 - Correcciones TypeScript, Login Unificado y Clarificación de Estado Real del Proyecto
 
 ---
 
