@@ -19,7 +19,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
-  const { user, signOut } = useMockAuth()
+  const { user, signOut, currentOrganization } = useMockAuth()
   const { startLoading } = useNavigationLoading()
   const router = useRouter()
 
@@ -35,7 +35,7 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
 
     // Redirecciones especiales (igual que en Sidebar)
     let finalRoute = href
-    const enDesarrolloRoutes = ['/settings']
+    const enDesarrolloRoutes: string[] = []
     
     if (enDesarrolloRoutes.includes(href)) {
       finalRoute = '/en-desarrollo'
@@ -79,6 +79,27 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
                     <span className="text-micmac-secondary-500 dark:text-micmac-secondary-400 ml-1">Pro</span>
                   </h1>
                 </div>
+                
+                {/* Organization Badge */}
+                {currentOrganization && (
+                  <div className="hidden md:flex items-center">
+                    <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700">
+                      <div className={`w-2 h-2 rounded-full ${
+                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                      }`}></div>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        {currentOrganization.name}
+                      </span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded text-white font-medium ${
+                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                      }`}>
+                        {currentOrganization.plan}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -119,38 +140,68 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
 
                   <MenuItems
                     transition
-                    className="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg outline outline-1 outline-black/5 dark:outline-white/10 transition data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                    className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-gray-800 py-2 shadow-xl outline outline-1 outline-black/5 dark:outline-white/10 transition data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
                   >
                     {/* User Info Header */}
-                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-base font-semibold text-gray-900 dark:text-white mb-1">
                         {user.name || user.email.split('@')[0]}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                         {user.email}
                       </p>
-                      <p className="text-xs text-micmac-primary-500 dark:text-micmac-primary-400 font-medium">
+                      <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium mb-3 ${
+                        user.role === 'MODERATOR'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                      }`}>
                         {user.role === 'MODERATOR' ? '👨‍💼 Moderador' : '👨‍🔬 Experto'}
-                      </p>
+                      </div>
+                      {currentOrganization && (
+                        <div className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-2 h-2 rounded-full ${
+                              currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                              currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                            }`}></div>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {currentOrganization.name}
+                            </span>
+                          </div>
+                          <span className={`text-xs px-2 py-1 rounded-md text-white font-medium ${
+                            currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                            currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                          }`}>
+                            {currentOrganization.plan}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     
-                    {userNavigation.map((item) => (
-                      <MenuItem key={item.name}>
-                        <button
-                          onClick={(e: React.MouseEvent) => {
-                            e.preventDefault()
-                            if (item.action) {
-                              item.action()
-                            } else {
-                              handleNavigation(item.href)
-                            }
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 data-[focus]:bg-gray-100 dark:data-[focus]:bg-gray-700 data-[focus]:outline-none"
-                        >
-                          {item.name}
-                        </button>
-                      </MenuItem>
-                    ))}
+                    <div className="py-2">
+                      {userNavigation.map((item) => (
+                        <MenuItem key={item.name}>
+                          <button
+                            onClick={(e: React.MouseEvent) => {
+                              e.preventDefault()
+                              if (item.action) {
+                                item.action()
+                              } else {
+                                handleNavigation(item.href)
+                              }
+                            }}
+                            className="flex items-center w-full text-left px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/50 data-[focus]:outline-none transition-colors duration-150"
+                          >
+                            <span className="mr-3 text-gray-400">
+                              {item.name === 'Tu Perfil' ? '👤' : 
+                               item.name === 'Configuración' ? '⚙️' : 
+                               item.name === 'Cerrar Sesión' ? '🚪' : '📄'}
+                            </span>
+                            {item.name}
+                          </button>
+                        </MenuItem>
+                      ))}
+                    </div>
                   </MenuItems>
                 </Menu>
               </div>
@@ -191,6 +242,23 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
                   <div className="text-xs text-micmac-primary-500 dark:text-micmac-primary-400 font-medium">
                     {user.role === 'MODERATOR' ? '👨‍💼 Moderador' : '👨‍🔬 Experto'}
                   </div>
+                  {currentOrganization && (
+                    <div className="flex items-center space-x-1 mt-1">
+                      <div className={`w-1.5 h-1.5 rounded-full ${
+                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                      }`}></div>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        {currentOrganization.name}
+                      </span>
+                      <span className={`text-xs px-1 py-0.5 rounded text-white font-medium ${
+                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                      }`}>
+                        {currentOrganization.plan}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <button
                   type="button"

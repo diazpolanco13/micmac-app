@@ -12,7 +12,7 @@ import ExpertiseRadarChart from '@/components/profile/ExpertiseRadarChart'
 import type { ExpertiseArea } from '@/types/project'
 
 export default function ProfilePage() {
-  const { user, loading, updateProfile } = useMockAuth()
+  const { user, loading, updateProfile, currentOrganization } = useMockAuth()
   const router = useRouter()
   const toast = useToast()
 
@@ -201,13 +201,36 @@ export default function ProfilePage() {
                 {formData.name || 'Sin nombre'}
               </h1>
               
-              <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-6 ${
+              <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-3 ${
                 formData.role === 'MODERATOR'
                   ? 'bg-emerald-500/20 text-emerald-400'
                   : 'bg-blue-500/20 text-blue-400'
               }`}>
                 {formData.role === 'MODERATOR' ? 'Moderador' : 'Experto'}
               </div>
+
+              {/* Organization Badge */}
+              {currentOrganization && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className={`w-2 h-2 rounded-full ${
+                      currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                      currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                    }`}></div>
+                    <div className="text-center">
+                      <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {currentOrganization.name}
+                      </div>
+                      <div className={`text-xs px-2 py-0.5 rounded text-white font-medium ${
+                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                      }`}>
+                        {currentOrganization.plan}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Información de contacto */}
               <div className="space-y-3 text-left">

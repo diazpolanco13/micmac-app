@@ -62,7 +62,7 @@ export function NavigationLoading({ route, isAuthTransition = false }: { route: 
       '/analysis/micmac': 'Análisis MIC MAC',
       '/': 'Autenticación'
     }
-    return routeMap[route] || 'Cargando página'
+    return routeMap[route] || 'página'
   }
 
   // 🔧 NUEVA LÓGICA: Solo usar AuthTransitionLoading si es explícitamente una transición de auth

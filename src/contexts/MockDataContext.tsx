@@ -431,6 +431,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
         name: data.name,
         email: data.email,
         organization: data.organization || null,
+        organizationId: user?.organizationId || 'org_default',
         expertiseAreas: data.expertiseAreas,
         avatar: data.avatar || null,
         yearsExperience: data.yearsExperience || null,

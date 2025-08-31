@@ -67,7 +67,6 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
         '/analysis/variables',
         '/reports',
         '/documents',
-        '/settings',
         '/my-projects',
         '/voting/pending',
         '/voting/history',

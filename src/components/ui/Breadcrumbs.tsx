@@ -108,6 +108,11 @@ export default function Breadcrumbs() {
         name: 'Mi Perfil',
         current: true
       })
+    } else if (pathname.startsWith('/settings')) {
+      items.push({
+        name: 'Configuración',
+        current: true
+      })
     } else if (pathname.startsWith('/en-desarrollo')) {
       items.push({
         name: 'En Desarrollo',
