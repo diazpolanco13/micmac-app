@@ -409,7 +409,40 @@ export interface ExpertiseCalculationResult {
 
 // 🏢 SISTEMA MULTI-ORGANIZACIONAL (MULTI-TENANT)
 export type OrganizationPlan = 'FREE' | 'PRO' | 'ENTERPRISE'
-export type UserRole = 'SUPER_ADMIN' | 'ORG_ADMIN' | 'MODERATOR' | 'EXPERT'
+export type UserRole = 'SUPER_ADMIN' | 'OWNER' | 'ADMIN' | 'MODERATOR' | 'EXPERT'
+
+// 🔄 NUEVO: Interface para membresía multi-organizacional
+export interface UserOrganization {
+  organizationId: string
+  role: UserRole
+  joinedAt: string
+  status: 'ACTIVE' | 'INVITED' | 'INACTIVE'
+  invitedBy?: string
+}
+
+// 🔄 NUEVO: Interface de Usuario Multi-Organizacional
+export interface MultiOrgUser {
+  id: string
+  email: string
+  name?: string
+  avatar?: string
+  bio?: string
+  currentOrganizationId: string | null // Contexto activo
+  organizations: UserOrganization[] // Múltiples organizaciones
+  // Campos adicionales del perfil
+  phone?: string
+  linkedinUrl?: string
+  profession?: string
+  currentPosition?: string
+  yearsExperience?: number
+  isActive?: boolean
+  lastLoginAt?: string
+  totalProjectsParticipated?: number
+  averageResponseTime?: number
+  createdAt?: string
+  updatedAt?: string
+  expertiseAreas?: ExpertiseArea[]
+}
 
 export interface Organization {
   id: string

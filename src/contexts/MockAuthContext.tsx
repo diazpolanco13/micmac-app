@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import type { ExpertiseArea, Organization, UserRole as ProjectUserRole } from '@/types/project'
+import type { ExpertiseArea, Organization, UserRole, MultiOrgUser, UserOrganization } from '@/types/project'
 import { createMockUserProfile } from '@/utils/mockExpertiseData'
 import { mockOrganizations } from '@/lib/mockData'
 
@@ -13,7 +13,7 @@ interface SimpleExpertiseArea {
   description: string
 }
 
-export type UserRole = 'MODERATOR' | 'EXPERT'
+// 🔄 UserRole ahora viene de project.ts (incluye OWNER, ADMIN)
 
 export interface User {
   id: string
@@ -22,9 +22,11 @@ export interface User {
   role: UserRole
   avatar?: string
   bio?: string
-  // 🏢 MULTI-TENANT: Campos de organización
-  organization?: string // Nombre de la organización (para compatibilidad)
-  organizationId: string // 🆕 FK obligatorio para multi-tenant
+  // 🏢 MULTI-ORGANIZACIONAL: Campos actualizados
+  organization?: string // Nombre de la organización actual (para compatibilidad)
+  organizationId: string // 🆕 FK de la organización actual
+  currentOrganizationId?: string // 🔄 NUEVO: Organización activa (puede ser null)
+  organizations?: UserOrganization[] // 🔄 NUEVO: Múltiples organizaciones
   // 🎯 CAMPOS PARA COHERENCIA CON DASHBOARD DE EXPERTOS
   phone?: string
   linkedinUrl?: string
@@ -63,6 +65,13 @@ interface AuthContextType {
   getOrganizationExperts: () => any[]
   getOrganizationProjects: () => any[]
   canAccessData: (organizationId: string) => boolean
+  
+  // 🔄 NUEVO: Funciones multi-organizacionales
+  switchOrganization: (organizationId: string) => Promise<{ success: boolean; error?: string }>
+  createOrganization: (data: { name: string; description?: string; plan?: 'FREE' | 'PRO' | 'ENTERPRISE' }) => Promise<{ success: boolean; error?: string; organizationId?: string }>
+  getUserOrganizations: () => UserOrganization[]
+  getCurrentRole: () => UserRole | null
+  canCreateOrganization: () => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
