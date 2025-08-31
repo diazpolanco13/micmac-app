@@ -3,7 +3,94 @@
  * Datos de prueba para proyectos MIC MAC
  */
 
-import { Project, Variable, Expert, ProjectType, ProjectStatus } from '@/types/project'
+import { Project, Variable, Expert, ProjectType, ProjectStatus, Organization, ORGANIZATION_PLAN_LIMITS } from '@/types/project'
+
+// 🏢 ORGANIZACIONES MOCK PARA MULTI-TENANCY
+export const mockOrganizations: Organization[] = [
+  {
+    id: 'org-techcorp',
+    name: 'TechCorp Solutions',
+    slug: 'techcorp-solutions',
+    domain: 'techcorp.com',
+    plan: 'ENTERPRISE',
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-31T15:30:00Z',
+    limits: ORGANIZATION_PLAN_LIMITS.ENTERPRISE,
+    settings: {
+      allowExternalExperts: true,
+      requireEmailDomain: false,
+      autoApproveUsers: true,
+      logoUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200',
+      brandColors: {
+        primary: '#3B82F6',
+        secondary: '#1E40AF'
+      }
+    },
+    stats: {
+      totalUsers: 23,
+      totalProjects: 12,
+      totalExperts: 18,
+      activeProjects: 4,
+      completedProjects: 8
+    }
+  },
+  {
+    id: 'org-healthplus',
+    name: 'HealthPlus Innovations',
+    slug: 'healthplus-innovations',
+    domain: 'healthplus.org',
+    plan: 'PRO',
+    isActive: true,
+    createdAt: '2024-01-15T00:00:00Z',
+    updatedAt: '2024-01-31T12:45:00Z',
+    limits: ORGANIZATION_PLAN_LIMITS.PRO,
+    settings: {
+      allowExternalExperts: false,
+      requireEmailDomain: true,
+      autoApproveUsers: false,
+      logoUrl: 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=200',
+      brandColors: {
+        primary: '#10B981',
+        secondary: '#059669'
+      }
+    },
+    stats: {
+      totalUsers: 12,
+      totalProjects: 6,
+      totalExperts: 8,
+      activeProjects: 2,
+      completedProjects: 4
+    }
+  },
+  {
+    id: 'org-startup',
+    name: 'Startup Accelerator Hub',
+    slug: 'startup-accelerator',
+    plan: 'FREE',
+    isActive: true,
+    createdAt: '2024-01-20T00:00:00Z',
+    updatedAt: '2024-01-31T09:20:00Z',
+    limits: ORGANIZATION_PLAN_LIMITS.FREE,
+    settings: {
+      allowExternalExperts: true,
+      requireEmailDomain: false,
+      autoApproveUsers: true,
+      logoUrl: 'https://images.unsplash.com/photo-1553484771-371a605b060b?w=200',
+      brandColors: {
+        primary: '#8B5CF6',
+        secondary: '#7C3AED'
+      }
+    },
+    stats: {
+      totalUsers: 5,
+      totalProjects: 2,
+      totalExperts: 3,
+      activeProjects: 1,
+      completedProjects: 1
+    }
+  }
+]
 
 // Variables de ejemplo para análisis prospectivos
 const sampleVariables: Variable[] = [
@@ -119,13 +206,15 @@ const generateExpertQuickStats = (
   }
 }
 
-// 8 Expertos ficticios diversos para simulación MIC MAC
+// 🏢 EXPERTOS DISTRIBUIDOS POR ORGANIZACIONES
 export const sampleExperts: Expert[] = [
+  // 👥 TECHCORP SOLUTIONS (ENTERPRISE) - Expertos de tecnología
   {
     id: 'expert-1',
     name: 'Dr. María González Hernández',
-    email: 'maria.gonzalez@medtech.edu',
-    organization: 'Instituto de Tecnología Médica - Universidad Complutense',
+    email: 'maria.gonzalez@techcorp.com',
+    organization: 'TechCorp Solutions', // 🔄 Actualizado
+    organizationId: 'org-techcorp', // 🆕 MULTI-TENANT
     expertiseAreas: ['Inteligencia Artificial', 'Diagnóstico Médico', 'Machine Learning'],
     avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150',
     yearsExperience: 18,
