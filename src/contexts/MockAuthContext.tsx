@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import type { ExpertiseArea } from '@/types/project'
+import type { ExpertiseArea, Organization, UserRole as ProjectUserRole } from '@/types/project'
 import { createMockUserProfile } from '@/utils/mockExpertiseData'
+import { mockOrganizations } from '@/lib/mockData'
 
 // Tipo simplificado para usuarios demo
 interface SimpleExpertiseArea {
@@ -21,8 +22,10 @@ export interface User {
   role: UserRole
   avatar?: string
   bio?: string
+  // 🏢 MULTI-TENANT: Campos de organización
+  organization?: string // Nombre de la organización (para compatibilidad)
+  organizationId: string // 🆕 FK obligatorio para multi-tenant
   // 🎯 CAMPOS PARA COHERENCIA CON DASHBOARD DE EXPERTOS
-  organization?: string
   phone?: string
   linkedinUrl?: string
   profession?: string
@@ -39,9 +42,10 @@ export interface User {
 
 interface AuthContextType {
   user: User | null
+  currentOrganization: Organization | null // 🆕 MULTI-TENANT: Organización actual
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
-  signUp: (email: string, password: string, role: UserRole, name?: string) => Promise<{ error: string | null }>
+  signUp: (email: string, password: string, role: UserRole, organizationId: string, name?: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
   updateProfile: (data: { 
     name?: string; 
@@ -55,6 +59,10 @@ interface AuthContextType {
     yearsExperience?: number;
     expertiseAreas?: ExpertiseArea[];
   }) => Promise<{ success: boolean; error?: string }>
+  // 🆕 MULTI-TENANT: Funciones de filtrado
+  getOrganizationExperts: () => any[]
+  getOrganizationProjects: () => any[]
+  canAccessData: (organizationId: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -69,9 +77,10 @@ interface StoredUser {
   password: string
   name: string
   role: UserRole
+  organizationId: string // 🆕 MULTI-TENANT: FK obligatorio
   avatar?: string
   bio?: string
-  organization?: string
+  organization?: string // Mantener para compatibilidad
   phone?: string
   linkedinUrl?: string
   profession?: string
@@ -123,49 +132,102 @@ const setCurrentUser = (user: User | null) => {
 const initializeDemoUsers = () => {
   const users = getStoredUsers()
   
-  // Usuarios demo para testing
+  // 🏢 USUARIOS DEMO DISTRIBUIDOS POR ORGANIZACIONES
   const demoUsers = [
+    // 👥 TECHCORP SOLUTIONS (ENTERPRISE)
     {
-      id: 'demo_moderator',
-      email: 'demo@demo.com',
+      id: 'demo_techcorp_moderator',
+      email: 'moderator@techcorp.com',
       password: 'demo123',
       name: 'Carlos Díaz Polanco',
       role: 'MODERATOR' as UserRole,
+      organizationId: 'org-techcorp',
       avatar: '👨‍💼',
-      bio: 'Especialista en análisis prospectivos y metodologías MIC MAC con más de 15 años de experiencia en consultoría estratégica. Apasionado por la transformación digital y el análisis de escenarios futuros.',
-      organization: 'MIC MAC Pro Consulting',
-      phone: '+57 300 123 4567',
-      linkedinUrl: 'https://linkedin.com/in/carlos-diaz-polanco',
-      profession: 'Consultor en Prospectiva Estratégica',
+      bio: 'Director de Análisis Prospectivos en TechCorp Solutions. Especialista en transformación digital y análisis de escenarios tecnológicos con más de 15 años de experiencia.',
+      organization: 'TechCorp Solutions',
+      phone: '+34 666 123 456',
+      linkedinUrl: 'https://linkedin.com/in/carlos-diaz-techcorp',
+      profession: 'Director de Análisis Prospectivos',
       currentPosition: 'Director de Análisis Prospectivos',
       yearsExperience: 15,
       isActive: true,
       lastLoginAt: new Date().toISOString(),
       totalProjectsParticipated: 47,
       averageResponseTime: 2.5,
-      createdAt: '2024-01-15T10:00:00Z',
+      createdAt: '2024-01-01T10:00:00Z',
       updatedAt: new Date().toISOString(),
       expertiseAreas: []
     },
     {
-      id: 'demo_expert',
-      email: 'expert@micmac.com',
+      id: 'demo_techcorp_expert',
+      email: 'expert@techcorp.com',
       password: 'demo123',
       name: 'Dra. Ana María Guerrero',
       role: 'EXPERT' as UserRole,
+      organizationId: 'org-techcorp',
       avatar: '👩‍🔬',
-      bio: 'Doctora en Ingeniería de Sistemas con especialización en análisis de variables complejas y modelado predictivo. Investigadora activa en universidades de prestigio con múltiples publicaciones en revistas indexadas.',
-      organization: 'Universidad Nacional de Colombia',
-      phone: '+57 310 987 6543',
-      linkedinUrl: 'https://linkedin.com/in/ana-guerrero-phd',
+      bio: 'Experta Senior en IA y Machine Learning en TechCorp Solutions. Doctora en Ingeniería de Sistemas con especialización en análisis predictivo y modelado de variables complejas.',
+      organization: 'TechCorp Solutions',
+      phone: '+34 777 987 654',
+      linkedinUrl: 'https://linkedin.com/in/ana-guerrero-techcorp',
       profession: 'Doctora en Ingeniería de Sistemas',
-      currentPosition: 'Profesora Titular - Investigadora Senior',
+      currentPosition: 'Experta Senior en IA',
       yearsExperience: 18,
       isActive: true,
-      lastLoginAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 horas atrás
+      lastLoginAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
       totalProjectsParticipated: 73,
       averageResponseTime: 1.8,
-      createdAt: '2023-08-20T14:30:00Z',
+      createdAt: '2024-01-05T14:30:00Z',
+      updatedAt: new Date().toISOString(),
+      expertiseAreas: []
+    },
+    
+    // 🏥 HEALTHPLUS INNOVATIONS (PRO)
+    {
+      id: 'demo_health_moderator',
+      email: 'moderator@healthplus.org',
+      password: 'demo123',
+      name: 'Dr. Luis Fernando Castro',
+      role: 'MODERATOR' as UserRole,
+      organizationId: 'org-healthplus',
+      avatar: '👨‍⚕️',
+      bio: 'Director de Innovación en HealthPlus. Médico especialista en salud digital con experiencia en telemedicina y transformación digital hospitalaria.',
+      organization: 'HealthPlus Innovations',
+      phone: '+34 888 234 567',
+      linkedinUrl: 'https://linkedin.com/in/luis-castro-healthplus',
+      profession: 'Director de Innovación Digital',
+      currentPosition: 'Director de Innovación',
+      yearsExperience: 12,
+      isActive: true,
+      lastLoginAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+      totalProjectsParticipated: 28,
+      averageResponseTime: 3.2,
+      createdAt: '2024-01-15T09:00:00Z',
+      updatedAt: new Date().toISOString(),
+      expertiseAreas: []
+    },
+    
+    // 🚀 STARTUP ACCELERATOR HUB (FREE)
+    {
+      id: 'demo_startup_moderator',
+      email: 'moderator@startup-accelerator.com',
+      password: 'demo123',
+      name: 'María Elena Rodríguez',
+      role: 'MODERATOR' as UserRole,
+      organizationId: 'org-startup',
+      avatar: '👩‍💼',
+      bio: 'Fundadora y CEO de Startup Accelerator Hub. Emprendedora serial con experiencia en aceleración de startups tecnológicas y análisis de mercados emergentes.',
+      organization: 'Startup Accelerator Hub',
+      phone: '+34 999 345 678',
+      linkedinUrl: 'https://linkedin.com/in/maria-rodriguez-startup',
+      profession: 'CEO y Fundadora',
+      currentPosition: 'CEO',
+      yearsExperience: 8,
+      isActive: true,
+      lastLoginAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+      totalProjectsParticipated: 15,
+      averageResponseTime: 4.1,
+      createdAt: '2024-01-20T11:00:00Z',
       updatedAt: new Date().toISOString(),
       expertiseAreas: []
     }
@@ -183,6 +245,7 @@ const initializeDemoUsers = () => {
 
 export function MockAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -197,6 +260,13 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       // NO crear automáticamente un usuario demo
       
       setUser(currentUser)
+      
+      // 🏢 MULTI-TENANT: Cargar organización actual
+      if (currentUser?.organizationId) {
+        const org = mockOrganizations.find(o => o.id === currentUser.organizationId)
+        setCurrentOrganization(org || null)
+      }
+      
       setLoading(false)
     }, 300)
   }, [])
@@ -205,6 +275,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
     email: string, 
     password: string, 
     role: UserRole, 
+    organizationId: string,
     name?: string
   ): Promise<{ error: string | null }> => {
     try {
@@ -220,6 +291,12 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         return { error: 'Este email ya está registrado' }
       }
       
+      // 🏢 MULTI-TENANT: Verificar que la organización existe
+      const organization = mockOrganizations.find(o => o.id === organizationId)
+      if (!organization) {
+        return { error: 'Organización no encontrada' }
+      }
+      
       // Crear nuevo usuario
       const newStoredUser: StoredUser = {
         id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -227,6 +304,8 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         password, // En producción nunca guardar passwords en plain text
         name: name || email.split('@')[0],
         role,
+        organizationId,
+        organization: organization.name,
         expertiseAreas: []
       }
       
@@ -240,8 +319,13 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         email: newStoredUser.email,
         name: newStoredUser.name,
         role: newStoredUser.role,
+        organizationId: newStoredUser.organizationId,
+        organization: newStoredUser.organization,
         expertiseAreas: []
       }
+      
+      // 🏢 MULTI-TENANT: Cargar organización
+      setCurrentOrganization(organization)
       
       // Iniciar sesión automáticamente
       setCurrentUser(newUser)
@@ -280,22 +364,27 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         email: storedUser.email,
         name: storedUser.name,
         role: storedUser.role,
+        organizationId: storedUser.organizationId,
         avatar: storedUser.avatar,
         bio: storedUser.bio,
-                  organization: storedUser.organization,
-          phone: storedUser.phone,
-          linkedinUrl: storedUser.linkedinUrl,
-          profession: storedUser.profession,
-          currentPosition: storedUser.currentPosition,
-          yearsExperience: storedUser.yearsExperience,
-          isActive: storedUser.isActive,
-          lastLoginAt: storedUser.lastLoginAt,
-          totalProjectsParticipated: storedUser.totalProjectsParticipated,
-          averageResponseTime: storedUser.averageResponseTime,
-          createdAt: storedUser.createdAt,
-          updatedAt: storedUser.updatedAt,
-          expertiseAreas: storedUser.expertiseAreas || []
+        organization: storedUser.organization,
+        phone: storedUser.phone,
+        linkedinUrl: storedUser.linkedinUrl,
+        profession: storedUser.profession,
+        currentPosition: storedUser.currentPosition,
+        yearsExperience: storedUser.yearsExperience,
+        isActive: storedUser.isActive,
+        lastLoginAt: storedUser.lastLoginAt,
+        totalProjectsParticipated: storedUser.totalProjectsParticipated,
+        averageResponseTime: storedUser.averageResponseTime,
+        createdAt: storedUser.createdAt,
+        updatedAt: storedUser.updatedAt,
+        expertiseAreas: storedUser.expertiseAreas || []
       }
+      
+      // 🏢 MULTI-TENANT: Cargar organización
+      const organization = mockOrganizations.find(o => o.id === storedUser.organizationId)
+      setCurrentOrganization(organization || null)
       
       setCurrentUser(authenticatedUser)
       setUser(authenticatedUser)
@@ -319,6 +408,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       
       setCurrentUser(null)
       setUser(null)
+      setCurrentOrganization(null) // 🏢 MULTI-TENANT: Limpiar organización
       
     } catch (error) {
       console.error('Mock signOut error:', error)
@@ -379,13 +469,38 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // 🏢 MULTI-TENANT: Funciones de filtrado
+  const getOrganizationExperts = () => {
+    if (!user?.organizationId) return []
+    
+    // Importar dinámicamente para evitar circular dependency
+    const { sampleExperts } = require('@/lib/mockData')
+    return sampleExperts.filter((expert: any) => expert.organizationId === user.organizationId)
+  }
+
+  const getOrganizationProjects = () => {
+    if (!user?.organizationId) return []
+    
+    // Importar dinámicamente para evitar circular dependency
+    const { mockProjects } = require('@/lib/mockData')
+    return mockProjects.filter((project: any) => project.organizationId === user.organizationId)
+  }
+
+  const canAccessData = (organizationId: string): boolean => {
+    return user?.organizationId === organizationId
+  }
+
   const value: AuthContextType = {
     user,
+    currentOrganization,
     loading,
     signIn,
     signUp,
     signOut,
-    updateProfile
+    updateProfile,
+    getOrganizationExperts,
+    getOrganizationProjects,
+    canAccessData
   }
 
   return (

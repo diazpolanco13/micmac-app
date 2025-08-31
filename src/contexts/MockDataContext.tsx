@@ -136,12 +136,23 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   
   const { user } = useMockAuth()
 
-  // Cargar proyectos mock
+  // 🏢 MULTI-TENANT: Cargar proyectos filtrados por organización
   const refreshProjects = async () => {
     setLoadingProjects(true)
     try {
       await delay(50) // Simular delay de red
-      setProjects([...mockProjects]) // Crear copia para evitar mutaciones
+      
+      if (!user?.organizationId) {
+        setProjects([])
+        return
+      }
+      
+      // Filtrar proyectos por organización del usuario
+      const organizationProjects = mockProjects.filter(
+        project => project.organizationId === user.organizationId
+      )
+      
+      setProjects([...organizationProjects]) // Crear copia para evitar mutaciones
     } catch (error) {
       console.error('Error loading mock projects:', error)
     } finally {
@@ -149,102 +160,30 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     }
   }
 
-  // Cargar expertos mock
+  // 🏢 MULTI-TENANT: Cargar expertos filtrados por organización
   const refreshExperts = async () => {
     setLoadingExperts(true)
     try {
       await delay(50)
       
-      // Si no hay expertos globales, extraer de proyectos mock y crear más completos
-      if (globalMockExperts.length === 0) {
-        const projectExperts = mockProjects.flatMap(p => 
-          p.projectExperts.map(pe => pe.expert)
-        )
-        const uniqueProjectExperts = projectExperts.filter((expert, index, self) => 
-          index === self.findIndex(e => e.id === expert.id)
-        )
-        
-        // Expandir expertos con nuevos campos
-        globalMockExperts = uniqueProjectExperts.map(expert => ({
-          ...expert,
-          role: Math.random() > 0.8 ? 'MODERATOR' : 'EXPERT' as 'EXPERT' | 'MODERATOR',
-          biography: `Experto con ${expert.yearsExperience || 5} años de experiencia en ${expert.expertiseAreas.join(', ')}.`,
-          linkedinUrl: `https://linkedin.com/in/${expert.name.toLowerCase().replace(/ /g, '-')}`,
-          phone: null,
-          isActive: true,
-          lastLoginAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          totalProjectsParticipated: Math.floor(Math.random() * 10) + 1,
-          averageResponseTime: Math.random() * 24 + 2 // 2-26 horas
-        }))
-        
-        // Expertos demo con perfiles completos
-        const additionalExperts: Expert[] = [
-          {
-            id: 'demo_moderator',
-            name: 'Carlos Díaz Polanco',
-            email: 'demo@demo.com',
-            organization: 'MIC MAC Pro Consulting',
-            expertiseAreas: ['Análisis Prospectivo', 'Metodología MIC MAC', 'Gestión de Proyectos'],
-            avatar: '👨‍💼',
-            yearsExperience: 15,
-            notes: 'Director de Análisis Prospectivos especializado en metodologías MIC MAC',
-            role: 'MODERATOR',
-            biography: 'Especialista en análisis prospectivos y metodologías MIC MAC con más de 15 años de experiencia en consultoría estratégica. Apasionado por la transformación digital y el análisis de escenarios futuros.',
-            linkedinUrl: 'https://linkedin.com/in/carlos-diaz-polanco',
-            phone: '+57 300 123 4567',
-            isActive: true,
-            lastLoginAt: new Date().toISOString(),
-            totalProjectsParticipated: 47,
-            averageResponseTime: 2.5,
-            createdAt: '2024-01-15T10:00:00Z',
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: 'demo_expert',
-            name: 'Dra. Ana María Guerrero',
-            email: 'expert@micmac.com',
-            organization: 'Universidad Nacional de Colombia',
-            expertiseAreas: ['Sistemas Complejos', 'Inteligencia Artificial', 'Análisis de Datos', 'Investigación Académica', 'Sostenibilidad Ambiental'],
-            avatar: '👩‍🔬',
-            yearsExperience: 18,
-            notes: 'Profesora Titular - Investigadora Senior especializada en sistemas complejos',
-            role: 'EXPERT',
-            biography: 'Doctora en Ingeniería de Sistemas con especialización en análisis de variables complejas y modelado predictivo. Investigadora activa en universidades de prestigio con múltiples publicaciones en revistas indexadas.',
-            linkedinUrl: 'https://linkedin.com/in/ana-guerrero-phd',
-            phone: '+57 310 987 6543',
-            isActive: true,
-            lastLoginAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            totalProjectsParticipated: 73,
-            averageResponseTime: 1.8,
-            createdAt: '2023-08-20T14:30:00Z',
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: 'expert_additional_1',
-            name: 'Dr. Miguel Ángel Torres',
-            email: 'miguel.torres@economia.gov.co',
-            organization: 'Ministerio de Economía - Colombia',
-            expertiseAreas: ['Economía', 'Políticas Públicas', 'Desarrollo Sostenible'],
-            avatar: '👨‍💼',
-            yearsExperience: 22,
-            notes: 'Asesor Senior en políticas económicas y desarrollo sostenible',
-            role: 'EXPERT',
-            biography: 'Doctor en Economía con especialización en políticas públicas y desarrollo sostenible. Asesor de múltiples gobiernos latinoamericanos.',
-            linkedinUrl: 'https://linkedin.com/in/miguel-torres-econ',
-            phone: '+57 320 456 7890',
-            isActive: true,
-            lastLoginAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-            totalProjectsParticipated: 34,
-            averageResponseTime: 3.2,
-            createdAt: '2023-09-10T09:00:00Z',
-            updatedAt: new Date().toISOString()
-          }
-        ]
-        
-        globalMockExperts = [...globalMockExperts, ...additionalExperts]
+      if (!user?.organizationId) {
+        setExperts([])
+        return
       }
       
-      setExperts([...globalMockExperts])
+      // Si no hay expertos globales, extraer de proyectos mock y crear más completos
+      if (globalMockExperts.length === 0) {
+        // Importar dinámicamente para evitar circular dependency
+        const { sampleExperts } = require('@/lib/mockData')
+        globalMockExperts = [...sampleExperts]
+      }
+      
+      // Filtrar expertos por organización del usuario
+      const organizationExperts = globalMockExperts.filter(
+        expert => expert.organizationId === user.organizationId
+      )
+      
+      setExperts([...organizationExperts])
     } catch (error) {
       console.error('Error loading mock experts:', error)
     } finally {
