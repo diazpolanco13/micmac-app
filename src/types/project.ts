@@ -25,7 +25,8 @@ export interface Expert {
   id: string
   name: string
   email: string
-  organization: string | null
+  organization: string | null // 🔄 MANTENER: Para compatibilidad (nombre de la org)
+  organizationId: string // 🆕 MULTI-TENANT: FK obligatorio
   expertiseAreas: string[]
   avatar: string | null
   yearsExperience: number | null
@@ -151,11 +152,13 @@ export interface Project {
   tags: string[]
   isPublic: boolean
   creatorId: string
+  organizationId: string // 🆕 MULTI-TENANT: FK obligatorio
   createdAt: string
   updatedAt: string
   
   // Relaciones incluidas
   creator: { name: string | null; email: string }
+  organization?: Organization // 🆕 MULTI-TENANT: Relación opcional
   variables: Variable[]
   projectExperts: ProjectExpert[]
   statusHistory: StatusChange[]
@@ -402,4 +405,70 @@ export interface ExpertiseCalculationResult {
   score: number
   level: ExpertiseLevel
   priority: ExpertisePriority
+}
+
+// 🏢 SISTEMA MULTI-ORGANIZACIONAL (MULTI-TENANT)
+export type OrganizationPlan = 'FREE' | 'PRO' | 'ENTERPRISE'
+export type UserRole = 'SUPER_ADMIN' | 'ORG_ADMIN' | 'MODERATOR' | 'EXPERT'
+
+export interface Organization {
+  id: string
+  name: string
+  slug: string // "empresa-a", "empresa-b" 
+  domain?: string // "empresaa.com" (opcional para validación de email)
+  plan: OrganizationPlan
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  
+  // Límites por plan
+  limits: {
+    maxModerators: number
+    maxExperts: number
+    maxProjects: number
+    maxVariablesPerProject: number
+  }
+  
+  // Configuración organizacional
+  settings: {
+    allowExternalExperts: boolean
+    requireEmailDomain: boolean
+    autoApproveUsers: boolean
+    logoUrl?: string
+    brandColors?: {
+      primary: string
+      secondary: string
+    }
+  }
+  
+  // Estadísticas (calculadas)
+  stats?: {
+    totalUsers: number
+    totalProjects: number
+    totalExperts: number
+    activeProjects: number
+    completedProjects: number
+  }
+}
+
+// Límites por plan predefinidos
+export const ORGANIZATION_PLAN_LIMITS: Record<OrganizationPlan, Organization['limits']> = {
+  FREE: {
+    maxModerators: 1,
+    maxExperts: 5,
+    maxProjects: 3,
+    maxVariablesPerProject: 10
+  },
+  PRO: {
+    maxModerators: 5,
+    maxExperts: 20,
+    maxProjects: 15,
+    maxVariablesPerProject: 15
+  },
+  ENTERPRISE: {
+    maxModerators: 999,
+    maxExperts: 999,
+    maxProjects: 999,
+    maxVariablesPerProject: 20
+  }
 }

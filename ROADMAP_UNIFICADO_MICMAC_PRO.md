@@ -8,12 +8,14 @@
 
 **MIC MAC Pro** es una plataforma web colaborativa para análisis prospectivos metodológicos que ha evolucionado desde un MVP básico hasta un sistema profesional casi completo con funcionalidades avanzadas de análisis, gestión de expertos y experiencia de usuario optimizada.
 
-### 🎯 ESTADO GLOBAL (30 AGOSTO 2025)
-- **Progreso General:** ~85% COMPLETADO
-- **MVP Status:** 85% ALCANZADO  
-- **Sistema Principal:** OPERATIVO CON MOCK DATA
-- **Estado Técnico:** LISTO PARA TESTING EN PRODUCCIÓN
+### 🎯 ESTADO GLOBAL (31 AGOSTO 2025)
+- **Progreso General:** ~90% COMPLETADO
+- **MVP Status:** 90% ALCANZADO  
+- **Sistema Principal:** OPERATIVO EN PRODUCCIÓN CON MOCK DATA
+- **Estado Técnico:** ✅ FUNCIONANDO 24/7 EN https://micmacpro.com
+- **Infraestructura:** ✅ PM2 + Nginx + SSL configurados
 - **Próximo Hito:** INTEGRACIÓN COMPLETA CON BASE DE DATOS REAL
+- **Visión Futura:** ARQUITECTURA MULTI-TENANT EMPRESARIAL PLANIFICADA
 
 ---
 
@@ -232,6 +234,47 @@
 
 ---
 
+### 🔄 FASE 14: SISTEMA DE LOADING INTELIGENTE Y CONFIGURACIÓN PM2 (31 Agosto 2025)
+**Estado:** ✅ COMPLETADA
+
+#### Sistema de Loading Diferenciado
+- [x] **NavigationLoadingContext con parámetro isAuthTransition**
+- [x] **LoadingStates con lógica inteligente de loading:**
+  - Loading grande (AuthTransitionLoading): Solo para login → dashboard
+  - Loading pequeño (NavigationLoading): Para navegación interna
+  - Loading de componente: Para cargas específicas
+- [x] **Corrección de comportamiento:** Dashboard desde navegación interna usa loading pequeño
+- [x] **Flujos diferenciados:** Login vs navegación interna perfectamente separados
+
+#### Configuración PM2 Completa para Producción
+- [x] **Configuración ecosystem.config.json** para gestión de procesos
+- [x] **Scripts npm automatizados** para PM2:
+  - `pm2:start` - Compila y ejecuta en producción
+  - `pm2:restart` - Actualiza producción automáticamente
+  - `pm2:stop` - Para aplicación de producción
+  - `pm2:logs` - Ver logs en tiempo real
+  - `pm2:status` - Estado de la aplicación
+- [x] **Configuración de puertos sin conflictos:**
+  - Puerto 3000: Sistema de monitoreo
+  - Puerto 3001: Producción PM2 + Nginx
+  - Puerto 3002: Desarrollo local
+  - Puerto 443: Nginx HTTPS público
+
+#### Documentación y Despliegue
+- [x] **PM2-SETUP.md** - Guía completa de implementación
+- [x] **Sistema completamente funcional en https://micmacpro.com**
+- [x] **Aplicación persistente** (independiente de SSH)
+- [x] **Auto-restart configurado** para reinicio de servidor
+- [x] **Corrección de tipos TypeScript** en MockAuthContext
+
+#### Estado Técnico Alcanzado
+- [x] **Aplicación en producción real** funcionando 24/7
+- [x] **Gestión de procesos profesional** con PM2
+- [x] **Sistema de loading perfeccionado** según UX requirements
+- [x] **Flujo de actualización automatizado** para desarrollo continuo
+
+---
+
 ### 🔧 FASE 13: CORRECCIONES CRÍTICAS Y LOGIN UNIFICADO (30 Agosto 2025)
 **Estado:** ✅ COMPLETADA
 
@@ -417,6 +460,10 @@ MVP Producción Real:         ████████░░░░░░░░�
 - **✅ Errores de TypeScript corregidos completamente**
 - **✅ Login unificado en página principal**
 - **✅ Build exitoso y preparado para testing en producción**
+- **✅ Sistema de loading inteligente diferenciado**
+- **✅ Configuración PM2 completa para producción**
+- **✅ Aplicación funcionando 24/7 en producción real**
+- **✅ Infraestructura profesional: PM2 + Nginx + SSL**
 
 ### 🚨 Agosto 2025 - REALIDAD TÉCNICA
 - **❌ Base de datos real NO integrada (solo schema preparado)**
@@ -454,6 +501,362 @@ MVP Producción Real:         ████████░░░░░░░░�
 - [ ] Multi-tenancy
 - [ ] Analytics avanzado
 - [ ] Certificaciones metodológicas
+
+---
+
+## 🏢 ROADMAP SISTEMA MULTI-ORGANIZACIONAL (MULTI-TENANT)
+
+### 🎯 **OBJETIVO: ARQUITECTURA EMPRESARIAL ESCALABLE**
+
+Transformar MIC MAC Pro de un sistema global a una **plataforma multi-tenant empresarial** donde cada organización tiene completo aislamiento de datos, usuarios y proyectos.
+
+#### **Concepto de Transformación:**
+```
+ACTUAL: Sistema Global Único
+├── Pool compartido de usuarios
+├── Todos ven todos los expertos  
+└── Sin aislamiento organizacional
+
+OBJETIVO: Sistema Multi-Organizacional  
+├── Empresa A (aislada)
+│   ├── Moderadores A
+│   ├── Expertos A  
+│   └── Proyectos A
+├── Empresa B (aislada)
+│   ├── Moderadores B
+│   ├── Expertos B
+│   └── Proyectos B
+└── Empresa C (aislada)...
+```
+
+---
+
+### 📅 **FASE 15: DISEÑO Y ARQUITECTURA MULTI-TENANT (Septiembre 2025)**
+**Estado:** 🟡 PLANIFICADA
+**Duración Estimada:** 1-2 semanas
+**Prerequisito:** Base de datos real implementada
+
+#### 15.1 Diseño de Modelo de Datos Multi-Tenant
+- [ ] **Diseñar entidad Organization:**
+  - [ ] Campos básicos (name, slug, domain)
+  - [ ] Configuración de planes (FREE, PRO, ENTERPRISE)
+  - [ ] Límites por plan (maxModerators, maxExperts, maxProjects)
+  - [ ] Settings organizacionales (branding, políticas)
+- [ ] **Expandir MockData con organizaciones:**
+  - [ ] Crear 3 organizaciones de prueba realistas
+  - [ ] Distribuir usuarios existentes entre organizaciones
+  - [ ] Crear proyectos específicos por organización
+  - [ ] Simular expertos con diferentes organizaciones
+- [ ] **Validar flujos con MockData:**
+  - [ ] Aislamiento completo de datos por organización
+  - [ ] Roles y permisos diferenciados
+  - [ ] Navegación contextual organizacional
+
+#### 15.2 Sistema de Roles y Permisos Expandido
+- [ ] **Definir jerarquía de roles:**
+  - [ ] SUPER_ADMIN (gestión global del sistema)
+  - [ ] ORG_ADMIN (administrador de organización)  
+  - [ ] MODERATOR (gestor de proyectos organizacionales)
+  - [ ] EXPERT (participante en proyectos)
+- [ ] **Matriz de permisos por rol:**
+  - [ ] SUPER_ADMIN: Crear organizaciones, ver métricas globales
+  - [ ] ORG_ADMIN: Gestionar usuarios de su org, configurar branding
+  - [ ] MODERATOR: Crear proyectos, invitar expertos de su org
+  - [ ] EXPERT: Participar en proyectos de su org
+- [ ] **Context de autorización:**
+  - [ ] Hook useOrganizationPermissions()
+  - [ ] Middleware de validación organizacional
+  - [ ] Guards de componentes por rol
+
+#### 15.3 UX/UI Multi-Organizacional
+- [ ] **Branding personalizable:**
+  - [ ] Logo organizacional en navbar
+  - [ ] Colores de marca configurables
+  - [ ] Nombre de organización visible
+- [ ] **URLs organizacionales:**
+  - [ ] Estructura: micmacpro.com/org/empresa-a
+  - [ ] Routing automático por organización
+  - [ ] Redirecciones inteligentes
+- [ ] **Componentes contextuales:**
+  - [ ] OrganizationSelector para SUPER_ADMIN
+  - [ ] OrganizationBranding component
+  - [ ] OrganizationSettings page
+
+---
+
+### 📅 **FASE 16: IMPLEMENTACIÓN MOCK MULTI-TENANT (Septiembre 2025)**
+**Estado:** 🟡 PLANIFICADA  
+**Duración Estimada:** 1-2 semanas
+**Prerequisito:** Fase 15 completada
+
+#### 16.1 MockData Multi-Organizacional
+- [ ] **Expandir MockDataContext:**
+  - [ ] Agregar organizaciones mock realistas
+  - [ ] Filtrado automático por organizationId
+  - [ ] Simulación de límites por plan
+- [ ] **Context organizacional:**
+  - [ ] OrganizationContext con datos actuales
+  - [ ] Hook useCurrentOrganization()
+  - [ ] Persistencia de organización seleccionada
+- [ ] **Datos de prueba completos:**
+  - [ ] 3 organizaciones con diferentes planes
+  - [ ] 15 usuarios distribuidos entre organizaciones
+  - [ ] 12 proyectos específicos por organización
+  - [ ] 30 expertos con organizaciones asignadas
+
+#### 16.2 Filtrado y Aislamiento Mock
+- [ ] **Filtros automáticos:**
+  - [ ] Proyectos solo de la organización actual
+  - [ ] Expertos solo de la organización actual  
+  - [ ] Dashboard con métricas organizacionales
+- [ ] **Validaciones de aislamiento:**
+  - [ ] Imposibilidad de ver datos de otras orgs
+  - [ ] Validación en selección de expertos
+  - [ ] Restricciones en creación de proyectos
+- [ ] **Simulación de límites:**
+  - [ ] Validación de límites por plan
+  - [ ] Mensajes de upgrade cuando se alcanzan límites
+  - [ ] Comportamiento diferenciado por plan
+
+#### 16.3 Flujos de Registro y Autenticación Mock
+- [ ] **Registro por organización:**
+  - [ ] Selección de organización en registro
+  - [ ] Invitación por email organizacional
+  - [ ] Validación de dominio de email (opcional)
+- [ ] **Login contextual:**
+  - [ ] Redirección a dashboard organizacional
+  - [ ] Persistencia de contexto organizacional
+  - [ ] Manejo de usuarios multi-organizacionales
+
+---
+
+### 📅 **FASE 17: DASHBOARD Y GESTIÓN ORGANIZACIONAL (Octubre 2025)**
+**Estado:** 🟡 PLANIFICADA
+**Duración Estimada:** 1-2 semanas  
+**Prerequisito:** Fase 16 completada
+
+#### 17.1 Dashboard Organizacional Diferenciado
+- [ ] **Dashboard por rol:**
+  - [ ] SUPER_ADMIN: Métricas globales, gestión de organizaciones
+  - [ ] ORG_ADMIN: Métricas de su org, gestión de usuarios
+  - [ ] MODERATOR: Proyectos de su org, gestión de expertos
+  - [ ] EXPERT: Proyectos asignados, actividades pendientes
+- [ ] **Métricas organizacionales:**
+  - [ ] Proyectos activos de la organización
+  - [ ] Expertos activos de la organización
+  - [ ] Uso de límites del plan actual
+  - [ ] Tendencias y estadísticas organizacionales
+- [ ] **Componentes específicos:**
+  - [ ] OrganizationMetrics component
+  - [ ] OrganizationProjects component
+  - [ ] OrganizationExperts component
+  - [ ] OrganizationSettings component
+
+#### 17.2 Gestión de Usuarios Organizacionales
+- [ ] **Panel de gestión de usuarios:**
+  - [ ] Lista de usuarios de la organización
+  - [ ] Invitación de nuevos usuarios
+  - [ ] Gestión de roles organizacionales
+  - [ ] Desactivación de usuarios
+- [ ] **Sistema de invitaciones:**
+  - [ ] Invitación por email con token
+  - [ ] Validación de dominio organizacional
+  - [ ] Flujo de aceptación de invitación
+  - [ ] Notificaciones de invitaciones pendientes
+- [ ] **Configuración organizacional:**
+  - [ ] Configuración de branding
+  - [ ] Políticas de invitación
+  - [ ] Límites y restricciones
+  - [ ] Configuración de notificaciones
+
+#### 17.3 Gestión de Expertos Organizacionales
+- [ ] **Catálogo de expertos organizacionales:**
+  - [ ] Vista filtrada por organización
+  - [ ] Métricas específicas de la organización
+  - [ ] Gestión de expertos internos
+- [ ] **Sistema de expertos externos:**
+  - [ ] Invitación de expertos de otras organizaciones
+  - [ ] Gestión de permisos cruzados
+  - [ ] Tracking de colaboraciones externas
+- [ ] **Políticas de colaboración:**
+  - [ ] Configuración de sharing entre organizaciones
+  - [ ] Aprobación de colaboraciones externas
+  - [ ] Auditoría de accesos cruzados
+
+---
+
+### 📅 **FASE 18: MIGRACIÓN A BASE DE DATOS MULTI-TENANT (Octubre 2025)**
+**Estado:** 🟡 PLANIFICADA
+**Duración Estimada:** 2-3 semanas
+**Prerequisito:** Base de datos real + Fases 15-17 completadas
+
+#### 18.1 Schema de Base de Datos Multi-Tenant
+- [ ] **Crear tabla Organizations:**
+  - [ ] Campos básicos y configuración
+  - [ ] Relaciones con usuarios, proyectos, expertos
+  - [ ] Índices para performance
+- [ ] **Modificar tablas existentes:**
+  - [ ] Agregar organizationId a Users, Projects, Experts
+  - [ ] Crear foreign keys y restricciones
+  - [ ] Migrar datos existentes a organización default
+- [ ] **Índices y performance:**
+  - [ ] Índices compuestos por organizationId
+  - [ ] Optimización de queries multi-tenant
+  - [ ] Particionamiento si es necesario
+
+#### 18.2 APIs Multi-Tenant
+- [ ] **Middleware de aislamiento:**
+  - [ ] Filtrado automático por organizationId
+  - [ ] Validación de permisos organizacionales
+  - [ ] Logging de accesos cruzados
+- [ ] **Endpoints organizacionales:**
+  - [ ] /api/organizations - Gestión de organizaciones
+  - [ ] /api/organizations/[id]/users - Usuarios por organización
+  - [ ] /api/organizations/[id]/projects - Proyectos por organización
+  - [ ] /api/organizations/[id]/experts - Expertos por organización
+- [ ] **Migración de APIs existentes:**
+  - [ ] Actualizar todos los endpoints existentes
+  - [ ] Agregar filtrado organizacional automático
+  - [ ] Validar aislamiento completo
+
+#### 18.3 Migración de MockData a BD Real Multi-Tenant
+- [ ] **Migración de datos:**
+  - [ ] Crear organizaciones en BD real
+  - [ ] Migrar usuarios con organizaciones asignadas
+  - [ ] Migrar proyectos con aislamiento organizacional
+  - [ ] Migrar expertos con contexto organizacional
+- [ ] **Validación de migración:**
+  - [ ] Testing de aislamiento completo
+  - [ ] Validación de integridad de datos
+  - [ ] Performance testing con múltiples tenants
+- [ ] **Rollback plan:**
+  - [ ] Backup completo antes de migración
+  - [ ] Plan de rollback detallado
+  - [ ] Testing de rollback
+
+---
+
+### 📅 **FASE 19: CARACTERÍSTICAS EMPRESARIALES AVANZADAS (Noviembre 2025)**
+**Estado:** 🟡 PLANIFICADA
+**Duración Estimada:** 2-3 semanas
+**Prerequisito:** Fase 18 completada
+
+#### 19.1 Sistema de Planes y Facturación
+- [ ] **Definición de planes:**
+  - [ ] FREE: 1 moderador, 5 expertos, 3 proyectos
+  - [ ] PRO: 5 moderadores, 20 expertos, 15 proyectos
+  - [ ] ENTERPRISE: Ilimitado + features premium
+- [ ] **Gestión de límites:**
+  - [ ] Validación en tiempo real de límites
+  - [ ] Notificaciones de aproximación a límites
+  - [ ] Bloqueo suave al alcanzar límites
+- [ ] **Upgrade/downgrade:**
+  - [ ] Flujo de cambio de plan
+  - [ ] Migración de datos entre planes
+  - [ ] Facturación prorrateada
+
+#### 19.2 Branding y Personalización Avanzada
+- [ ] **Personalización visual:**
+  - [ ] Upload de logo organizacional
+  - [ ] Configuración de colores de marca
+  - [ ] Temas personalizados por organización
+- [ ] **Personalización funcional:**
+  - [ ] Configuración de flujos de trabajo
+  - [ ] Templates de proyecto personalizados
+  - [ ] Configuración de notificaciones
+- [ ] **White-label options:**
+  - [ ] Subdominios personalizados
+  - [ ] Eliminación de branding MIC MAC Pro
+  - [ ] Documentación personalizada
+
+#### 19.3 Analytics y Reporting Organizacional
+- [ ] **Métricas avanzadas por organización:**
+  - [ ] ROI de proyectos MIC MAC
+  - [ ] Performance de expertos organizacionales
+  - [ ] Tendencias de uso por organización
+- [ ] **Reportes ejecutivos:**
+  - [ ] Reportes automáticos mensuales
+  - [ ] Dashboard ejecutivo para ORG_ADMIN
+  - [ ] Comparativas con benchmarks del sector
+- [ ] **Exportación de datos:**
+  - [ ] Exportación completa de datos organizacionales
+  - [ ] APIs para integraciones empresariales
+  - [ ] Compliance y auditoría
+
+---
+
+### 📅 **FASE 20: TESTING Y OPTIMIZACIÓN MULTI-TENANT (Diciembre 2025)**
+**Estado:** 🟡 PLANIFICADA
+**Duración Estimada:** 2-3 semanas
+**Prerequisito:** Fase 19 completada
+
+#### 20.1 Testing Exhaustivo Multi-Tenant
+- [ ] **Testing de aislamiento:**
+  - [ ] Pruebas de penetración entre organizaciones
+  - [ ] Validación de filtros de datos
+  - [ ] Testing de permisos cruzados
+- [ ] **Performance testing:**
+  - [ ] Load testing con múltiples tenants
+  - [ ] Optimización de queries multi-tenant
+  - [ ] Scaling horizontal y vertical
+- [ ] **Security testing:**
+  - [ ] Auditoría de seguridad multi-tenant
+  - [ ] Validación de accesos
+  - [ ] Testing de vulnerabilidades
+
+#### 20.2 Optimización y Escalabilidad
+- [ ] **Optimización de performance:**
+  - [ ] Caching por organización
+  - [ ] CDN para assets organizacionales
+  - [ ] Optimización de base de datos
+- [ ] **Escalabilidad:**
+  - [ ] Arquitectura para miles de organizaciones
+  - [ ] Sharding de base de datos si necesario
+  - [ ] Microservicios por funcionalidad
+- [ ] **Monitoreo y alertas:**
+  - [ ] Métricas por organización
+  - [ ] Alertas de performance por tenant
+  - [ ] Dashboard de salud del sistema
+
+#### 20.3 Documentación y Training
+- [ ] **Documentación técnica:**
+  - [ ] Arquitectura multi-tenant documentada
+  - [ ] APIs documentadas con ejemplos
+  - [ ] Guías de troubleshooting
+- [ ] **Documentación de usuario:**
+  - [ ] Guías para ORG_ADMIN
+  - [ ] Training materials para diferentes roles
+  - [ ] Videos tutoriales por funcionalidad
+- [ ] **Documentación de migración:**
+  - [ ] Guía de migración desde sistema single-tenant
+  - [ ] Checklist de implementación
+  - [ ] Best practices para organizaciones
+
+---
+
+## 🎯 **MÉTRICAS DE PROGRESO MULTI-TENANT**
+
+### 📊 Estado de Implementación
+```
+Diseño y Arquitectura:      ░░░░░░░░░░░░░░░░░░░░   0%
+MockData Multi-Tenant:      ░░░░░░░░░░░░░░░░░░░░   0%  
+Dashboard Organizacional:   ░░░░░░░░░░░░░░░░░░░░   0%
+BD Multi-Tenant:            ░░░░░░░░░░░░░░░░░░░░   0%
+Features Empresariales:     ░░░░░░░░░░░░░░░░░░░░   0%
+Testing y Optimización:     ░░░░░░░░░░░░░░░░░░░░   0%
+```
+
+### 🎯 Hitos Multi-Tenant
+- [ ] **Septiembre 2025:** Diseño y MockData multi-tenant completos
+- [ ] **Octubre 2025:** Dashboard organizacional y migración a BD real
+- [ ] **Noviembre 2025:** Features empresariales y branding avanzado
+- [ ] **Diciembre 2025:** Testing completo y lanzamiento multi-tenant
+
+### 💰 Impacto de Negocio Esperado
+- **Escalabilidad:** Sistema preparado para miles de organizaciones
+- **Revenue:** Modelo SaaS con planes diferenciados  
+- **Market Fit:** Solución empresarial completa
+- **Competitive Advantage:** Único sistema MIC MAC multi-tenant del mercado
 
 ---
 
@@ -535,10 +938,10 @@ MVP Producción Real:         ████████░░░░░░░░�
 
 **Documento Maestro de Roadmap**
 - **Creado:** 29 de Agosto 2025
-- **Versión:** 1.3 ACTUALIZADA - REALIDAD TÉCNICA
+- **Versión:** 1.4 ACTUALIZADA - SISTEMA EN PRODUCCIÓN + ROADMAP MULTI-TENANT
 - **Estado:** Documento de referencia definitivo
 - **Mantenimiento:** Actualización semanal durante integración BD
-- **Última actualización:** 30 Agosto 2025 - Correcciones TypeScript, Login Unificado y Clarificación de Estado Real del Proyecto
+- **Última actualización:** 31 Agosto 2025 - Sistema de Loading Inteligente, Configuración PM2, Aplicación en Producción y Roadmap Completo Multi-Tenant
 
 ---
 
