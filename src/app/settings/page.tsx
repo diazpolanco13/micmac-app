@@ -9,7 +9,7 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui'
 import { useToast } from '@/contexts/ToastContext'
 import { mockOrganizations } from '@/lib/mockData'
-import type { User, UserRole } from '@/types/project'
+import type { UserRole } from '@/types/project'
 
 // Tabs disponibles
 type SettingsTab = 'organization' | 'users' | 'multiorg' | 'advanced'
@@ -31,7 +31,7 @@ export default function SettingsPage() {
 
   // Estados para edición de organización
   const [orgName, setOrgName] = useState(currentOrganization?.name || '')
-  const [orgDescription, setOrgDescription] = useState(currentOrganization?.settings?.description || '')
+  const [orgDescription, setOrgDescription] = useState('')
   const [isEditingOrg, setIsEditingOrg] = useState(false)
 
   // Estados para invitaciones pendientes
@@ -111,7 +111,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (currentOrganization) {
       setOrgName(currentOrganization.name)
-      setOrgDescription(currentOrganization.settings?.description || '')
+      setOrgDescription('') // Temporalmente vacío hasta implementar description en Organization
     }
   }, [currentOrganization])
 
@@ -137,7 +137,7 @@ export default function SettingsPage() {
 
   const handleCancelEditOrg = () => {
     setOrgName(currentOrganization?.name || '')
-    setOrgDescription(currentOrganization?.settings?.description || '')
+    setOrgDescription('') // Temporalmente vacío
     setIsEditingOrg(false)
   }
 
