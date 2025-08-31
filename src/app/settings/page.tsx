@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useRouter } from 'next/navigation'
@@ -8,10 +8,11 @@ import AppLayout from '@/components/layout/AppLayout'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui'
 import { useToast } from '@/contexts/ToastContext'
+import { mockOrganizations } from '@/lib/mockData'
 import type { User, UserRole } from '@/types/project'
 
 // Tabs disponibles
-type SettingsTab = 'organization' | 'users' | 'advanced'
+type SettingsTab = 'organization' | 'users' | 'multiorg' | 'advanced'
 
 export default function SettingsPage() {
   const { user, loading, currentOrganization } = useMockAuth()
@@ -26,6 +27,7 @@ export default function SettingsPage() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<UserRole>('EXPERT')
   const [showInviteForm, setShowInviteForm] = useState(false)
+  const [hasShownAccessDenied, setHasShownAccessDenied] = useState(false)
 
   // Estados para edición de organización
   const [orgName, setOrgName] = useState(currentOrganization?.name || '')
@@ -42,9 +44,9 @@ export default function SettingsPage() {
     status: 'PENDING' | 'EXPIRED'
   }>>([])
 
-  // Simular algunas invitaciones pendientes iniciales
+  // Simular algunas invitaciones pendientes iniciales - ARREGLADO
   useEffect(() => {
-    if (currentOrganization) {
+    if (currentOrganization && pendingInvitations.length === 0) {
       setPendingInvitations([
         {
           id: 'inv_1',
@@ -64,33 +66,46 @@ export default function SettingsPage() {
         }
       ])
     }
-  }, [currentOrganization, user])
+  }, [currentOrganization?.id]) // Solo depender del ID, no del objeto completo
 
-  // Redireccionar si no está autenticado
+  // Redireccionar si no está autenticado - ARREGLADO
   useEffect(() => {
     if (!loading && !user) {
       router.push('/')
     }
-  }, [user, loading, router])
+  }, [user, loading]) // Removida dependencia de router
 
-  // Solo moderadores pueden acceder
+  // Solo moderadores pueden acceder - ARREGLADO PARA MULTI-ORG
   useEffect(() => {
-    if (!loading && user && user.role !== 'MODERATOR') {
-      toast.error('Acceso Denegado', 'Solo los moderadores pueden acceder a la configuración')
-      router.push('/dashboard')
+    if (!loading && user) {
+      // Obtener el rol actual en la organización activa
+      const userOrgs = user.organizations || []
+      const currentOrgId = user.currentOrganizationId || user.organizationId
+      const currentMembership = userOrgs.find(org => org.organizationId === currentOrgId)
+      const effectiveRole = currentMembership?.role || user.role
+      
+      // Permitir acceso a MODERATOR, ADMIN y OWNER
+      const allowedRoles = ['MODERATOR', 'ADMIN', 'OWNER']
+      if (!allowedRoles.includes(effectiveRole) && !hasShownAccessDenied) {
+        setHasShownAccessDenied(true)
+        toast.error('Acceso Denegado', 'Solo los moderadores pueden acceder a la configuración')
+        router.push('/dashboard')
+      }
     }
-  }, [user, loading, router, toast])
+  }, [user?.currentOrganizationId, user?.organizationId, user?.organizations, loading])
 
   // Estado local para miembros con cambios en tiempo real
   const [localMembers, setLocalMembers] = useState<any[]>([])
   
-  // Inicializar miembros locales
+  // Inicializar miembros locales - ARREGLADO PARA EVITAR BUCLES
   useEffect(() => {
-    const orgMembers = experts.filter(expert => 
-      expert.organizationId === user?.organizationId
-    )
-    setLocalMembers(orgMembers)
-  }, [experts, user?.organizationId])
+    if (user?.organizationId && experts && experts.length > 0) {
+      const orgMembers = experts.filter(expert => 
+        expert.organizationId === user.organizationId
+      )
+      setLocalMembers(orgMembers)
+    }
+  }, [user?.organizationId]) // Solo depender del organizationId, no de experts
 
   // Actualizar estados cuando cambie la organización
   useEffect(() => {
@@ -267,6 +282,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'organization' as SettingsTab, name: 'Organización', icon: '🏢' },
     { id: 'users' as SettingsTab, name: 'Usuarios', icon: '👥' },
+    { id: 'multiorg' as SettingsTab, name: 'Multi-Org', icon: '🌐' },
     { id: 'advanced' as SettingsTab, name: 'Avanzado', icon: '⚙️' },
   ]
 
@@ -287,7 +303,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Organization Header */}
-        <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-6 mb-8 border border-gray-600">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-6 mb-8 border border-gray-600" key={currentOrganization?.id}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
@@ -379,6 +395,10 @@ export default function SettingsPage() {
               onCancelInvitation={handleCancelInvitation}
               onResendInvitation={handleResendInvitation}
             />
+          )}
+          
+          {activeTab === 'multiorg' && (
+            <MultiOrgTab key={user?.currentOrganizationId || user?.organizationId} />
           )}
           
           {activeTab === 'advanced' && (
@@ -756,6 +776,314 @@ function formatTimeAgo(dateString: string): string {
     month: 'short',
     year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
   })
+}
+
+// Componente: Tab Multi-Organizacional
+function MultiOrgTab() {
+  const { 
+    user, 
+    switchOrganization, 
+    createOrganization, 
+    getUserOrganizations, 
+    getCurrentRole,
+    canCreateOrganization,
+    currentOrganization 
+  } = useMockAuth()
+  
+  const [isLoading, setIsLoading] = useState(false)
+  const [newOrgName, setNewOrgName] = useState('')
+  const [newOrgDescription, setNewOrgDescription] = useState('')
+  const [newOrgPlan, setNewOrgPlan] = useState<'FREE' | 'PRO' | 'ENTERPRISE'>('FREE')
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const toast = useToast()
+
+  if (!user) return null
+
+  // Obtener organizaciones de forma segura para evitar bucles
+  const userOrganizations = useMemo(() => {
+    return user?.organizations || []
+  }, [user?.organizations])
+  
+  const currentRole = useMemo(() => {
+    if (!user || !user.currentOrganizationId) return user?.role || null
+    
+    const currentMembership = userOrganizations.find(
+      org => org.organizationId === user.currentOrganizationId
+    )
+    
+    return currentMembership?.role || user.role || null
+  }, [user?.currentOrganizationId, user?.role, userOrganizations])
+
+  const handleSwitchOrganization = async (orgId: string, orgName: string) => {
+    if (orgId === user.organizationId || orgId === user.currentOrganizationId) {
+      toast.info('Ya Activa', `Ya estás en ${orgName}`)
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const result = await switchOrganization(orgId)
+      if (result.success) {
+        toast.success('Organización Cambiada', `Ahora estás en ${orgName}`)
+        // No recargar - el contexto se actualiza automáticamente
+      } else {
+        toast.error('Error', result.error || 'No se pudo cambiar de organización')
+      }
+    } catch (error) {
+      toast.error('Error', 'Error inesperado al cambiar organización')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCreateOrganization = async () => {
+    if (!newOrgName.trim()) {
+      toast.error('Error', 'El nombre de la organización es requerido')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const result = await createOrganization({
+        name: newOrgName.trim(),
+        description: newOrgDescription.trim() || undefined,
+        plan: newOrgPlan
+      })
+      
+      if (result.success) {
+        toast.success('Organización Creada', `${newOrgName} ha sido creada exitosamente`)
+        setNewOrgName('')
+        setNewOrgDescription('')
+        setNewOrgPlan('FREE')
+        setShowCreateForm(false)
+        // Los cambios se reflejan automáticamente en el contexto
+      } else {
+        toast.error('Error', result.error || 'No se pudo crear la organización')
+      }
+    } catch (error) {
+      toast.error('Error', 'Error inesperado al crear organización')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header con información actual */}
+      <div className="card p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">🌐 Gestión Multi-Organizacional</h3>
+        <div className="bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Organización Actual</p>
+              <p className="text-gray-300 text-sm">{currentOrganization?.name || 'Sin organización'}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-gray-400 text-sm">Tu Rol</p>
+              <p className="text-white font-medium">{currentRole || 'Sin rol'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mis Organizaciones */}
+      <div className="card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-white font-medium">
+            Mis Organizaciones ({userOrganizations.length})
+          </h4>
+          {canCreateOrganization() && (
+            <Button
+              primary
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              disabled={isLoading}
+            >
+              {showCreateForm ? 'Cancelar' : '+ Nueva Organización'}
+            </Button>
+          )}
+        </div>
+
+        {/* Formulario de creación */}
+        {showCreateForm && (
+          <div className="bg-gray-700 rounded-lg p-4 mb-6">
+            <h5 className="text-white font-medium mb-3">Crear Nueva Organización</h5>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Nombre de la Organización
+                  </label>
+                  <input
+                    type="text"
+                    value={newOrgName}
+                    onChange={(e) => setNewOrgName(e.target.value)}
+                    placeholder="Mi Nueva Empresa"
+                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:border-micmac-primary-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Plan Inicial
+                  </label>
+                  <select
+                    value={newOrgPlan}
+                    onChange={(e) => setNewOrgPlan(e.target.value as 'FREE' | 'PRO' | 'ENTERPRISE')}
+                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:border-micmac-primary-500 focus:outline-none"
+                  >
+                    <option value="FREE">FREE - Básico</option>
+                    <option value="PRO">PRO - Profesional</option>
+                    <option value="ENTERPRISE">ENTERPRISE - Empresarial</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Descripción (Opcional)
+                </label>
+                <textarea
+                  value={newOrgDescription}
+                  onChange={(e) => setNewOrgDescription(e.target.value)}
+                  rows={3}
+                  placeholder="Describe tu organización..."
+                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 resize-none focus:border-micmac-primary-500 focus:outline-none"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <Button
+                  primary
+                  onClick={handleCreateOrganization}
+                  disabled={isLoading || !newOrgName.trim()}
+                >
+                  {isLoading ? 'Creando...' : 'Crear Organización'}
+                </Button>
+                <Button
+                  ghost
+                  onClick={() => {
+                    setShowCreateForm(false)
+                    setNewOrgName('')
+                    setNewOrgDescription('')
+                    setNewOrgPlan('FREE')
+                  }}
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Lista de organizaciones */}
+        <div className="space-y-4">
+          {userOrganizations.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-400">No tienes membresías en organizaciones</p>
+              <p className="text-gray-500 text-sm">Crea tu primera organización para comenzar</p>
+            </div>
+          ) : (
+            userOrganizations.map((membership) => {
+              const org = mockOrganizations.find(o => o.id === membership.organizationId)
+              if (!org) return null
+              
+              const isActive = user.currentOrganizationId === org.id || user.organizationId === org.id
+              
+              return (
+                <div 
+                  key={org.id} 
+                  className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
+                    isActive 
+                      ? 'bg-micmac-primary-500/20 border-micmac-primary-500/50' 
+                      : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      org.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                      org.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                    }`}>
+                      <span className="text-white text-lg font-bold">
+                        {org.name.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h5 className="text-white font-medium">{org.name}</h5>
+                        {isActive && (
+                          <span className="px-2 py-1 bg-micmac-primary-500 text-white text-xs rounded-full">
+                            ACTIVA
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-3 mt-1">
+                        <span className={`px-2 py-1 rounded text-xs font-medium text-white ${
+                          org.plan === 'ENTERPRISE' ? 'bg-purple-600' :
+                          org.plan === 'PRO' ? 'bg-blue-600' : 'bg-green-600'
+                        }`}>
+                          {org.plan}
+                        </span>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          membership.role === 'OWNER' ? 'bg-yellow-600 text-white' :
+                          membership.role === 'ADMIN' ? 'bg-red-600 text-white' :
+                          membership.role === 'MODERATOR' ? 'bg-emerald-600 text-white' :
+                          'bg-blue-600 text-white'
+                        }`}>
+                          {membership.role}
+                        </span>
+                        <span className="text-gray-400 text-xs">
+                          Desde {new Date(membership.joinedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    {!isActive && (
+                      <Button
+                        primary
+                        size="sm"
+                        onClick={() => handleSwitchOrganization(org.id, org.name)}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Cambiando...' : 'Activar'}
+                      </Button>
+                    )}
+                    {isActive && (
+                      <span className="text-micmac-primary-400 text-sm font-medium">
+                        ✓ En uso
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Información de debugging (solo en desarrollo) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="card p-6 border-yellow-600">
+          <h4 className="text-yellow-400 font-medium mb-4">🐛 Debug Info (Solo Desarrollo)</h4>
+          <div className="bg-gray-800 rounded-lg p-4 text-xs font-mono">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-green-400 font-semibold mb-2">Usuario:</p>
+                <p>ID: {user.id}</p>
+                <p>Email: {user.email}</p>
+                <p>Org ID (legacy): {user.organizationId}</p>
+                <p>Org Activa: {user.currentOrganizationId || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-blue-400 font-semibold mb-2">Membresías:</p>
+                <p>Total: {userOrganizations.length}</p>
+                <p>Rol Actual: {currentRole}</p>
+                <p>Puede Crear: {canCreateOrganization() ? 'Sí' : 'No'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // Componente: Tab Avanzado

@@ -80,10 +80,12 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
                   </h1>
                 </div>
                 
-                {/* Organization Badge */}
+                {/* Organization Badge - Restaurado hermoso! */}
                 {currentOrganization && (
                   <div className="hidden md:flex items-center">
-                    <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer" 
+                         onClick={() => window.location.href = '/settings'}
+                         title="Click para ir a configuración de organización">
                       <div className={`w-2 h-2 rounded-full ${
                         currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
                         currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'

@@ -143,6 +143,12 @@ const setCurrentUser = (user: User | null) => {
 const initializeDemoUsers = () => {
   const users = getStoredUsers()
   
+  // 🔄 LIMPIAR DATOS OBSOLETOS: Si existe el usuario multi-org con datos antiguos, eliminarlo
+  const existingMultiUser = users.findIndex(u => u.email === 'multi@demo.com')
+  if (existingMultiUser !== -1) {
+    users.splice(existingMultiUser, 1) // Eliminar versión antigua
+  }
+  
   // 🏢 USUARIOS DEMO DISTRIBUIDOS POR ORGANIZACIONES
   const demoUsers = [
     // 👥 TECHCORP SOLUTIONS (ENTERPRISE)
@@ -153,6 +159,15 @@ const initializeDemoUsers = () => {
       name: 'Carlos Díaz Polanco',
       role: 'MODERATOR' as UserRole,
       organizationId: 'org-techcorp',
+      currentOrganizationId: 'org-techcorp',
+      organizations: [
+        {
+          organizationId: 'org-techcorp',
+          role: 'MODERATOR' as UserRole,
+          joinedAt: '2024-01-01T10:00:00Z',
+          status: 'ACTIVE' as const
+        }
+      ],
       avatar: '👨‍💼',
       bio: 'Director de Análisis Prospectivos en TechCorp Solutions. Especialista en transformación digital y análisis de escenarios tecnológicos con más de 15 años de experiencia.',
       organization: 'TechCorp Solutions',
@@ -176,6 +191,15 @@ const initializeDemoUsers = () => {
       name: 'Dra. Ana María Guerrero',
       role: 'EXPERT' as UserRole,
       organizationId: 'org-techcorp',
+      currentOrganizationId: 'org-techcorp',
+      organizations: [
+        {
+          organizationId: 'org-techcorp',
+          role: 'EXPERT' as UserRole,
+          joinedAt: '2024-01-05T14:30:00Z',
+          status: 'ACTIVE' as const
+        }
+      ],
       avatar: '👩‍🔬',
       bio: 'Experta Senior en IA y Machine Learning en TechCorp Solutions. Doctora en Ingeniería de Sistemas con especialización en análisis predictivo y modelado de variables complejas.',
       organization: 'TechCorp Solutions',
@@ -201,6 +225,15 @@ const initializeDemoUsers = () => {
       name: 'Dr. Luis Fernando Castro',
       role: 'MODERATOR' as UserRole,
       organizationId: 'org-healthplus',
+      currentOrganizationId: 'org-healthplus',
+      organizations: [
+        {
+          organizationId: 'org-healthplus',
+          role: 'MODERATOR' as UserRole,
+          joinedAt: '2024-01-15T09:00:00Z',
+          status: 'ACTIVE' as const
+        }
+      ],
       avatar: '👨‍⚕️',
       bio: 'Director de Innovación en HealthPlus. Médico especialista en salud digital con experiencia en telemedicina y transformación digital hospitalaria.',
       organization: 'HealthPlus Innovations',
@@ -226,6 +259,15 @@ const initializeDemoUsers = () => {
       name: 'María Elena Rodríguez',
       role: 'MODERATOR' as UserRole,
       organizationId: 'org-startup',
+      currentOrganizationId: 'org-startup',
+      organizations: [
+        {
+          organizationId: 'org-startup',
+          role: 'MODERATOR' as UserRole,
+          joinedAt: '2024-01-20T11:00:00Z',
+          status: 'ACTIVE' as const
+        }
+      ],
       avatar: '👩‍💼',
       bio: 'Fundadora y CEO de Startup Accelerator Hub. Emprendedora serial con experiencia en aceleración de startups tecnológicas y análisis de mercados emergentes.',
       organization: 'Startup Accelerator Hub',
@@ -241,17 +283,75 @@ const initializeDemoUsers = () => {
       createdAt: '2024-01-20T11:00:00Z',
       updatedAt: new Date().toISOString(),
       expertiseAreas: []
+    },
+    
+    // 🌐 USUARIO MULTI-ORGANIZACIONAL DEMO (para testing)
+    {
+      id: 'demo_multiorg_user',
+      email: 'multi@demo.com',
+      password: 'demo123',
+      name: 'Alex Multi-Org',
+      role: 'MODERATOR' as UserRole,
+      organizationId: 'org-techcorp', // Organización activa inicial
+      currentOrganizationId: 'org-techcorp',
+      organizations: [
+        {
+          organizationId: 'org-techcorp',
+          role: 'MODERATOR' as UserRole,
+          joinedAt: '2024-01-01T10:00:00Z',
+          status: 'ACTIVE' as const
+        },
+        {
+          organizationId: 'org-healthplus',
+          role: 'MODERATOR' as UserRole,
+          joinedAt: '2024-02-15T14:00:00Z',
+          status: 'ACTIVE' as const
+        },
+        {
+          organizationId: 'org-startup',
+          role: 'OWNER' as UserRole,
+          joinedAt: '2024-03-01T09:30:00Z',
+          status: 'ACTIVE' as const
+        }
+      ],
+      avatar: '🌐',
+      bio: 'Usuario de prueba multi-organizacional. Participa en múltiples organizaciones con diferentes roles para demostrar las capacidades del sistema.',
+      organization: 'TechCorp Solutions', // Organización activa
+      phone: '+34 555 123 456',
+      linkedinUrl: 'https://linkedin.com/in/alex-multiorg',
+      profession: 'Consultor Multi-Organizacional',
+      currentPosition: 'Consultor Senior',
+      yearsExperience: 10,
+      isActive: true,
+      lastLoginAt: new Date().toISOString(),
+      totalProjectsParticipated: 25,
+      averageResponseTime: 2.8,
+      createdAt: '2024-01-01T10:00:00Z',
+      updatedAt: new Date().toISOString(),
+      expertiseAreas: []
     }
   ]
   
-  // Agregar usuarios demo si no existen
+  // Agregar usuarios demo si no existen (o reemplazar si son obsoletos)
   demoUsers.forEach(demoUser => {
-    if (!users.find(u => u.email === demoUser.email)) {
+    const existingIndex = users.findIndex(u => u.email === demoUser.email)
+    if (existingIndex !== -1) {
+      // Reemplazar usuario existente con datos actualizados
+      users[existingIndex] = demoUser as StoredUser
+    } else {
+      // Agregar usuario nuevo
       users.push(demoUser as StoredUser)
     }
   })
   
   setStoredUsers(users)
+  
+  // 🔄 Si el usuario actual es multi@demo.com, limpiar su sesión para forzar re-login con datos nuevos
+  const currentUser = getCurrentUser()
+  if (currentUser && currentUser.email === 'multi@demo.com') {
+    // Limpiar localStorage para forzar login con datos actualizados
+    setCurrentUser(null)
+  }
 }
 
 export function MockAuthProvider({ children }: { children: React.ReactNode }) {
@@ -386,6 +486,8 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         name: storedUser.name,
         role: storedUser.role,
         organizationId: storedUser.organizationId,
+        currentOrganizationId: storedUser.currentOrganizationId,
+        organizations: storedUser.organizations,
         avatar: storedUser.avatar,
         bio: storedUser.bio,
         organization: storedUser.organization,
@@ -526,22 +628,45 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Simular cambio de contexto
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Simular delay mínimo
+      await new Promise(resolve => setTimeout(resolve, 100))
       
-      // Actualizar organización actual
+      // Encontrar la nueva organización
+      const newOrganization = mockOrganizations.find(o => o.id === organizationId)
+      
+      // Actualizar TANTO localStorage COMO estados de React
       const updatedUser = {
         ...user,
         currentOrganizationId: organizationId,
-        organizationId: organizationId, // Mantener compatibilidad
-        role: targetOrg.role
+        organizationId: organizationId,
+        role: targetOrg.role,
+        organization: newOrganization?.name || user.organization
       }
       
+      // Actualizar estados de React
       setUser(updatedUser)
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser))
+      setCurrentOrganization(newOrganization || null)
+      
+      // Actualizar localStorage
+      setCurrentUser(updatedUser)
+      
+      // Actualizar también en la lista de usuarios almacenados
+      const users = getStoredUsers()
+      const userIndex = users.findIndex(u => u.id === user.id)
+      if (userIndex !== -1) {
+        users[userIndex] = {
+          ...users[userIndex],
+          currentOrganizationId: organizationId,
+          organizationId: organizationId,
+          role: targetOrg.role,
+          organization: newOrganization?.name || users[userIndex].organization
+        }
+        setStoredUsers(users)
+      }
       
       return { success: true }
     } catch (error) {
+      console.error('Error in switchOrganization:', error)
       return { success: false, error: 'Error al cambiar organización' }
     }
   }
