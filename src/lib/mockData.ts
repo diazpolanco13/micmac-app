@@ -235,8 +235,9 @@ export const sampleExperts: Expert[] = [
   {
     id: 'expert-2',
     name: 'Dr. Carlos Mendoza Rivera',
-    email: 'carlos.mendoza@telemedicina.org',
-    organization: 'Fundación Europea de Telemedicina',
+    email: 'carlos.mendoza@healthplus.org',
+    organization: 'HealthPlus Innovations', // 🔄 Actualizado
+    organizationId: 'org-healthplus', // 🆕 MULTI-TENANT
     expertiseAreas: ['Telemedicina', 'Salud Digital', 'Teleconsulta'],
     avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150',
     yearsExperience: 22,
@@ -257,8 +258,9 @@ export const sampleExperts: Expert[] = [
   {
     id: 'expert-3',
     name: 'Dra. Ana Patricia Ruiz',
-    email: 'ana.ruiz@digitalsalud.gov',
-    organization: 'Ministerio de Sanidad - Dirección de Digitalización',
+    email: 'ana.ruiz@healthplus.org',
+    organization: 'HealthPlus Innovations', // 🔄 Actualizado
+    organizationId: 'org-healthplus', // 🆕 MULTI-TENANT
     expertiseAreas: ['Expedientes Electrónicos', 'Interoperabilidad', 'Políticas Sanitarias'],
     avatar: 'https://images.unsplash.com/photo-1594824942073-2cd0f6d2b87d?w=150',
     yearsExperience: 16,
@@ -279,8 +281,9 @@ export const sampleExperts: Expert[] = [
   {
     id: 'expert-4',
     name: 'Prof. Roberto Silva Fernández',
-    email: 'roberto.silva@hospitalsanjuan.es',
-    organization: 'Hospital San Juan - Jefe de Sistemas de Información',
+    email: 'roberto.silva@techcorp.com',
+    organization: 'TechCorp Solutions', // 🔄 Actualizado
+    organizationId: 'org-techcorp', // 🆕 MULTI-TENANT
     expertiseAreas: ['Sistemas Hospitalarios', 'Gestión Tecnológica', 'Implementación HIS'],
     avatar: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150',
     yearsExperience: 25,
@@ -301,8 +304,9 @@ export const sampleExperts: Expert[] = [
   {
     id: 'expert-5',
     name: 'Dra. Laura Vega Martínez',
-    email: 'laura.vega@ciberseguridad-med.com',
-    organization: 'CyberMed Security Solutions',
+    email: 'laura.vega@techcorp.com',
+    organization: 'TechCorp Solutions', // 🔄 Actualizado
+    organizationId: 'org-techcorp', // 🆕 MULTI-TENANT
     expertiseAreas: ['Ciberseguridad Médica', 'Privacidad de Datos', 'RGPD Sanitario'],
     avatar: 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=150',
     yearsExperience: 14,
@@ -323,8 +327,9 @@ export const sampleExperts: Expert[] = [
   {
     id: 'expert-6',
     name: 'Dr. Miguel Ángel Torres',
-    email: 'miguel.torres@startuphealth.io',
-    organization: 'HealthTech Innovations - CEO',
+    email: 'miguel.torres@startup-accelerator.com',
+    organization: 'Startup Accelerator Hub', // 🔄 Actualizado
+    organizationId: 'org-startup', // 🆕 MULTI-TENANT
     expertiseAreas: ['HealthTech', 'Startups Médicas', 'Innovación Digital'],
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     yearsExperience: 12,
@@ -345,8 +350,9 @@ export const sampleExperts: Expert[] = [
   {
     id: 'expert-7',
     name: 'Dra. Carmen López Jiménez',
-    email: 'carmen.lopez@colegiomedicos.org',
-    organization: 'Colegio de Médicos - Comisión de Tecnología',
+    email: 'carmen.lopez@startup-accelerator.com',
+    organization: 'Startup Accelerator Hub', // 🔄 Actualizado
+    organizationId: 'org-startup', // 🆕 MULTI-TENANT
     expertiseAreas: ['Ética Médica', 'Regulación Sanitaria', 'Adopción Tecnológica'],
     avatar: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=150',
     yearsExperience: 28,
@@ -367,8 +373,9 @@ export const sampleExperts: Expert[] = [
   {
     id: 'expert-8',
     name: 'Ing. Patricia Morales Sánchez',
-    email: 'patricia.morales@ibm-health.com',
-    organization: 'IBM Health Solutions - Arquitecta de Soluciones',
+    email: 'patricia.morales@healthplus.org',
+    organization: 'HealthPlus Innovations', // 🔄 Actualizado
+    organizationId: 'org-healthplus', // 🆕 MULTI-TENANT
     expertiseAreas: ['Arquitectura de Sistemas', 'Cloud Computing', 'Big Data Médico'],
     avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150',
     yearsExperience: 15,
@@ -400,6 +407,7 @@ export const mockProjects: Project[] = [
     tags: ['transporte', 'urbano', 'sostenibilidad'],
     isPublic: true,
     creatorId: 'user-1',
+    organizationId: 'org-techcorp', // 🆕 MULTI-TENANT
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-20T14:30:00Z',
     creator: { name: 'Usuario Demo', email: 'demo@micmac.com' },
@@ -445,6 +453,7 @@ export const mockProjects: Project[] = [
     tags: ['salud', 'digital', 'IA'],
     isPublic: false,
     creatorId: 'user-1',
+    organizationId: 'org-healthplus', // 🆕 MULTI-TENANT
     createdAt: '2024-01-10T09:00:00Z',
     updatedAt: '2024-01-18T16:45:00Z',
     creator: { name: 'Usuario Demo', email: 'demo@micmac.com' },
@@ -524,6 +533,7 @@ export const mockProjects: Project[] = [
     tags: ['geopolitica', 'venezuela', 'eeuu', 'militar'],
     isPublic: false,
     creatorId: 'user-1',
+    organizationId: 'org-startup', // 🆕 MULTI-TENANT
     createdAt: '2024-01-25T10:00:00Z',
     updatedAt: '2024-01-25T14:30:00Z',
     creator: { name: 'Usuario Demo', email: 'demo@micmac.com' },
@@ -680,6 +690,7 @@ export const createProject = (data: {
     createdAt,
     updatedAt: createdAt,
     creatorId: 'current-user',
+    organizationId: 'org-techcorp', // 🆕 MULTI-TENANT: Default org
     expectedExperts: data.expectedExperts,
     variables: [],
     projectExperts: [],
