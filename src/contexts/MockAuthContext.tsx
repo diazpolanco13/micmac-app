@@ -86,7 +86,9 @@ interface StoredUser {
   password: string
   name: string
   role: UserRole
-  organizationId: string // 🆕 MULTI-TENANT: FK obligatorio
+  organizationId: string // 🆕 MULTI-TENANT: FK obligatorio (compatibilidad)
+  currentOrganizationId?: string // 🔄 NUEVO: Organización activa
+  organizations?: UserOrganization[] // 🔄 NUEVO: Múltiples organizaciones
   avatar?: string
   bio?: string
   organization?: string // Mantener para compatibilidad
@@ -306,7 +308,15 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         return { error: 'Organización no encontrada' }
       }
       
-      // Crear nuevo usuario
+      // 🔄 NUEVO: Crear membresía inicial
+      const initialMembership: UserOrganization = {
+        organizationId,
+        role,
+        joinedAt: new Date().toISOString(),
+        status: 'ACTIVE'
+      }
+
+      // Crear nuevo usuario con soporte multi-org
       const newStoredUser: StoredUser = {
         id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         email,
@@ -315,6 +325,8 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         role,
         organizationId,
         organization: organization.name,
+        currentOrganizationId: organizationId, // 🔄 NUEVO
+        organizations: [initialMembership], // 🔄 NUEVO
         expertiseAreas: []
       }
       
@@ -499,6 +511,101 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
     return user?.organizationId === organizationId
   }
 
+  // 🔄 NUEVAS FUNCIONES MULTI-ORGANIZACIONALES
+  const switchOrganization = async (organizationId: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: 'Usuario no autenticado' }
+    }
+
+    // Verificar que el usuario pertenece a esta organización
+    const userOrgs = user.organizations || []
+    const targetOrg = userOrgs.find(org => org.organizationId === organizationId)
+    
+    if (!targetOrg) {
+      return { success: false, error: 'No tienes acceso a esta organización' }
+    }
+
+    try {
+      // Simular cambio de contexto
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Actualizar organización actual
+      const updatedUser = {
+        ...user,
+        currentOrganizationId: organizationId,
+        organizationId: organizationId, // Mantener compatibilidad
+        role: targetOrg.role
+      }
+      
+      setUser(updatedUser)
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser))
+      
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: 'Error al cambiar organización' }
+    }
+  }
+
+  const createOrganization = async (data: { 
+    name: string; 
+    description?: string; 
+    plan?: 'FREE' | 'PRO' | 'ENTERPRISE' 
+  }): Promise<{ success: boolean; error?: string; organizationId?: string }> => {
+    if (!user) {
+      return { success: false, error: 'Usuario no autenticado' }
+    }
+
+    try {
+      // Simular creación de organización
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      const newOrgId = `org_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      
+      // Crear nueva membresía como OWNER
+      const newMembership: UserOrganization = {
+        organizationId: newOrgId,
+        role: 'OWNER',
+        joinedAt: new Date().toISOString(),
+        status: 'ACTIVE'
+      }
+      
+      // Actualizar usuario con nueva organización
+      const updatedUser = {
+        ...user,
+        organizations: [...(user.organizations || []), newMembership],
+        currentOrganizationId: newOrgId,
+        organizationId: newOrgId,
+        role: 'OWNER' as UserRole
+      }
+      
+      setUser(updatedUser)
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser))
+      
+      return { success: true, organizationId: newOrgId }
+    } catch (error) {
+      return { success: false, error: 'Error al crear organización' }
+    }
+  }
+
+  const getUserOrganizations = (): UserOrganization[] => {
+    return user?.organizations || []
+  }
+
+  const getCurrentRole = (): UserRole | null => {
+    if (!user || !user.currentOrganizationId) return null
+    
+    const currentMembership = user.organizations?.find(
+      org => org.organizationId === user.currentOrganizationId
+    )
+    
+    return currentMembership?.role || user.role || null
+  }
+
+  const canCreateOrganization = (): boolean => {
+    // Todos los usuarios pueden crear organizaciones (modelo viral)
+    return !!user
+  }
+
   const value: AuthContextType = {
     user,
     currentOrganization,
@@ -509,7 +616,13 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
     updateProfile,
     getOrganizationExperts,
     getOrganizationProjects,
-    canAccessData
+    canAccessData,
+    // 🔄 NUEVAS FUNCIONES MULTI-ORG
+    switchOrganization,
+    createOrganization,
+    getUserOrganizations,
+    getCurrentRole,
+    canCreateOrganization
   }
 
   return (
