@@ -49,7 +49,7 @@ export function PageLoading({
 /**
  * Loading state compacto para sidebar con animaciones suaves
  */
-export function NavigationLoading({ route }: { route: string }) {
+export function NavigationLoading({ route, isAuthTransition = false }: { route: string; isAuthTransition?: boolean }) {
   const getRouteTitle = (route: string) => {
     const routeMap: Record<string, string> = {
       '/dashboard': 'Dashboard',
@@ -65,11 +65,12 @@ export function NavigationLoading({ route }: { route: string }) {
     return routeMap[route] || 'Cargando página'
   }
 
-  // Para transiciones de auth, usar un loading más elegante
-  if (route === '/dashboard' || route === '/') {
+  // 🔧 NUEVA LÓGICA: Solo usar AuthTransitionLoading si es explícitamente una transición de auth
+  if (isAuthTransition && (route === '/dashboard' || route === '/')) {
     return <AuthTransitionLoading route={route} />
   }
 
+  // Para todas las demás navegaciones, usar el loading pequeño
   return (
     <div 
       className="bg-gray-800 border-2 border-blue-500 rounded-xl p-4 shadow-2xl transform transition-all duration-300 pointer-events-none"

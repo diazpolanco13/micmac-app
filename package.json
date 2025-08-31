@@ -5,7 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "PORT=3001 next dev",
+    "dev": "PORT=3002 next dev",
     "build": "next build",
     "start": "PORT=3001 next start",
     "lint": "next lint",
@@ -20,7 +20,12 @@
     "setup": "npm install && npm run automation:docs",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "pm2:start": "npm run build && pm2 start ecosystem.config.json",
+    "pm2:stop": "pm2 stop micmac-pro-production",
+    "pm2:restart": "npm run build && pm2 restart micmac-pro-production",
+    "pm2:logs": "pm2 logs micmac-pro-production",
+    "pm2:status": "pm2 status"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

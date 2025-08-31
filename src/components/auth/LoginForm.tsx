@@ -40,7 +40,7 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
       setError(signInError)
     } else {
       // ✨ Redirección exitosa con loading visual
-      startLoading('/dashboard')
+      startLoading('/dashboard', true)
       setTimeout(() => {
         router.push('/dashboard')
       }, 100)
@@ -64,7 +64,7 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
     if (signInError) {
       setError(signInError)
     } else {
-      startLoading('/dashboard')
+      startLoading('/dashboard', true)
       setTimeout(() => {
         router.push('/dashboard')
       }, 100)

@@ -1,0 +1,29 @@
+{
+  "apps": [
+    {
+      "name": "micmac-pro-production",
+      "script": "npm",
+      "args": "start",
+      "cwd": "/root/micmac-app",
+      "instances": 1,
+      "exec_mode": "fork",
+      "watch": false,
+      "max_memory_restart": "1G",
+      "env": {
+        "NODE_ENV": "production",
+        "PORT": "3001"
+      },
+      "log_file": "./logs/micmac-combined.log",
+      "out_file": "./logs/micmac-out.log",
+      "error_file": "./logs/micmac-error.log",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "restart_delay": 4000,
+      "autorestart": true,
+      "max_restarts": 10,
+      "min_uptime": "10s",
+      "kill_timeout": 5000,
+      "listen_timeout": 8000,
+      "increment_var": "PORT"
+    }
+  ]
+}

@@ -4,6 +4,14 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { ExpertiseArea } from '@/types/project'
 import { createMockUserProfile } from '@/utils/mockExpertiseData'
 
+// Tipo simplificado para usuarios demo
+interface SimpleExpertiseArea {
+  name: string
+  level: string
+  yearsExperience: number
+  description: string
+}
+
 export type UserRole = 'MODERATOR' | 'EXPERT'
 
 export interface User {
@@ -137,26 +145,7 @@ const initializeDemoUsers = () => {
       averageResponseTime: 2.5,
       createdAt: '2024-01-15T10:00:00Z',
       updatedAt: new Date().toISOString(),
-      expertiseAreas: [
-        {
-          name: 'Análisis Prospectivo',
-          level: 'EXPERTO' as ExpertiseLevel,
-          yearsExperience: 15,
-          description: 'Metodologías avanzadas de prospectiva estratégica y construcción de escenarios'
-        },
-        {
-          name: 'Metodología MIC MAC',
-          level: 'EXPERTO' as ExpertiseLevel,
-          yearsExperience: 12,
-          description: 'Implementación y optimización de análisis estructural MIC MAC'
-        },
-        {
-          name: 'Gestión de Proyectos',
-          level: 'AVANZADO' as ExpertiseLevel,
-          yearsExperience: 10,
-          description: 'Coordinación de equipos multidisciplinarios en proyectos de consultoría'
-        }
-      ]
+      expertiseAreas: []
     },
     {
       id: 'demo_expert',
@@ -178,38 +167,7 @@ const initializeDemoUsers = () => {
       averageResponseTime: 1.8,
       createdAt: '2023-08-20T14:30:00Z',
       updatedAt: new Date().toISOString(),
-      expertiseAreas: [
-        {
-          name: 'Sistemas Complejos',
-          level: 'EXPERTO' as ExpertiseLevel,
-          yearsExperience: 18,
-          description: 'Análisis y modelado de sistemas complejos adaptativos'
-        },
-        {
-          name: 'Inteligencia Artificial',
-          level: 'EXPERTO' as ExpertiseLevel,
-          yearsExperience: 12,
-          description: 'Machine Learning aplicado a análisis predictivo y prospectiva'
-        },
-        {
-          name: 'Análisis de Datos',
-          level: 'EXPERTO' as ExpertiseLevel,
-          yearsExperience: 15,
-          description: 'Procesamiento y análisis estadístico avanzado de grandes volúmenes de datos'
-        },
-        {
-          name: 'Investigación Académica',
-          level: 'EXPERTO' as ExpertiseLevel,
-          yearsExperience: 16,
-          description: 'Metodología de investigación científica y publicación académica'
-        },
-        {
-          name: 'Sostenibilidad Ambiental',
-          level: 'AVANZADO' as ExpertiseLevel,
-          yearsExperience: 8,
-          description: 'Análisis de impacto ambiental y desarrollo sostenible'
-        }
-      ]
+      expertiseAreas: []
     }
   ]
   

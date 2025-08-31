@@ -7,8 +7,9 @@ import { NavigationLoading } from '@/components/ui/LoadingStates'
 interface NavigationLoadingState {
   isLoading: boolean
   targetRoute: string | null
-  startLoading: (route: string) => void
+  startLoading: (route: string, isAuthTransition?: boolean) => void
   stopLoading: () => void
+  isAuthTransition: boolean // 🆕 NUEVA PROPIEDAD
 }
 
 const NavigationLoadingContext = createContext<NavigationLoadingState | null>(null)
@@ -22,6 +23,7 @@ export function NavigationLoadingProvider({ children }: NavigationLoadingProvide
   const [targetRoute, setTargetRoute] = useState<string | null>(null)
   const [isExiting, setIsExiting] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isAuthTransition, setIsAuthTransition] = useState(false) // 🆕 NUEVO ESTADO
   const pathname = usePathname()
 
   useEffect(() => {
@@ -39,18 +41,20 @@ export function NavigationLoadingProvider({ children }: NavigationLoadingProvide
         setIsLoading(false)
         setTargetRoute(null)
         setIsExiting(false)
+        setIsAuthTransition(false) // 🆕 RESET AUTH TRANSITION
       }, 600) // Tiempo normal para animación de salida
       
       return () => clearTimeout(exitTimer)
     }
   }, [pathname, targetRoute, isLoading])
 
-  const startLoading = (route: string) => {
+  const startLoading = (route: string, isAuthTransition: boolean = false) => { // 🆕 PARÁMETRO OPCIONAL
     // Solo mostrar loading si la ruta es diferente a la actual
     if (route !== pathname) {
       setIsExiting(false)
       setIsLoading(true)
       setTargetRoute(route)
+      setIsAuthTransition(isAuthTransition) // 🆕 ESTABLECER TIPO DE TRANSICIÓN
     }
   }
 
@@ -61,6 +65,7 @@ export function NavigationLoadingProvider({ children }: NavigationLoadingProvide
       setIsLoading(false)
       setTargetRoute(null)
       setIsExiting(false)
+      setIsAuthTransition(false) // 🆕 RESET AUTH TRANSITION
     }, 600)
   }
 
@@ -69,7 +74,8 @@ export function NavigationLoadingProvider({ children }: NavigationLoadingProvide
       isLoading,
       targetRoute,
       startLoading,
-      stopLoading
+      stopLoading,
+      isAuthTransition // 🆕 EXPONER ESTADO
     }}>
       {children}
     </NavigationLoadingContext.Provider>
@@ -90,8 +96,8 @@ export function useNavigationLoading() {
 export function useLoadingRouter() {
   const { startLoading } = useNavigationLoading()
   
-  const navigateWithLoading = (route: string) => {
-    startLoading(route)
+  const navigateWithLoading = (route: string, isAuthTransition: boolean = false) => { // 🆕 PARÁMETRO OPCIONAL
+    startLoading(route, isAuthTransition)
     // El router.push real se maneja en el componente que usa este hook
     return route
   }
@@ -133,12 +139,12 @@ export function NavigationLoadingPortal() {
     return null
   }
 
-  // Para transiciones de auth, renderizar loading de pantalla completa
-  if (context.targetRoute === '/dashboard' || context.targetRoute === '/') {
-    return <NavigationLoading route={context.targetRoute} />
+  // 🔧 NUEVA LÓGICA: Solo mostrar loading grande si es transición de auth
+  if (context.isAuthTransition && (context.targetRoute === '/dashboard' || context.targetRoute === '/')) {
+    return <NavigationLoading route={context.targetRoute} isAuthTransition={true} />
   }
 
-  // Para otras navegaciones, usar el loading de esquina superior derecha
+  // Para todas las demás navegaciones (incluyendo dashboard desde navegación interna), usar loading pequeño
   return (
     <div 
       className={`fixed pointer-events-none ${
@@ -152,7 +158,7 @@ export function NavigationLoadingPortal() {
         pointerEvents: 'none'
       }}
     >
-      <NavigationLoading route={context.targetRoute} />
+      <NavigationLoading route={context.targetRoute} isAuthTransition={false} />
     </div>
   )
 }

@@ -60,7 +60,7 @@ export default function RegisterForm({ onToggleMode, className = '' }: RegisterF
       setError(signUpError)
     } else {
       // ✨ Redirección exitosa con loading visual
-      startLoading('/dashboard')
+      startLoading('/dashboard', true)
       setTimeout(() => {
         router.push('/dashboard')
       }, 100)

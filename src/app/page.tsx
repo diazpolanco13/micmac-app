@@ -22,7 +22,7 @@ export default function Home() {
   useEffect(() => {
     if (!loading && user && !redirecting) {
       setRedirecting(true)
-      startLoading('/dashboard')
+      startLoading('/dashboard', true)
       setTimeout(() => {
         router.push('/dashboard')
       }, 100)
