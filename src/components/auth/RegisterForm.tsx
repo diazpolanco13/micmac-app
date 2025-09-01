@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
-import { UserRole } from '@/contexts/MockAuthContext'
+import type { UserRole } from '@/types/project'
 
 interface RegisterFormProps {
   onToggleMode: () => void

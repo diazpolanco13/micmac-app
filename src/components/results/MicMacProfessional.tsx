@@ -713,7 +713,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                                 fontSize="9"
                                 className="pointer-events-none"
                               >
-                                ({variable.dependence}, {variable.motricity})
+                                ({variable.dependence.toFixed(2)}, {variable.motricity.toFixed(2)})
                               </text>
                             </>
                           )}
@@ -813,7 +813,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                           <div className="grid grid-cols-2 gap-3">
                             <div className="bg-gray-800 rounded-lg p-2">
                               <p className="text-xs text-gray-400 mb-1">Influencia</p>
-                              <p className="text-xl font-bold text-blue-400">{variable.motricity}</p>
+                              <p className="text-xl font-bold text-blue-400">{variable.motricity.toFixed(2)}</p>
                               <div className="mt-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-blue-400 transition-all duration-500"
@@ -823,7 +823,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                             </div>
                             <div className="bg-gray-800 rounded-lg p-2">
                               <p className="text-xs text-gray-400 mb-1">Dependencia</p>
-                              <p className="text-xl font-bold text-purple-400">{variable.dependence}</p>
+                              <p className="text-xl font-bold text-purple-400">{variable.dependence.toFixed(2)}</p>
                               <div className="mt-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-purple-400 transition-all duration-500"
@@ -884,7 +884,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                               <div className="min-w-0 flex-1">
                                 <span className="text-sm font-medium text-white truncate block">{variable.variable.name}</span>
                                 <div className="text-xs text-gray-400">
-                                  I: {variable.motricity} | D: {variable.dependence}
+                                  I: {variable.motricity.toFixed(2)} | D: {variable.dependence.toFixed(2)}
                                 </div>
                               </div>
                             </div>
@@ -941,7 +941,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                           </td>
                         ))}
                         <td className="p-2 text-center font-bold text-blue-400">
-                          {variable.motricity}
+                          {variable.motricity.toFixed(2)}
                         </td>
                       </tr>
                     ))}
@@ -949,7 +949,7 @@ export default function MicMacProfessional({ projectId, className = '' }: MicMac
                       <td className="p-2 font-bold text-purple-400">Dependencia</td>
                       {results.variables.map(v => (
                         <td key={v.variable.id} className="p-2 text-center font-bold text-purple-400">
-                          {v.dependence}
+                          {v.dependence.toFixed(2)}
                         </td>
                       ))}
                       <td></td>

@@ -46,10 +46,13 @@ export default function ProfilePage() {
   // Cargar datos del usuario
   useEffect(() => {
     if (user) {
+      // Validar que el rol sea compatible con el formulario
+      const validRole = (user.role === 'MODERATOR' || user.role === 'EXPERT') ? user.role : 'EXPERT'
+      
       setFormData({
         name: user.name || '',
         email: user.email || '',
-        role: user.role || 'EXPERT',
+        role: validRole,
         avatar: user.avatar || '',
         bio: user.bio || '',
         organization: user.organization || '',
@@ -107,10 +110,13 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     if (user) {
+      // Validar que el rol sea compatible con el formulario
+      const validRole = (user.role === 'MODERATOR' || user.role === 'EXPERT') ? user.role : 'EXPERT'
+      
       setFormData({
         name: user.name || '',
         email: user.email || '',
-        role: user.role || 'EXPERT',
+        role: validRole,
         avatar: user.avatar || '',
         bio: user.bio || '',
         organization: user.organization || '',

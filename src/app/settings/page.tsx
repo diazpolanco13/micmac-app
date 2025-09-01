@@ -460,7 +460,7 @@ function OrganizationTab({
                 Cancelar
               </Button>
               <Button
-                primary
+                color="primary"
                 onClick={onSaveOrganization}
                 disabled={isLoading}
               >
@@ -593,7 +593,7 @@ function UsersTab({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white">Gestión de Usuarios</h3>
           <Button
-            primary
+            color="primary"
             onClick={() => setShowInviteForm(!showInviteForm)}
             disabled={isLoading}
           >
@@ -625,7 +625,7 @@ function UsersTab({
                   <option value="MODERATOR">Moderador</option>
                 </select>
                 <Button
-                  primary
+                  color="primary"
                   onClick={onInviteUser}
                   disabled={isLoading}
                   className="whitespace-nowrap"
@@ -894,7 +894,7 @@ function MultiOrgTab() {
           </h4>
           {canCreateOrganization() && (
             <Button
-              primary
+              color="primary"
               onClick={() => setShowCreateForm(!showCreateForm)}
               disabled={isLoading}
             >
@@ -950,7 +950,7 @@ function MultiOrgTab() {
               </div>
               <div className="flex space-x-3">
                 <Button
-                  primary
+                  color="primary"
                   onClick={handleCreateOrganization}
                   disabled={isLoading || !newOrgName.trim()}
                 >
@@ -1038,7 +1038,7 @@ function MultiOrgTab() {
                   <div className="flex items-center space-x-3">
                     {!isActive && (
                       <Button
-                        primary
+                        color="primary"
                         size="sm"
                         onClick={() => handleSwitchOrganization(org.id, org.name)}
                         disabled={isLoading}

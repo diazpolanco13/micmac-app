@@ -602,15 +602,15 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const getOrganizationProjects = () => {
-    if (!user?.organizationId) return []
+    if (!user?.currentOrganizationId) return []
     
     // Importar dinámicamente para evitar circular dependency
     const { mockProjects } = require('@/lib/mockData')
-    return mockProjects.filter((project: any) => project.organizationId === user.organizationId)
+    return mockProjects.filter((project: any) => project.organizationId === user.currentOrganizationId)
   }
 
   const canAccessData = (organizationId: string): boolean => {
-    return user?.organizationId === organizationId
+    return user?.currentOrganizationId === organizationId
   }
 
   // 🔄 NUEVAS FUNCIONES MULTI-ORGANIZACIONALES
