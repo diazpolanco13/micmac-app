@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { ExpertiseArea, Organization, UserRole, MultiOrgUser, UserOrganization } from '@/types/project'
 import { createMockUserProfile } from '@/utils/mockExpertiseData'
 import { mockOrganizations } from '@/lib/mockData'
+import { secureOrganizationFilter, validateUserOrganizationAccess } from '@/utils/dataIsolation'
 
 // Tipo simplificado para usuarios demo
 interface SimpleExpertiseArea {
@@ -594,19 +595,19 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
 
   // 🏢 MULTI-TENANT: Funciones de filtrado
   const getOrganizationExperts = () => {
-    if (!user?.organizationId) return []
+    if (!user?.currentOrganizationId) return []
     
-    // Importar dinámicamente para evitar circular dependency
+    // AISLAMIENTO DE DATOS: Filtrar expertos con validación de seguridad
     const { sampleExperts } = require('@/lib/mockData')
-    return sampleExperts.filter((expert: any) => expert.organizationId === user.organizationId)
+    return secureOrganizationFilter(sampleExperts, user.currentOrganizationId)
   }
 
   const getOrganizationProjects = () => {
     if (!user?.currentOrganizationId) return []
     
-    // Importar dinámicamente para evitar circular dependency
+    // AISLAMIENTO DE DATOS: Filtrar proyectos con validación de seguridad
     const { mockProjects } = require('@/lib/mockData')
-    return mockProjects.filter((project: any) => project.organizationId === user.currentOrganizationId)
+    return secureOrganizationFilter(mockProjects, user.currentOrganizationId)
   }
 
   const canAccessData = (organizationId: string): boolean => {
@@ -619,11 +620,13 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: 'Usuario no autenticado' }
     }
 
-    // Verificar que el usuario pertenece a esta organización
-    const userOrgs = user.organizations || []
-    const targetOrg = userOrgs.find(org => org.organizationId === organizationId)
-    
-    if (!targetOrg) {
+    // AISLAMIENTO DE DATOS: Validar acceso a organización
+    if (!validateUserOrganizationAccess(user, organizationId)) {
+      console.warn('🚨 AISLAMIENTO DE DATOS: Intento de cambio a organización no autorizada', {
+        userId: user.id,
+        targetOrganizationId: organizationId,
+        userOrganizations: user.organizations
+      })
       return { success: false, error: 'No tienes acceso a esta organización' }
     }
 
@@ -634,12 +637,16 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       // Encontrar la nueva organización
       const newOrganization = mockOrganizations.find(o => o.id === organizationId)
       
+      // Obtener el rol del usuario en la organización objetivo
+      const userOrgs = user.organizations || []
+      const targetOrg = userOrgs.find(org => org.organizationId === organizationId)
+      
       // Actualizar TANTO localStorage COMO estados de React
       const updatedUser = {
         ...user,
         currentOrganizationId: organizationId,
         organizationId: organizationId,
-        role: targetOrg.role,
+        role: targetOrg?.role || user.role,
         organization: newOrganization?.name || user.organization
       }
       

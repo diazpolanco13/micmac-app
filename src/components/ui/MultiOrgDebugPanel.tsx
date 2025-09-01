@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useMockAuth } from '@/contexts/MockAuthContext'
 import { mockOrganizations } from '@/lib/mockData'
-import { Bug, ChevronDown, ChevronRight, Database, User, Building2 } from 'lucide-react'
+import { Bug, ChevronDown, ChevronRight, Database, User, Building2, Shield } from 'lucide-react'
+import DataIsolationValidator from '@/components/debug/DataIsolationValidator'
 
 export default function MultiOrgDebugPanel() {
   const { 
@@ -176,6 +177,15 @@ export default function MultiOrgDebugPanel() {
                 🗑️ Reset Completo
               </button>
               </div>
+            </div>
+
+            {/* Validador de Aislamiento de Datos */}
+            <div className="border-t border-gray-600 pt-4 mt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="h-4 w-4 text-blue-400" />
+                <span className="text-sm font-medium text-white">Aislamiento de Datos</span>
+              </div>
+              <DataIsolationValidator />
             </div>
           </div>
         )}

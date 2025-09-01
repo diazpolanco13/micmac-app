@@ -8,6 +8,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useMockAuth } from './MockAuthContext'
+import { secureOrganizationFilter, withDataIsolation } from '@/utils/dataIsolation'
 import { 
   mockProjects,
   getFilteredProjects,
@@ -142,15 +143,13 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     try {
       await delay(50) // Simular delay de red
       
-      if (!user?.organizationId) {
+      if (!user?.currentOrganizationId) {
         setProjects([])
         return
       }
       
-      // Filtrar proyectos por organización del usuario
-      const organizationProjects = mockProjects.filter(
-        project => project.organizationId === user.organizationId
-      )
+      // AISLAMIENTO DE DATOS: Filtrar proyectos con validación de seguridad
+      const organizationProjects = secureOrganizationFilter(mockProjects, user.currentOrganizationId)
       
       setProjects([...organizationProjects]) // Crear copia para evitar mutaciones
     } catch (error) {
@@ -166,7 +165,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
     try {
       await delay(50)
       
-      if (!user?.organizationId) {
+      if (!user?.currentOrganizationId) {
         setExperts([])
         return
       }
@@ -178,10 +177,8 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
         globalMockExperts = [...sampleExperts]
       }
       
-      // Filtrar expertos por organización del usuario
-      const organizationExperts = globalMockExperts.filter(
-        expert => expert.organizationId === user.organizationId
-      )
+      // AISLAMIENTO DE DATOS: Filtrar expertos con validación de seguridad
+      const organizationExperts = secureOrganizationFilter(globalMockExperts, user.currentOrganizationId)
       
       setExperts([...organizationExperts])
     } catch (error) {
@@ -431,7 +428,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
         name: data.name,
         email: data.email,
         organization: data.organization || null,
-        organizationId: user?.organizationId || 'org_default',
+        organizationId: user?.currentOrganizationId || 'org_default',
         expertiseAreas: data.expertiseAreas,
         avatar: data.avatar || null,
         yearsExperience: data.yearsExperience || null,
