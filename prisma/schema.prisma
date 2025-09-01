@@ -10,6 +10,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Organizaciones para multi-tenancy
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  domain      String?
+  logo        String?
+  settings    Json?    @default("{}")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  userOrganizations UserOrganization[]
+  projects         Project[]
+  experts          Expert[]
+
+  @@map("organizations")
+}
+
 // Usuarios (integrado con Supabase Auth)
 model User {
   id        String   @id @default(uuid())
@@ -17,10 +37,12 @@ model User {
   role      UserRole @default(EXPERT)
   name      String?
   avatar    String?
+  bio       String?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
+  organizations      UserOrganization[]
   createdProjects    Project[]         @relation("ProjectCreator")
   projectExperts     ProjectExpert[]
   evaluations        Evaluation[]
@@ -28,6 +50,37 @@ model User {
   expertInvitations  ProjectExpert[]   @relation("ExpertInviter")
 
   @@map("users")
+}
+
+// Relación many-to-many: Users <-> Organizations
+model UserOrganization {
+  id             String          @id @default(uuid())
+  userId         String          @map("user_id")
+  organizationId String          @map("organization_id")
+  role           OrganizationRole @default(MEMBER)
+  status         UserOrgStatus   @default(ACTIVE)
+  joinedAt       DateTime        @default(now()) @map("joined_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  // Relaciones
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("user_organizations")
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MODERATOR
+  MEMBER
+}
+
+enum UserOrgStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
 }
 
 enum UserRole {
@@ -46,11 +99,13 @@ model Project {
   tags            String[]      @default([])
   isPublic        Boolean       @default(false) @map("is_public")
   creatorId       String        @map("creator_id")
+  organizationId  String        @map("organization_id")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
   // Relaciones
   creator        User            @relation("ProjectCreator", fields: [creatorId], references: [id])
+  organization   Organization    @relation(fields: [organizationId], references: [id])
   variables      Variable[]
   projectExperts ProjectExpert[]
   evaluations    Evaluation[]
@@ -120,7 +175,8 @@ model Expert {
   id                      String   @id @default(uuid())
   name                    String
   email                   String   @unique
-  organization            String?
+  organizationName        String?  @map("organization") // Nombre de la organización externa
+  organizationId          String   @map("organization_id") // ID de la organización que lo gestiona
   expertiseAreas          String[] @map("expertise_areas")
   avatar                  String?
   yearsExperience         Int?     @map("years_experience")
@@ -129,6 +185,7 @@ model Expert {
   updatedAt               DateTime @updatedAt @map("updated_at")
 
   // Relaciones
+  organization   Organization    @relation(fields: [organizationId], references: [id])
   projectExperts ProjectExpert[]
   evaluations    Evaluation[]
 
