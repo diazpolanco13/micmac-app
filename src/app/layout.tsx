@@ -14,17 +14,17 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/logoMicMac.png',
+        url: '/logoMicMac.png?v=1',
         sizes: 'any',
         type: 'image/png',
       },
       {
-        url: '/favicon.svg',
+        url: '/favicon.svg?v=1',
         type: 'image/svg+xml',
       }
     ],
-    shortcut: '/logoMicMac.png',
-    apple: '/logoMicMac.png',
+    shortcut: '/logoMicMac.png?v=1',
+    apple: '/logoMicMac.png?v=1',
   },
 };
 
@@ -35,6 +35,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="dark">
+      <head>
+        <link rel="icon" href="/logoMicMac.png?v=1" type="image/png" />
+        <link rel="shortcut icon" href="/logoMicMac.png?v=1" />
+      </head>
       <body className={inter.className}>
         <ToastProvider>
           <MockAuthProvider>
