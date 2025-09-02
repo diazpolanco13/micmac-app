@@ -9,8 +9,23 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: '🚀 MIC MAC Pro',
+  title: 'MIC MAC Pro',
   description: 'Plataforma de Análisis Prospectivos con Automatización',
+  icons: {
+    icon: [
+      {
+        url: '/logoMicMac.png',
+        sizes: 'any',
+        type: 'image/png',
+      },
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+    shortcut: '/logoMicMac.png',
+    apple: '/logoMicMac.png',
+  },
 };
 
 export default function RootLayout({
