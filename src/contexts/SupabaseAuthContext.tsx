@@ -177,10 +177,23 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
 
   const updateProfile = async (data: { 
     name?: string; 
-    avatar?: string 
+    avatar?: string;
+    bio?: string;
+    // Campos adicionales que intentará actualizar (si existen en BD)
+    phone?: string;
+    linkedinUrl?: string;
+    profession?: string;
+    currentPosition?: string;
+    yearsExperience?: number;
+    organization?: string;
+    [key: string]: any; // Permitir campos adicionales
   }): Promise<{ success: boolean; error?: string }> => {
+    console.log('🔄 [SUPABASE] Iniciando updateProfile con datos:', data)
+    console.log('👤 [SUPABASE] Usuario actual:', { id: user?.id, email: user?.email })
+    
     try {
       if (!user) {
+        console.error('❌ [SUPABASE] No hay usuario autenticado')
         return { success: false, error: 'Usuario no autenticado' }
       }
 
@@ -195,25 +208,73 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
         }
       }
 
-      // Actualizar en tabla users
+      // Mapear campos del formulario a campos de la tabla profiles
+      const fieldMapping: { [key: string]: string } = {
+        'linkedinUrl': 'linkedin_url',
+        'currentPosition': 'current_position',
+        'yearsExperience': 'years_experience',
+        'organizationId': 'organization_id',
+        'currentOrganizationId': 'current_organization_id'
+      };
+
+      // Convertir campos con nombres diferentes y filtrar campos no soportados
+      const mappedData: { [key: string]: any } = {};
+      let expertiseAreasToUpdate = null;
+      
+      Object.entries(data).forEach(([key, value]) => {
+        // Manejar expertiseAreas por separado
+        if (key === 'expertiseAreas') {
+          expertiseAreasToUpdate = value;
+          console.log('📋 [SUPABASE] ExpertiseAreas será actualizado por separado:', value);
+          return;
+        }
+        
+        const dbField = fieldMapping[key] || key;
+        mappedData[dbField] = value;
+      });
+
+      // Actualizar en tabla profiles (todos los campos son válidos)
+      console.log('🔄 [SUPABASE] Actualizando perfil con datos:', mappedData)
+      console.log('🔑 [SUPABASE] ID del usuario:', user.id)
+      
+      // 🔍 VERIFICAR SESIÓN ANTES DE UPDATE
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      console.log('🔐 [SUPABASE] Sesión actual:', { 
+        hasSession: !!session, 
+        userId: session?.user?.id,
+        sessionError: sessionError?.message 
+      })
+      
       const { error: profileError } = await supabase
-        .from('users')
-        .update(data)
+        .from('profiles')
+        .update(mappedData)
         .eq('id', user.id)
 
       if (profileError) {
-        const errorMessage = 'Error actualizando perfil'
+        console.error('❌ [SUPABASE] Error actualizando perfil:', profileError)
+        console.error('📊 [SUPABASE] Datos enviados:', mappedData)
+        const errorMessage = `Error actualizando perfil: ${profileError.message || profileError.code || 'Error desconocido'}`
         toast.error('Error', errorMessage)
         return { success: false, error: errorMessage }
       }
 
-      // Actualizar estado local
+      // TODO: Actualizar expertiseAreas si se proporcionaron
+      if (expertiseAreasToUpdate) {
+        console.log('🎯 [SUPABASE] Actualizando áreas de expertise...')
+        // Por ahora solo loggeamos, implementaremos la actualización después
+        console.log('⚠️  [SUPABASE] Actualización de expertiseAreas pendiente de implementar')
+      }
+
+      // Actualizar estado local con los datos originales
+      console.log('✅ [SUPABASE] Perfil actualizado exitosamente')
       setUser(prev => prev ? { ...prev, ...data } : null)
       toast.success('Perfil actualizado', 'Los cambios se han guardado correctamente')
       
       return { success: true }
     } catch (error) {
-      const errorMessage = 'Error de conexión'
+      console.error('💥 [SUPABASE] Error general en updateProfile:', error)
+      console.error('📊 [SUPABASE] Stack trace:', error instanceof Error ? error.stack : 'No stack available')
+      const errorMessage = `Error de conexión: ${error instanceof Error ? error.message : 'Error desconocido'}`
       toast.error('Error', errorMessage)
       return { success: false, error: errorMessage }
     }

@@ -5,7 +5,7 @@
  * Aplica correctamente el límite de 6 proyectos por página
  */
 
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -30,7 +30,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function DashboardPage() {
-  const { user, loading } = useMockAuth()
+  const { user, loading } = useAuth()
   const { projects, experts } = useMockData()
   const { startLoading } = useNavigationLoading()
   const router = useRouter()

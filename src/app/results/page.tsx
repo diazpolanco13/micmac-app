@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useEffect } from 'react'
 import AppLayout from '@/components/layout/AppLayout'
@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function ResultsPage() {
-  const { user, loading } = useMockAuth()
+  const { user, loading } = useAuth()
   const { projects } = useMockData()
   const router = useRouter()
 

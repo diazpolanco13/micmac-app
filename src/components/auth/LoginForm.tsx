@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 
 interface LoginFormProps {
@@ -16,7 +16,7 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onToggleMode, className = '' }: LoginFormProps) {
-  const { signIn, loading } = useMockAuth()
+  const { signIn, loading } = useAuth()
   const { startLoading } = useNavigationLoading()
   const router = useRouter()
   const [formData, setFormData] = useState({

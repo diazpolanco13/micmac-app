@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { mockOrganizations } from '@/lib/mockData'
 import { Bug, ChevronDown, ChevronRight, Database, User, Building2, Shield } from 'lucide-react'
 import DataIsolationValidator from '@/components/debug/DataIsolationValidator'
@@ -12,14 +12,32 @@ export default function MultiOrgDebugPanel() {
     currentOrganization,
     getUserOrganizations,
     getCurrentRole
-  } = useMockAuth()
+  } = useAuth()
   
   const [isOpen, setIsOpen] = useState(false)
 
   if (!user) return null
 
-  const userOrganizations = getUserOrganizations()
-  const currentRole = getCurrentRole()
+  // 🔧 COMPATIBILIDAD: Verificar si las funciones multi-org están disponibles
+  const userOrganizations = getUserOrganizations ? getUserOrganizations() : []
+  const currentRole = getCurrentRole ? getCurrentRole() : user.role || 'EXPERT'
+  
+  // 🚧 TEMPORAL: Deshabilitar panel si no hay funciones multi-org (Supabase Auth)
+  if (!getUserOrganizations || !getCurrentRole) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className="bg-yellow-900 text-yellow-100 rounded-lg shadow-lg border border-yellow-700 p-3 max-w-[300px]">
+          <div className="flex items-center gap-2">
+            <Bug className="w-4 h-4" />
+            <span className="text-sm font-medium">Debug Panel</span>
+          </div>
+          <p className="text-xs mt-1 opacity-80">
+            Multi-Org debug deshabilitado en Supabase Auth (FASE 2)
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed bottom-4 right-4 z-50">

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -9,10 +9,10 @@ import { Button, Input } from '@/components/ui'
 import { useToast } from '@/contexts/ToastContext'
 import ExpertiseAreasSection from '@/components/profile/ExpertiseAreasSection'
 import ExpertiseRadarChart from '@/components/profile/ExpertiseRadarChart'
-import type { ExpertiseArea } from '@/types/project'
+import type { ExpertiseArea } from '@/lib/supabase'
 
 export default function ProfilePage() {
-  const { user, loading, updateProfile, currentOrganization } = useMockAuth()
+  const { user, loading, updateProfile, currentOrganization } = useAuth()
   const router = useRouter()
   const toast = useToast()
 
@@ -89,8 +89,8 @@ export default function ProfilePage() {
         linkedinUrl: formData.linkedinUrl,
         profession: formData.profession,
         currentPosition: formData.currentPosition,
-        yearsExperience: formData.yearsExperience,
-        expertiseAreas: formData.expertiseAreas
+        yearsExperience: formData.yearsExperience
+        // expertiseAreas se manejan por separado en ExpertiseAreasSection
       })
 
       if (result.success) {
@@ -101,9 +101,11 @@ export default function ProfilePage() {
         toast.error('Error', result.error || 'No se pudo actualizar el perfil')
       }
     } catch (error) {
-      console.error('Error updating profile:', error)
-      toast.error('Error', 'No se pudo actualizar el perfil')
+      console.error('💥 [PROFILE] Error crítico en handleSave:', error)
+      console.error('💥 [PROFILE] Stack trace:', error instanceof Error ? error.stack : 'No stack')
+      toast.error('Error', 'Ocurrió un error inesperado al guardar')
     } finally {
+      console.log('🔄 [PROFILE] Estableciendo isSaving=false')
       setIsSaving(false)
     }
   }

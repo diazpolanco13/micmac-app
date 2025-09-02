@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import AppLayout from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui'
@@ -13,7 +13,7 @@ import VotingMatrix from '@/components/voting/VotingMatrix'
 export default function VotingPage() {
   const params = useParams()
   const router = useRouter()
-  const { user, loading: authLoading } = useMockAuth()
+  const { user, loading: authLoading } = useAuth()
   const { 
     projects, 
     loadingProjects, 

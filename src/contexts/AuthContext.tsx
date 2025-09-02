@@ -6,9 +6,9 @@
 
 'use client'
 
-import React, { createContext, useContext, ReactNode } from 'react'
+import { createContext, useContext, ReactNode } from 'react'
 import { MockAuthProvider, useMockAuth as useMockAuthOriginal } from './MockAuthContext'
-import { SupabaseAuthProvider, useSupabaseAuth } from './SupabaseAuthContext'
+import { SupabaseAuthProvider, useAuth as useSupabaseAuth } from './SupabaseAuthContext'
 
 // Tipos unificados para ambos contextos
 export interface AuthUser {

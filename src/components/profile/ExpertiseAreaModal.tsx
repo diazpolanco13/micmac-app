@@ -14,9 +14,10 @@ import type {
 interface ExpertiseAreaModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (area: ExpertiseArea) => void
+  onSave: (formData: any) => void // 🔄 CAMBIO: Pasar datos del formulario directamente
   editingArea?: ExpertiseArea | null
   existingAreas: ExpertiseArea[]
+  isLoading?: boolean
 }
 
 export default function ExpertiseAreaModal({
@@ -40,12 +41,18 @@ export default function ExpertiseAreaModal({
   // Cargar datos si estamos editando
   useEffect(() => {
     if (editingArea) {
+      console.log('📝 [MODAL] Cargando datos para editar:', editingArea)
+      
+      // Mapear nivel de string a número
+      const levelMap = { 'novice': 1, 'intermediate': 2, 'advanced': 4, 'expert': 5 }
+      const proficiencyLevel = levelMap[editingArea.level] || 3
+      
       setFormData({
         name: editingArea.name,
         yearsExperience: editingArea.yearsExperience,
-        proficiencyLevel: editingArea.proficiencyLevel,
-        experienceTypes: [editingArea.experienceType], // 🔄 CAMBIO: Convertir a array
-        educationLevel: editingArea.educationLevel
+        proficiencyLevel,
+        experienceTypes: ['PROFESSIONAL'], // Default, se actualizará desde BD
+        educationLevel: undefined
       })
     } else {
       // Reset para nueva área
@@ -53,7 +60,7 @@ export default function ExpertiseAreaModal({
         name: '',
         yearsExperience: 1,
         proficiencyLevel: 3,
-        experienceTypes: ['PROFESSIONAL'], // 🔄 CAMBIO: Array por defecto
+        experienceTypes: ['PROFESSIONAL'],
         educationLevel: undefined
       })
     }
@@ -124,41 +131,53 @@ export default function ExpertiseAreaModal({
   const handleSave = () => {
     if (!validateForm()) return
     
-    // 🆕 USAR NUEVA FUNCIÓN: Calcular con múltiples contextos
-    const calculation = ExpertiseCalculator.calculateMultiContextScore({
-      yearsExperience: formData.yearsExperience,
-      proficiencyLevel: formData.proficiencyLevel,
-      experienceTypes: formData.experienceTypes, // 🔄 Usar array completo
-      educationLevel: formData.educationLevel
-    })
+    console.log('🔄 [MODAL] Guardando datos del formulario:', formData)
     
-    const now = new Date().toISOString()
-    
-    // Crear área de expertise manualmente con el cálculo correcto
-    const expertiseArea = {
-      name: formData.name.trim(),
-      yearsExperience: formData.yearsExperience,
-      proficiencyLevel: formData.proficiencyLevel,
-      experienceType: formData.experienceTypes[0], // Para compatibilidad con UI existente
-      educationLevel: formData.educationLevel,
-      calculatedScore: calculation.score,
-      level: calculation.level,
-      priority: calculation.priority,
-      createdAt: now,
-      updatedAt: now
-    }
-    
-    onSave(expertiseArea)
+    // 🆕 PASAR DATOS DEL FORMULARIO DIRECTAMENTE
+    onSave(formData)
     onClose()
   }
   
-  // 🔄 USAR NUEVA FUNCIÓN: Cálculo en tiempo real con múltiples contextos
-  const calculation = ExpertiseCalculator.calculateMultiContextScore({
-    yearsExperience: formData.yearsExperience,
-    proficiencyLevel: formData.proficiencyLevel,
-    experienceTypes: formData.experienceTypes, // 🔄 Usar array completo
-    educationLevel: formData.educationLevel
-  })
+  // 🔄 CÁLCULO SIMPLIFICADO: Manual para evitar problemas de tipos
+  const calculateScore = () => {
+    if (!formData.yearsExperience || !formData.proficiencyLevel) {
+      return { score: 0, level: 'NOVATO', priority: 'LOW' }
+    }
+
+    // Base: años de experiencia (máximo 60 puntos)
+    const experienceScore = Math.min(60, formData.yearsExperience * 3)
+    
+    // Multiplicador por nivel
+    const levelMultiplier = {
+      1: 0.6,  // Principiante
+      2: 0.8,  // Competente  
+      3: 1.0,  // Experimentado
+      4: 1.2,  // Experto
+      5: 1.4   // Maestro
+    }[formData.proficiencyLevel] || 1.0
+    
+    // Bonus por contextos
+    const contextBonus = formData.experienceTypes.length * 5
+    
+    // Bonus por educación
+    const educationBonus = formData.educationLevel ? 10 : 0
+    
+    const finalScore = Math.min(100, Math.max(10, 
+      Math.round(experienceScore * levelMultiplier + contextBonus + educationBonus)
+    ))
+    
+    const level = finalScore >= 85 ? 'MAESTRO' :
+                  finalScore >= 70 ? 'EXPERTO' :
+                  finalScore >= 55 ? 'EXPERIMENTADO' :
+                  finalScore >= 35 ? 'COMPETENTE' : 'NOVATO'
+                  
+    const priority = finalScore >= 75 ? 'HIGH' :
+                     finalScore >= 50 ? 'MEDIUM' : 'LOW'
+    
+    return { score: finalScore, level, priority }
+  }
+
+  const calculation = calculateScore()
   
   return (
     <Dialog open={isOpen} onClose={onClose} size="4xl">

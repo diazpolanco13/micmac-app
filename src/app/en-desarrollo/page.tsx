@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useEffect } from 'react'
 import AppLayout from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui'
@@ -14,7 +14,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function EnDesarrolloPage() {
-  const { user, loading } = useMockAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   // Redirigir si no está autenticado

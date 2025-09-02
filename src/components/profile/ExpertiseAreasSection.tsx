@@ -1,10 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
 import ExpertiseAreaModal from './ExpertiseAreaModal'
 import { ExpertiseCalculator } from '@/utils/expertiseCalculator'
-import type { ExpertiseArea } from '@/types/project'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
+import type { ExpertiseArea } from '@/lib/supabase'
 
 interface ExpertiseAreasSectionProps {
   expertiseAreas: ExpertiseArea[]
@@ -20,22 +23,167 @@ export default function ExpertiseAreasSection({
   
   const [showModal, setShowModal] = useState(false)
   const [editingArea, setEditingArea] = useState<ExpertiseArea | null>(null)
-  
-  const handleAddArea = (newArea: ExpertiseArea) => {
-    onAreasChange([...expertiseAreas, newArea])
+  const [isLoading, setIsLoading] = useState(false)
+  const { user } = useAuth()
+  const toast = useToast()
+
+  // 🆕 FUNCIÓN: Guardar nueva área en Supabase
+  const handleAddArea = async (formData: any) => {
+    if (!user) return
+    
+    setIsLoading(true)
+    try {
+      // 1. Buscar o crear área de expertise
+      let { data: existingArea, error: searchError } = await supabase
+        .from('expertise_areas')
+        .select('id')
+        .eq('name', formData.name)
+        .single()
+
+      let areaId = existingArea?.id
+
+      // Si no existe, crear nueva área
+      if (!existingArea) {
+        const { data: newArea, error: createError } = await supabase
+          .from('expertise_areas')
+          .insert({
+            name: formData.name,
+            description: `Área de expertise: ${formData.name}`,
+            category: 'custom'
+          })
+          .select('id')
+          .single()
+
+        if (createError) throw createError
+        areaId = newArea.id
+      }
+
+      // 2. Crear relación user_expertise
+      const { error: insertError } = await supabase
+        .from('user_expertise')
+        .insert({
+          user_id: user.id,
+          expertise_area_id: areaId,
+          level: formData.proficiencyLevel === 1 ? 'novice' :
+                 formData.proficiencyLevel === 2 ? 'intermediate' :
+                 formData.proficiencyLevel === 3 ? 'intermediate' :
+                 formData.proficiencyLevel === 4 ? 'advanced' : 'expert',
+          years_experience: formData.yearsExperience,
+          description: `Experiencia en ${formData.name}`,
+          context: formData.experienceTypes || ['PROFESSIONAL'],
+          education_level: formData.educationLevel?.toLowerCase()
+        })
+
+      if (insertError) throw insertError
+
+      toast.success('Área agregada', 'Nueva área de expertise agregada exitosamente')
+      
+      // 🔄 CERRAR MODAL Y MOSTRAR MENSAJE
+      setShowModal(false)
+      
+      // 🔄 ACTUALIZAR ESTADO LOCAL (Agregar nueva área)
+      const newArea: ExpertiseArea = {
+        id: areaId,
+        name: formData.name,
+        description: `Área de expertise: ${formData.name}`,
+        category: 'custom',
+        level: formData.proficiencyLevel === 1 ? 'novice' :
+               formData.proficiencyLevel === 2 ? 'intermediate' :
+               formData.proficiencyLevel === 3 ? 'intermediate' :
+               formData.proficiencyLevel === 4 ? 'advanced' : 'expert',
+        yearsExperience: formData.yearsExperience,
+        userDescription: `Experiencia en ${formData.name}`
+      }
+      onAreasChange([...expertiseAreas, newArea])
+      
+    } catch (error) {
+      console.error('Error agregando área:', error)
+      toast.error('Error', 'No se pudo agregar el área de expertise')
+    } finally {
+      setIsLoading(false)
+    }
   }
-  
-  const handleEditArea = (updatedArea: ExpertiseArea) => {
-    const updatedAreas = expertiseAreas.map(area =>
-      area.name === editingArea?.name ? updatedArea : area
-    )
-    onAreasChange(updatedAreas)
-    setEditingArea(null)
+
+  // 🆕 FUNCIÓN: Editar área en Supabase  
+  const handleEditArea = async (formData: any) => {
+    if (!user || !editingArea) return
+    
+    setIsLoading(true)
+    try {
+      // Actualizar en user_expertise
+      const { error } = await supabase
+        .from('user_expertise')
+        .update({
+          level: formData.proficiencyLevel === 1 ? 'novice' :
+                 formData.proficiencyLevel === 2 ? 'intermediate' :
+                 formData.proficiencyLevel === 3 ? 'intermediate' :
+                 formData.proficiencyLevel === 4 ? 'advanced' : 'expert',
+          years_experience: formData.yearsExperience,
+          description: formData.description || `Experiencia en ${formData.name}`,
+          context: formData.experienceTypes || ['PROFESSIONAL'],
+          education_level: formData.educationLevel?.toLowerCase(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .eq('expertise_area_id', editingArea.id)
+
+      if (error) throw error
+
+      toast.success('Área actualizada', 'Área de expertise actualizada exitosamente')
+      setEditingArea(null)
+      setShowModal(false)
+      
+      // 🔄 ACTUALIZAR ESTADO LOCAL (Editar área existente)
+      const updatedArea: ExpertiseArea = {
+        ...editingArea,
+        level: formData.proficiencyLevel === 1 ? 'novice' :
+               formData.proficiencyLevel === 2 ? 'intermediate' :
+               formData.proficiencyLevel === 3 ? 'intermediate' :
+               formData.proficiencyLevel === 4 ? 'advanced' : 'expert',
+        yearsExperience: formData.yearsExperience,
+        userDescription: formData.description || `Experiencia en ${formData.name}`
+      }
+      const updatedAreas = expertiseAreas.map(area => 
+        area.id === editingArea.id ? updatedArea : area
+      )
+      onAreasChange(updatedAreas)
+      
+    } catch (error) {
+      console.error('Error actualizando área:', error)
+      toast.error('Error', 'No se pudo actualizar el área de expertise')
+    } finally {
+      setIsLoading(false)
+    }
   }
-  
-  const handleDeleteArea = (areaToDelete: ExpertiseArea) => {
-    const updatedAreas = expertiseAreas.filter(area => area.name !== areaToDelete.name)
-    onAreasChange(updatedAreas)
+
+  // 🆕 FUNCIÓN: Eliminar área de Supabase
+  const handleDeleteArea = async (areaToDelete: ExpertiseArea) => {
+    if (!user) return
+    
+    if (!confirm(`¿Estás seguro de que quieres eliminar "${areaToDelete.name}"?`)) return
+    
+    setIsLoading(true)
+    try {
+      const { error } = await supabase
+        .from('user_expertise')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('expertise_area_id', areaToDelete.id)
+
+      if (error) throw error
+
+      toast.success('Área eliminada', 'Área de expertise eliminada exitosamente')
+      
+      // 🔄 ACTUALIZAR ESTADO LOCAL (Eliminar área)
+      const filteredAreas = expertiseAreas.filter(area => area.id !== areaToDelete.id)
+      onAreasChange(filteredAreas)
+      
+    } catch (error) {
+      console.error('Error eliminando área:', error)
+      toast.error('Error', 'No se pudo eliminar el área de expertise')
+    } finally {
+      setIsLoading(false)
+    }
   }
   
   const openEditModal = (area: ExpertiseArea) => {
@@ -99,13 +247,14 @@ export default function ExpertiseAreasSection({
         </div>
       )}
       
-      <ExpertiseAreaModal
-        isOpen={showModal}
-        onClose={closeModal}
-        onSave={editingArea ? handleEditArea : handleAddArea}
-        editingArea={editingArea}
-        existingAreas={expertiseAreas}
-      />
+              <ExpertiseAreaModal
+          isOpen={showModal}
+          onClose={closeModal}
+          onSave={editingArea ? handleEditArea : handleAddArea}
+          editingArea={editingArea}
+          existingAreas={expertiseAreas}
+          isLoading={isLoading}
+        />
     </div>
   )
 }
@@ -119,7 +268,63 @@ interface ExpertiseAreaCardProps {
 }
 
 function ExpertiseAreaCard({ area, isEditing, onEdit, onDelete }: ExpertiseAreaCardProps) {
-  const colors = ExpertiseCalculator.getScoreColors(area.calculatedScore)
+  // 🚀 OPTIMIZACIÓN: Memoizar cálculos para evitar re-renders innecesarios
+  const calculatedData = useMemo(() => {
+    // 🔄 CALCULAR SCORE USANDO LA MISMA FÓRMULA DEL MODAL
+    const calculateScore = (area: ExpertiseArea) => {
+      if (!area.yearsExperience) return 0
+      
+      // Base: años de experiencia (máximo 60 puntos)
+      const experienceScore = Math.min(60, area.yearsExperience * 3)
+      
+      // Multiplicador por nivel (mapear de string a número)
+      const levelToNumber = { 'novice': 1, 'intermediate': 2, 'advanced': 4, 'expert': 5 }
+      const proficiencyLevel = levelToNumber[area.level] || 3
+      
+      const levelMultiplier = {
+        1: 0.6,  // Principiante
+        2: 0.8,  // Competente  
+        3: 1.0,  // Experimentado
+        4: 1.2,  // Experto
+        5: 1.4   // Maestro
+      }[proficiencyLevel] || 1.0
+      
+      // Bonus por contextos (estimar 1 contexto si no hay datos)
+      const contextBonus = 1 * 5 // Default: 1 contexto
+      
+      // Sin bonus de educación por ahora
+      const educationBonus = 0
+      
+      const finalScore = Math.min(100, Math.max(10, 
+        Math.round(experienceScore * levelMultiplier + contextBonus + educationBonus)
+      ))
+      
+      return finalScore
+    }
+    
+    const calculatedScore = calculateScore(area)
+    
+    // 🔄 CALCULAR NIVEL Y PRIORIDAD BASADO EN EL SCORE (igual que el modal)
+    const calculatedLevel = calculatedScore >= 85 ? 'MAESTRO' :
+                            calculatedScore >= 70 ? 'EXPERTO' :
+                            calculatedScore >= 55 ? 'EXPERIMENTADO' :
+                            calculatedScore >= 35 ? 'COMPETENTE' : 'NOVATO'
+                            
+    const calculatedPriority = calculatedScore >= 75 ? 'HIGH' :
+                               calculatedScore >= 50 ? 'MEDIUM' : 'LOW'
+    
+    const colors = ExpertiseCalculator.getScoreColors(calculatedScore)
+    
+    return {
+      calculatedScore,
+      calculatedLevel,
+      calculatedPriority,
+      colors
+    }
+  }, [area.yearsExperience, area.level, area.name]) // Solo recalcular si cambian estos valores
+  
+  // 🔍 DEBUG: Solo log cuando los datos cambien (no en cada render)
+  // console.log(`📊 [CARD] ${area.name}:`, calculatedData)
   
   return (
     <div className="bg-dark-bg-tertiary rounded-lg p-4 border border-dark-bg-tertiary hover:border-micmac-primary-500/30 transition-colors">
@@ -133,17 +338,17 @@ function ExpertiseAreaCard({ area, isEditing, onEdit, onDelete }: ExpertiseAreaC
             
             {/* Métricas en línea responsive */}
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <div className={`px-2 py-1 rounded-full border text-xs font-medium ${colors.bg} ${colors.border}`}>
-                <span className={colors.text}>
-                  {area.calculatedScore}/100
+              <div className={`px-2 py-1 rounded-full border text-xs font-medium ${calculatedData.colors.bg} ${calculatedData.colors.border}`}>
+                <span className={calculatedData.colors.text}>
+                  {calculatedData.calculatedScore}/100
                 </span>
               </div>
-              <div className={`text-xs font-medium ${ExpertiseCalculator.getLevelColor(area.level)}`}>
-                {area.level}
+              <div className={`text-xs font-medium ${ExpertiseCalculator.getLevelColor(calculatedData.calculatedLevel as any)}`}>
+                {calculatedData.calculatedLevel}
               </div>
               <div className="flex items-center gap-1 text-xs text-dark-text-muted">
-                <span>{ExpertiseCalculator.getPriorityIcon(area.priority)}</span>
-                <span className="hidden sm:inline">{area.priority}</span>
+                <span>{ExpertiseCalculator.getPriorityIcon(calculatedData.calculatedPriority as any)}</span>
+                <span className="hidden sm:inline">{calculatedData.calculatedPriority}</span>
               </div>
             </div>
           </div>
@@ -178,17 +383,14 @@ function ExpertiseAreaCard({ area, isEditing, onEdit, onDelete }: ExpertiseAreaC
         {/* Detalles de experiencia */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-dark-text-secondary">
           <span>📅 {area.yearsExperience} años</span>
-          <span>💼 {ExpertiseCalculator.getContextLabel(area.experienceType)}</span>
-          {area.educationLevel && (
-            <span>🎓 {ExpertiseCalculator.getEducationLabel(area.educationLevel)}</span>
-          )}
+          <span>📊 Nivel: {area.level}</span>
         </div>
         
         {/* Barra de progreso */}
         <div className="w-full bg-dark-bg-secondary rounded-full h-2">
           <div 
             className="bg-gradient-to-r from-micmac-primary-500 to-micmac-secondary-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${area.calculatedScore}%` }}
+            style={{ width: `${calculatedData.calculatedScore}%` }}
           />
         </div>
       </div>

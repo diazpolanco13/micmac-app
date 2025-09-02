@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts'
-import type { ExpertiseArea } from '@/types/project'
+import type { ExpertiseArea } from '@/lib/supabase'
 
 interface ExpertiseRadarChartProps {
   expertiseAreas: ExpertiseArea[]
@@ -18,13 +18,43 @@ interface ExpertiseRadarChartProps {
 
 export default function ExpertiseRadarChart({ expertiseAreas }: ExpertiseRadarChartProps) {
   
-  // Preparar datos para el radar chart
-  const radarData = expertiseAreas.map(area => ({
-    area: area.name.length > 15 ? area.name.substring(0, 15) + '...' : area.name,
-    fullName: area.name,
-    score: area.calculatedScore || area.yearsExperience * 10 || 50, // Fallback si no hay calculatedScore
-    level: area.level
-  }))
+  // Preparar datos para el radar chart con MISMA FÓRMULA que modal y tarjetas
+  const radarData = expertiseAreas.map(area => {
+    // 🔄 USAR MISMA FÓRMULA DE CÁLCULO
+    const calculateScore = (area: any) => {
+      if (!area.yearsExperience) return 0
+      
+      // Base: años de experiencia (máximo 60 puntos)
+      const experienceScore = Math.min(60, area.yearsExperience * 3)
+      
+      // Multiplicador por nivel
+      const levelToNumber = { 'novice': 1, 'intermediate': 2, 'advanced': 4, 'expert': 5 }
+      const proficiencyLevel = levelToNumber[area.level] || 3
+      
+      const levelMultiplier = {
+        1: 0.6, 2: 0.8, 3: 1.0, 4: 1.2, 5: 1.4
+      }[proficiencyLevel] || 1.0
+      
+      // Bonus por contextos (default 1)
+      const contextBonus = 1 * 5
+      
+      const finalScore = Math.min(100, Math.max(10, 
+        Math.round(experienceScore * levelMultiplier + contextBonus)
+      ))
+      
+      return finalScore
+    }
+    
+    const finalScore = calculateScore(area)
+    
+    return {
+      area: area.name.length > 15 ? area.name.substring(0, 15) + '...' : area.name,
+      fullName: area.name,
+      score: finalScore,
+      level: area.level,
+      years: area.yearsExperience
+    }
+  })
 
   // Si no hay datos, mostrar placeholder
   if (expertiseAreas.length === 0) {

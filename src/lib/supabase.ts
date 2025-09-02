@@ -45,15 +45,35 @@ export const isSupabaseConfigured = () => {
 // Tipos de autenticación
 export type UserRole = 'MODERATOR' | 'EXPERT'
 
+export interface ExpertiseArea {
+  id: string
+  name: string
+  description: string
+  category: string
+  level: 'novice' | 'intermediate' | 'advanced' | 'expert'
+  yearsExperience: number
+  userDescription?: string
+}
+
 export interface AuthUser {
   id: string
   email: string
   role: UserRole
   name?: string
   avatar?: string
+  bio?: string
+  phone?: string
+  linkedinUrl?: string
+  profession?: string
+  currentPosition?: string
+  yearsExperience?: number
+  organization?: string
+  organizationId?: string
+  currentOrganizationId?: string
+  expertiseAreas?: ExpertiseArea[]
 }
 
-// Helper para obtener el usuario actual con rol
+// Helper para obtener el usuario actual con perfil completo
 export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -62,16 +82,16 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       return null
     }
 
-    // Obtener datos adicionales del usuario desde la tabla users
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role, name, avatar')
+    // Obtener datos completos del usuario desde la tabla profiles
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
       .eq('id', user.id)
       .single()
 
-    if (userError) {
-      console.error('Error fetching user data:', userError)
-      // Retornar usuario básico si no hay datos adicionales
+    if (profileError) {
+      console.error('Error fetching profile data:', profileError)
+      // Retornar usuario básico si no hay perfil
       return {
         id: user.id,
         email: user.email || '',
@@ -79,12 +99,52 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       }
     }
 
+    // Obtener áreas de expertise del usuario
+    const { data: expertiseData, error: expertiseError } = await supabase
+      .from('user_expertise')
+      .select(`
+        id,
+        level,
+        years_experience,
+        description,
+        expertise_areas (
+          id,
+          name,
+          description,
+          category
+        )
+      `)
+      .eq('user_id', user.id)
+
+    let expertiseAreas = []
+    if (!expertiseError && expertiseData) {
+      expertiseAreas = expertiseData.map(item => ({
+        id: item.expertise_areas.id,
+        name: item.expertise_areas.name,
+        description: item.expertise_areas.description,
+        category: item.expertise_areas.category,
+        level: item.level,
+        yearsExperience: item.years_experience,
+        userDescription: item.description
+      }))
+    }
+
     return {
       id: user.id,
-      email: user.email || '',
-      role: userData?.role || 'EXPERT',
-      name: userData?.name || undefined,
-      avatar: userData?.avatar || undefined
+      email: profileData?.email || user.email || '',
+      role: 'EXPERT', // Por ahora default, luego podemos agregar role a profiles
+      name: profileData?.name || undefined,
+      avatar: profileData?.avatar || undefined,
+      bio: profileData?.bio || undefined,
+      phone: profileData?.phone || undefined,
+      linkedinUrl: profileData?.linkedin_url || undefined,
+      profession: profileData?.profession || undefined,
+      currentPosition: profileData?.current_position || undefined,
+      yearsExperience: profileData?.years_experience || 0,
+      organization: profileData?.organization || undefined,
+      organizationId: profileData?.organization_id || undefined,
+      currentOrganizationId: profileData?.current_organization_id || undefined,
+      expertiseAreas
     }
   } catch (error) {
     console.error('Error getting current user:', error)

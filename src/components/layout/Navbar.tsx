@@ -2,7 +2,7 @@
 
 import { Menu, MenuButton, MenuItem, MenuItems, Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 import { useRouter } from 'next/navigation'
 
@@ -19,7 +19,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
-  const { user, signOut, currentOrganization } = useMockAuth()
+  const { user, signOut, currentOrganization } = useAuth()
   const { startLoading } = useNavigationLoading()
   const router = useRouter()
 

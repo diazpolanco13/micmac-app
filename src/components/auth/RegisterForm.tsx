@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 import type { UserRole } from '@/types/project'
 
@@ -17,7 +17,7 @@ interface RegisterFormProps {
 }
 
 export default function RegisterForm({ onToggleMode, className = '' }: RegisterFormProps) {
-  const { signUp, loading } = useMockAuth()
+  const { signUp, loading } = useAuth()
   const { startLoading } = useNavigationLoading()
   const router = useRouter()
   const [formData, setFormData] = useState({

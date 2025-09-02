@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import { validateOrganizationAccess, secureOrganizationFilter } from '@/utils/dataIsolation'
 
@@ -18,7 +18,7 @@ interface ValidationResult {
 }
 
 export default function DataIsolationValidator() {
-  const { user, currentOrganization } = useMockAuth()
+  const { user, currentOrganization } = useAuth()
   const { projects, experts } = useMockData()
   const [results, setResults] = useState<ValidationResult[]>([])
   const [isRunning, setIsRunning] = useState(false)

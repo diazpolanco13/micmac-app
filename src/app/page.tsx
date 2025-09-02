@@ -1,6 +1,6 @@
 'use client'
 
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
 import { useEffect, useState } from 'react'
@@ -8,7 +8,7 @@ import LoginForm from '@/components/auth/LoginForm'
 import RegisterForm from '@/components/auth/RegisterForm'
 
 export default function Home() {
-  const { user, loading } = useMockAuth()
+  const { user, loading } = useAuth()
   const { startLoading } = useNavigationLoading()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)

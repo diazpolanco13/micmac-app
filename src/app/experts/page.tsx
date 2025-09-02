@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
@@ -12,7 +12,7 @@ import ExpertDetailModal from '@/components/experts/ExpertDetailModal'
 import ExpertCard from '@/components/experts/ExpertCard'
 
 export default function ExpertsPage() {
-  const { user, loading } = useMockAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   
   const {

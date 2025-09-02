@@ -12,7 +12,7 @@ import {
   ChartBarIcon,
   PresentationChartLineIcon
 } from '@heroicons/react/24/outline'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useState, useEffect } from 'react'
 import { useSidebarState, type SidebarState } from '@/hooks/useWindowSize'
@@ -30,7 +30,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ state, onToggle }: SidebarProps) {
-  const { user, signOut } = useMockAuth()
+  const { user, signOut } = useAuth()
   const { projects } = useMockData()
   const [mounted, setMounted] = useState(false)
   const responsiveState = useSidebarState()

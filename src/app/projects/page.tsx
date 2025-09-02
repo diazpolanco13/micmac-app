@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useRouter } from 'next/navigation'
 import { useNavigationLoading } from '@/contexts/NavigationLoadingContext'
@@ -14,7 +14,7 @@ import ProjectsList from '@/components/projects/ProjectsList'
 import AppLayout from '@/components/layout/AppLayout'
 
 export default function ProjectsPage() {
-  const { user, loading } = useMockAuth()
+  const { user, loading } = useAuth()
   const { 
     projects, 
     loadingProjects, 

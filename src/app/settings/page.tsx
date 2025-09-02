@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useMockAuth } from '@/contexts/MockAuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
@@ -15,7 +15,7 @@ import type { UserRole } from '@/types/project'
 type SettingsTab = 'organization' | 'users' | 'multiorg' | 'advanced'
 
 export default function SettingsPage() {
-  const { user, loading, currentOrganization } = useMockAuth()
+  const { user, loading, currentOrganization } = useAuth()
   const { experts } = useMockData()
   const router = useRouter()
   const toast = useToast()
@@ -788,7 +788,7 @@ function MultiOrgTab() {
     getCurrentRole,
     canCreateOrganization,
     currentOrganization 
-  } = useMockAuth()
+  } = useAuth()
   
   const [isLoading, setIsLoading] = useState(false)
   const [newOrgName, setNewOrgName] = useState('')

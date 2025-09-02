@@ -7,7 +7,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { useMockAuth } from './MockAuthContext'
+import { useAuth } from './AuthContext'
 import { secureOrganizationFilter, withDataIsolation } from '@/utils/dataIsolation'
 import { 
   mockProjects,
@@ -135,7 +135,7 @@ export function MockDataProvider({ children }: MockDataProviderProps) {
   const [loadingProjects, setLoadingProjects] = useState(false)
   const [loadingExperts, setLoadingExperts] = useState(false)
   
-  const { user } = useMockAuth()
+  const { user } = useAuth()
 
   // 🏢 MULTI-TENANT: Cargar proyectos filtrados por organización
   const refreshProjects = async () => {
