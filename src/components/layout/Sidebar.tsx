@@ -73,12 +73,12 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
         '/voting/my-analysis'
       ]
       
-      if (enDesarrolloRoutes.includes(href)) {
+      if (enDesarrolloRoutes.indexOf(href) !== -1) {
         finalRoute = '/en-desarrollo'
       } else if (href === '/analysis/micmac') {
         // Redirección inteligente para análisis MIC MAC
         // Si hay un proyecto activo, ir directamente a su votación
-        const activeProject = projects?.find(p => p.status === 'ACTIVE')
+        const activeProject = projects?.find((p: any) => p.status === 'ACTIVE')
         if (activeProject) {
           finalRoute = `/projects/${activeProject.id}/vote`
         } else {
@@ -110,7 +110,7 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
       children: [
         { name: 'Todos los Proyectos', href: '/projects', icon: FolderIcon },
         { name: 'Crear Proyecto', href: '/projects/create', icon: FolderIcon },
-        { name: 'Plantillas', href: '/projects/templates', icon: FolderIcon },
+        { name: 'Programados', href: '/projects/templates', icon: FolderIcon },
         { name: 'Archivados', href: '/projects/archived', icon: FolderIcon },
       ],
     },

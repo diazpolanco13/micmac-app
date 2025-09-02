@@ -356,11 +356,22 @@ const initializeDemoUsers = () => {
 }
 
 export function MockAuthProvider({ children }: { children: React.ReactNode }) {
+  console.log('🔄 [AUTH PROVIDER] COMPONENTE MONTADO/RE-RENDERIZADO')
   const [user, setUser] = useState<User | null>(null)
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false) // 🛠️ Bandera para evitar doble inicialización
 
   useEffect(() => {
+    // 🛠️ EVITAR DOBLE INICIALIZACIÓN
+    if (initialized) {
+      console.log('🔐 [AUTH LOADING] SALTADO - Ya inicializado')
+      return
+    }
+
+    const timestamp = new Date().toLocaleTimeString()
+    console.log(`🔐 [AUTH LOADING] INICIADO - Verificando sesión existente... (${timestamp})`)
+    
     // Simular carga inicial
     setTimeout(() => {
       // Inicializar usuarios demo
@@ -371,6 +382,12 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       // Solo mantener el usuario si existe y es válido
       // NO crear automáticamente un usuario demo
       
+      if (currentUser) {
+        console.log(`🔐 [AUTH LOADING] USUARIO ENCONTRADO - ${currentUser.email} | Org: ${currentUser.organizationId}`)
+      } else {
+        console.log('🔐 [AUTH LOADING] NO HAY SESIÓN - Usuario no autenticado')
+      }
+      
       setUser(currentUser)
       
       // 🏢 MULTI-TENANT: Cargar organización actual
@@ -379,9 +396,11 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentOrganization(org || null)
       }
       
+      console.log('🔐 [AUTH LOADING] FINALIZADO - Inicialización completa')
       setLoading(false)
+      setInitialized(true) // 🛠️ Marcar como inicializado
     }, 300)
-  }, [])
+  }, [initialized])
 
   const signUp = async (
     email: string, 
@@ -468,6 +487,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
     password: string
   ): Promise<{ error: string | null }> => {
     try {
+      console.log(`🔐 [AUTH LOADING] SIGN IN INICIADO - Email: ${email}`)
       setLoading(true)
       
       // Simular delay de red
@@ -525,6 +545,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async (): Promise<void> => {
     try {
+      console.log('🔐 [AUTH LOADING] SIGN OUT INICIADO')
       setLoading(true)
       
       // Simular delay
@@ -533,10 +554,12 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       setCurrentUser(null)
       setUser(null)
       setCurrentOrganization(null) // 🏢 MULTI-TENANT: Limpiar organización
+      console.log('🔐 [AUTH LOADING] SIGN OUT EXITOSO - Sesión cerrada')
       
     } catch (error) {
       console.error('Mock signOut error:', error)
     } finally {
+      console.log('🔐 [AUTH LOADING] SIGN OUT FINALIZADO')
       setLoading(false)
     }
   }
@@ -622,11 +645,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
 
     // AISLAMIENTO DE DATOS: Validar acceso a organización
     if (!validateUserOrganizationAccess(user, organizationId)) {
-      console.warn('🚨 AISLAMIENTO DE DATOS: Intento de cambio a organización no autorizada', {
-        userId: user.id,
-        targetOrganizationId: organizationId,
-        userOrganizations: user.organizations
-      })
+      // Debug: Intento de cambio a organización no autorizada (silenciado en producción)
       return { success: false, error: 'No tienes acceso a esta organización' }
     }
 
@@ -665,7 +684,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
           ...users[userIndex],
           currentOrganizationId: organizationId,
           organizationId: organizationId,
-          role: targetOrg.role,
+          role: targetOrg?.role || users[userIndex].role,
           organization: newOrganization?.name || users[userIndex].organization
         }
         setStoredUsers(users)

@@ -44,8 +44,8 @@ export default function EnDesarrolloPage() {
 
   const upcomingFeatures = [
     {
-      name: 'Plantillas de Proyectos',
-      description: 'Plantillas predefinidas para análisis MIC MAC comunes',
+      name: 'Proyectos Programados',
+      description: 'Proyectos programados predefinidos para análisis MIC MAC comunes',
       status: 'planned',
       eta: 'Q2 2025'
     },

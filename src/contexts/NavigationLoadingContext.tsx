@@ -33,11 +33,13 @@ export function NavigationLoadingProvider({ children }: NavigationLoadingProvide
   // Detectar cuando la navegación se completa
   useEffect(() => {
     if (isLoading && targetRoute && pathname === targetRoute) {
+      console.log(`🧭 [NAVIGATION LOADING] COMPLETADO - Llegó a: ${pathname} | Duración de carga terminando...`)
       // Iniciar animación de salida
       setIsExiting(true)
       
       // Delay para la animación de salida suave
       const exitTimer = setTimeout(() => {
+        console.log(`🧭 [NAVIGATION LOADING] FINALIZADO - Animación completada para: ${pathname}`)
         setIsLoading(false)
         setTargetRoute(null)
         setIsExiting(false)
@@ -51,6 +53,7 @@ export function NavigationLoadingProvider({ children }: NavigationLoadingProvide
   const startLoading = (route: string, isAuthTransition: boolean = false) => { // 🆕 PARÁMETRO OPCIONAL
     // Solo mostrar loading si la ruta es diferente a la actual
     if (route !== pathname) {
+      console.log(`🧭 [NAVIGATION LOADING] INICIADO - Ruta: ${route} | Auth: ${isAuthTransition} | Desde: ${pathname}`)
       setIsExiting(false)
       setIsLoading(true)
       setTargetRoute(route)

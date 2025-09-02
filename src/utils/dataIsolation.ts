@@ -55,20 +55,20 @@ export function secureOrganizationFilter<T extends { organizationId?: string }>(
   currentOrganizationId: string | undefined | null
 ): T[] {
   if (!currentOrganizationId) {
-    console.warn('🚨 AISLAMIENTO DE DATOS: Usuario sin organización activa')
+    // Debug: Usuario sin organización activa (silenciado en producción)
     return []
   }
 
   const filtered = data.filter(item => {
     const error = validateOrganizationAccess(item, currentOrganizationId)
     if (error) {
-      console.warn('🚨 AISLAMIENTO DE DATOS:', error.message, error.context)
+      // Debug: Error de aislamiento de datos (silenciado en producción)
       return false
     }
     return true
   })
 
-  console.log(`🔒 AISLAMIENTO DE DATOS: Filtrados ${filtered.length}/${data.length} elementos para org: ${currentOrganizationId}`)
+  // Debug: Filtrado de datos por organización (silenciado en producción)
   return filtered
 }
 
@@ -86,7 +86,7 @@ export function withDataIsolation<T>(
   }
 
   try {
-    console.log(`🔒 AISLAMIENTO DE DATOS: Ejecutando ${operationName} para org: ${currentOrganizationId}`)
+    // Debug: Ejecutando operación con aislamiento de datos (silenciado en producción)
     return operation()
   } catch (error) {
     console.error(`🚨 AISLAMIENTO DE DATOS: Error en ${operationName}:`, error)
@@ -114,11 +114,7 @@ export function validateUserOrganizationAccess(
   )
 
   if (!hasAccess) {
-    console.warn('🚨 AISLAMIENTO DE DATOS: Usuario no tiene acceso a organización', {
-      userId: user,
-      targetOrganizationId,
-      userOrganizations: user.organizations
-    })
+    // Debug: Usuario no tiene acceso a organización (silenciado en producción)
   }
 
   return hasAccess

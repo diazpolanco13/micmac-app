@@ -18,6 +18,7 @@ export default function MicMacResults({ projectId, className = '' }: MicMacResul
   const { calculateMicMacResults, getMicMacResults, getProjectVotes, simulateAllExperts } = useMockData()
 
   const loadResults = async () => {
+    console.log(`📊 [COMPONENT LOADING] MIC MAC RESULTS INICIADO - Proyecto: ${projectId}`)
     setLoading(true)
     setError(null)
     
@@ -25,6 +26,7 @@ export default function MicMacResults({ projectId, className = '' }: MicMacResul
       // Intentar obtener resultados cacheados primero
       const cached = getMicMacResults(projectId)
       if (cached) {
+        console.log(`📊 [COMPONENT LOADING] MIC MAC RESULTS CACHE HIT - Proyecto: ${projectId}`)
         setResults(cached)
         setLoading(false)
         return
@@ -54,6 +56,7 @@ export default function MicMacResults({ projectId, className = '' }: MicMacResul
       setError(errorMsg)
       console.error('❌ Error cargando resultados MIC MAC:', err)
     } finally {
+      console.log(`📊 [COMPONENT LOADING] MIC MAC RESULTS FINALIZADO - Proyecto: ${projectId}`)
       setLoading(false)
     }
   }

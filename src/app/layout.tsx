@@ -14,17 +14,32 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/logoMicMac.png?v=1',
-        sizes: 'any',
+        url: '/favicon-16x16.png',
+        sizes: '16x16',
         type: 'image/png',
       },
       {
-        url: '/favicon.svg?v=1',
-        type: 'image/svg+xml',
+        url: '/favicon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
       }
     ],
-    shortcut: '/logoMicMac.png?v=1',
-    apple: '/logoMicMac.png?v=1',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+    other: [
+      {
+        rel: 'android-chrome',
+        url: '/android-chrome-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        rel: 'android-chrome',
+        url: '/android-chrome-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      }
+    ],
   },
 };
 
@@ -36,8 +51,12 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <head>
-        <link rel="icon" href="/logoMicMac.png?v=1" type="image/png" />
-        <link rel="shortcut icon" href="/logoMicMac.png?v=1" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#3B82F6" />
       </head>
       <body className={inter.className}>
         <ToastProvider>

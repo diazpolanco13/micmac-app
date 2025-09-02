@@ -128,7 +128,7 @@ export function useActiveRoute(): ActiveRouteInfo {
           activeChild = 'Crear Proyecto'
           break
         case '/projects/templates':
-          activeChild = 'Plantillas'
+          activeChild = 'Programados'
           break
         case '/projects/archived':
           activeChild = 'Archivados'
