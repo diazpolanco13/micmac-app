@@ -1,6 +1,3 @@
-// 🚀 MIC MAC Pro - Prisma Schema
-// Generado automáticamente por @CursorDocs
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,64 +7,177 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Organizaciones para multi-tenancy
 model Organization {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  domain      String?
-  logo        String?
-  settings    Json?    @default("{}")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relaciones
+  id                String             @id @default(uuid())
+  name              String
+  slug              String             @unique
+  domain            String?
+  logo              String?
+  settings          Json?              @default("{}")
+  isActive          Boolean            @default(true) @map("is_active")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  experts           Expert[]
+  projects          Project[]
   userOrganizations UserOrganization[]
-  projects         Project[]
-  experts          Expert[]
 
   @@map("organizations")
 }
 
-// Usuarios (integrado con Supabase Auth)
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  role      UserRole @default(EXPERT)
-  name      String?
-  avatar    String?
-  bio       String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relaciones
-  organizations      UserOrganization[]
-  createdProjects    Project[]         @relation("ProjectCreator")
-  projectExperts     ProjectExpert[]
-  evaluations        Evaluation[]
-  statusChanges      StatusChange[]    @relation("StatusChanger")
-  expertInvitations  ProjectExpert[]   @relation("ExpertInviter")
+  id                String             @id @default(uuid())
+  email             String             @unique
+  role              UserRole           @default(EXPERT)
+  name              String?
+  avatar            String?
+  bio               String?
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  evaluations       Evaluation[]
+  expertInvitations ProjectExpert[]    @relation("ExpertInviter")
+  projectExperts    ProjectExpert[]
+  createdProjects   Project[]          @relation("ProjectCreator")
+  statusChanges     StatusChange[]     @relation("StatusChanger")
+  organizations     UserOrganization[]
 
   @@map("users")
 }
 
-// Relación many-to-many: Users <-> Organizations
 model UserOrganization {
-  id             String          @id @default(uuid())
-  userId         String          @map("user_id")
-  organizationId String          @map("organization_id")
+  id             String           @id @default(uuid())
+  userId         String           @map("user_id")
+  organizationId String           @map("organization_id")
   role           OrganizationRole @default(MEMBER)
-  status         UserOrgStatus   @default(ACTIVE)
-  joinedAt       DateTime        @default(now()) @map("joined_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
-
-  // Relaciones
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status         UserOrgStatus    @default(ACTIVE)
+  joinedAt       DateTime         @default(now()) @map("joined_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
   @@map("user_organizations")
+}
+
+model Project {
+  id              String          @id @default(uuid())
+  name            String
+  description     String?
+  type            ProjectType     @default(STRATEGIC)
+  status          ProjectStatus   @default(DRAFT)
+  expectedExperts Int             @default(5) @map("expected_experts")
+  tags            String[]        @default([])
+  isPublic        Boolean         @default(false) @map("is_public")
+  creatorId       String          @map("creator_id")
+  organizationId  String          @map("organization_id")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  evaluations     Evaluation[]
+  projectExperts  ProjectExpert[]
+  creator         User            @relation("ProjectCreator", fields: [creatorId], references: [id])
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  statusHistory   StatusChange[]
+  variables       Variable[]
+
+  @@map("projects")
+}
+
+model StatusChange {
+  id        String         @id @default(uuid())
+  projectId String         @map("project_id")
+  from      ProjectStatus?
+  to        ProjectStatus
+  changedBy String         @map("changed_by")
+  reason    String?
+  notes     String?
+  changedAt DateTime       @default(now()) @map("changed_at")
+  user      User           @relation("StatusChanger", fields: [changedBy], references: [id])
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("status_changes")
+}
+
+model Variable {
+  id             String       @id @default(uuid())
+  projectId      String       @map("project_id")
+  name           String
+  description    String?
+  order          Int          @default(0)
+  category       String?
+  color          String?
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  evaluationsAsA Evaluation[] @relation("VariableA")
+  evaluationsAsB Evaluation[] @relation("VariableB")
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, order])
+  @@map("variables")
+}
+
+model Expert {
+  id               String          @id @default(uuid())
+  name             String
+  email            String          @unique
+  organizationName String?         @map("organization")
+  organizationId   String          @map("organization_id")
+  expertiseAreas   String[]        @map("expertise_areas")
+  avatar           String?
+  yearsExperience  Int?            @map("years_experience")
+  notes            String?
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  evaluations      Evaluation[]
+  organization     Organization    @relation(fields: [organizationId], references: [id])
+  projectExperts   ProjectExpert[]
+
+  @@map("experts")
+}
+
+model ProjectExpert {
+  id                    String              @id @default(uuid())
+  projectId             String              @map("project_id")
+  expertId              String              @map("expert_id")
+  userId                String?             @map("user_id")
+  status                ProjectExpertStatus @default(INVITED)
+  invitedAt             DateTime            @default(now()) @map("invited_at")
+  invitedBy             String              @map("invited_by")
+  respondedAt           DateTime?           @map("responded_at")
+  lastActivity          DateTime?           @map("last_activity")
+  votingProgress        Int                 @default(0) @map("voting_progress")
+  notes                 String?
+  emailNotifications    Boolean             @default(true) @map("email_notifications")
+  inAppNotifications    Boolean             @default(true) @map("in_app_notifications")
+  reminderNotifications Boolean             @default(true) @map("reminder_notifications")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+  expert                Expert              @relation(fields: [expertId], references: [id])
+  inviter               User                @relation("ExpertInviter", fields: [invitedBy], references: [id])
+  project               Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user                  User?               @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, expertId])
+  @@map("project_experts")
+}
+
+model Evaluation {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  expertId    String   @map("expert_id")
+  userId      String?  @map("user_id")
+  variableAId String   @map("variable_a_id")
+  variableBId String   @map("variable_b_id")
+  value       Int
+  confidence  Int?
+  timeSpent   Int?     @map("time_spent")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  expert      Expert   @relation(fields: [expertId], references: [id])
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id])
+  variableA   Variable @relation("VariableA", fields: [variableAId], references: [id])
+  variableB   Variable @relation("VariableB", fields: [variableBId], references: [id])
+
+  @@unique([projectId, expertId, variableAId, variableBId])
+  @@map("evaluations")
 }
 
 enum OrganizationRole {
@@ -88,54 +198,10 @@ enum UserRole {
   EXPERT
 }
 
-// Proyectos MIC MAC
-model Project {
-  id              String        @id @default(uuid())
-  name            String
-  description     String?
-  type            ProjectType   @default(STRATEGIC)
-  status          ProjectStatus @default(DRAFT)
-  expectedExperts Int           @default(5) @map("expected_experts")
-  tags            String[]      @default([])
-  isPublic        Boolean       @default(false) @map("is_public")
-  creatorId       String        @map("creator_id")
-  organizationId  String        @map("organization_id")
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
-
-  // Relaciones
-  creator        User            @relation("ProjectCreator", fields: [creatorId], references: [id])
-  organization   Organization    @relation(fields: [organizationId], references: [id])
-  variables      Variable[]
-  projectExperts ProjectExpert[]
-  evaluations    Evaluation[]
-  statusHistory  StatusChange[]
-
-  @@map("projects")
-}
-
-// Historial de cambios de estado
-model StatusChange {
-  id        String         @id @default(uuid())
-  projectId String         @map("project_id")
-  from      ProjectStatus?
-  to        ProjectStatus
-  changedBy String         @map("changed_by")
-  reason    String?
-  notes     String?
-  changedAt DateTime       @default(now()) @map("changed_at")
-
-  // Relaciones
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user    User    @relation("StatusChanger", fields: [changedBy], references: [id])
-
-  @@map("status_changes")
-}
-
 enum ProjectStatus {
   DRAFT
   SETUP
-  ACTIVE  
+  ACTIVE
   IN_REVIEW
   COMPLETED
   ARCHIVED
@@ -149,106 +215,10 @@ enum ProjectType {
   ECONOMIC
 }
 
-// Variables del sistema
-model Variable {
-  id          String  @id @default(uuid())
-  projectId   String  @map("project_id")
-  name        String
-  description String?
-  order       Int     @default(0)
-  category    String?  // motriz, dependiente, enlace, autonoma
-  color       String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relaciones
-  project           Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  evaluationsAsA    Evaluation[] @relation("VariableA")
-  evaluationsAsB    Evaluation[] @relation("VariableB")
-
-  @@unique([projectId, order])
-  @@map("variables")
-}
-
-// Expertos del sistema  
-model Expert {
-  id                      String   @id @default(uuid())
-  name                    String
-  email                   String   @unique
-  organizationName        String?  @map("organization") // Nombre de la organización externa
-  organizationId          String   @map("organization_id") // ID de la organización que lo gestiona
-  expertiseAreas          String[] @map("expertise_areas")
-  avatar                  String?
-  yearsExperience         Int?     @map("years_experience")
-  notes                   String?
-  createdAt               DateTime @default(now()) @map("created_at")
-  updatedAt               DateTime @updatedAt @map("updated_at")
-
-  // Relaciones
-  organization   Organization    @relation(fields: [organizationId], references: [id])
-  projectExperts ProjectExpert[]
-  evaluations    Evaluation[]
-
-  @@map("experts")
-}
-
-// Relación many-to-many: Proyectos <-> Expertos
-model ProjectExpert {
-  id                          String                @id @default(uuid())
-  projectId                   String                @map("project_id")
-  expertId                    String                @map("expert_id")
-  userId                      String?               @map("user_id") // Link a User si está registrado
-  status                      ProjectExpertStatus   @default(INVITED)
-  invitedAt                   DateTime              @default(now()) @map("invited_at")
-  invitedBy                   String                @map("invited_by")
-  respondedAt                 DateTime?             @map("responded_at")
-  lastActivity                DateTime?             @map("last_activity")
-  votingProgress              Int                   @default(0) @map("voting_progress") // 0-100
-  notes                       String?
-  emailNotifications          Boolean               @default(true) @map("email_notifications")
-  inAppNotifications          Boolean               @default(true) @map("in_app_notifications")
-  reminderNotifications       Boolean               @default(true) @map("reminder_notifications")
-  updatedAt                   DateTime              @updatedAt @map("updated_at")
-
-  // Relaciones
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  expert    Expert  @relation(fields: [expertId], references: [id])
-  user      User?   @relation(fields: [userId], references: [id])
-  inviter   User    @relation("ExpertInviter", fields: [invitedBy], references: [id])
-
-  @@unique([projectId, expertId])
-  @@map("project_experts")
-}
-
 enum ProjectExpertStatus {
   INVITED
   ACTIVE
   VOTING
   COMPLETED
   DECLINED
-}
-
-// Evaluaciones/Votos de la matriz MIC MAC
-model Evaluation {
-  id          String   @id @default(uuid())
-  projectId   String   @map("project_id")
-  expertId    String   @map("expert_id")
-  userId      String?  @map("user_id")
-  variableAId String   @map("variable_a_id")
-  variableBId String   @map("variable_b_id")
-  value       Int      // Escala 0-3
-  confidence  Int?     // Nivel de confianza 1-5
-  timeSpent   Int?     @map("time_spent") // Segundos gastados en esta evaluación
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relaciones
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  expert    Expert   @relation(fields: [expertId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
-  variableA Variable @relation("VariableA", fields: [variableAId], references: [id])
-  variableB Variable @relation("VariableB", fields: [variableBId], references: [id])
-
-  @@unique([projectId, expertId, variableAId, variableBId])
-  @@map("evaluations")
 }
