@@ -254,35 +254,65 @@ export default function Sidebar({ state, onToggle }: SidebarProps) {
                         </button>
                       ) : (
                         <Disclosure as="div" defaultOpen={isParentActive(item)}>
-                          <DisclosureButton
-                            title={isCollapsed ? item.name : undefined}
-                            className={classNames(
-                              itemIsActive 
-                                ? 'bg-micmac-primary-50 dark:bg-micmac-primary-500/20 text-micmac-primary-700 dark:text-micmac-primary-300' 
-                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                              'group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold transition-colors',
-                              isCollapsed ? 'justify-center' : ''
-                            )}
-                          >
-                            <item.icon 
-                              aria-hidden="true" 
+                          {/* 🔄 CAMBIO: En modo colapsado, usar button normal para navegación directa */}
+                          {isCollapsed ? (
+                            <button
+                              onClick={() => {
+                                // En modo colapsado, navegar directamente a la página principal
+                                const mainRoute = item.name === 'Proyectos' ? '/projects' : item.children?.[0]?.href
+                                if (mainRoute) {
+                                  handleNavigation(mainRoute, item.name)
+                                }
+                              }}
+                              title={item.name}
                               className={classNames(
-                                'size-6 shrink-0',
                                 itemIsActive 
-                                  ? 'text-micmac-primary-600 dark:text-micmac-primary-400' 
-                                  : 'text-gray-400 dark:text-gray-500'
-                              )} 
-                            />
-                            {!isCollapsed && (
-                              <>
-                                {item.name}
-                                <ChevronRightIcon
-                                  aria-hidden="true"
-                                  className="ml-auto size-5 shrink-0 text-gray-400 dark:text-gray-500 group-data-[open]:rotate-90 group-data-[open]:text-gray-500 dark:group-data-[open]:text-gray-400 transition-transform"
-                                />
-                              </>
-                            )}
-                          </DisclosureButton>
+                                  ? 'bg-micmac-primary-50 dark:bg-micmac-primary-500/20 text-micmac-primary-700 dark:text-micmac-primary-300' 
+                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                                'group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold transition-colors justify-center'
+                              )}
+                            >
+                              <item.icon 
+                                aria-hidden="true" 
+                                className={classNames(
+                                  'size-6 shrink-0',
+                                  itemIsActive 
+                                    ? 'text-micmac-primary-600 dark:text-micmac-primary-400' 
+                                    : 'text-gray-400 dark:text-gray-500'
+                                )} 
+                              />
+                            </button>
+                          ) : (
+                            <DisclosureButton
+                              title={isCollapsed ? item.name : undefined}
+                              className={classNames(
+                                itemIsActive 
+                                  ? 'bg-micmac-primary-50 dark:bg-micmac-primary-500/20 text-micmac-primary-700 dark:text-micmac-primary-300' 
+                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                                'group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold transition-colors',
+                                isCollapsed ? 'justify-center' : ''
+                              )}
+                            >
+                              <item.icon 
+                                aria-hidden="true" 
+                                className={classNames(
+                                  'size-6 shrink-0',
+                                  itemIsActive 
+                                    ? 'text-micmac-primary-600 dark:text-micmac-primary-400' 
+                                    : 'text-gray-400 dark:text-gray-500'
+                                )} 
+                              />
+                              {!isCollapsed && (
+                                <>
+                                  {item.name}
+                                  <ChevronRightIcon
+                                    aria-hidden="true"
+                                    className="ml-auto size-5 shrink-0 text-gray-400 dark:text-gray-500 group-data-[open]:rotate-90 group-data-[open]:text-gray-500 dark:group-data-[open]:text-gray-400 transition-transform"
+                                  />
+                                </>
+                              )}
+                            </DisclosureButton>
+                          )}
                           
                           {!isCollapsed && (
                             <DisclosurePanel as="ul" className="mt-1 px-2">

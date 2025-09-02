@@ -31,7 +31,7 @@ export default function ExpertiseAreaModal({
     name: '',
     yearsExperience: 1,
     proficiencyLevel: 3 as 1 | 2 | 3 | 4 | 5,
-    experienceType: 'PROFESSIONAL' as ExperienceType,
+    experienceTypes: ['PROFESSIONAL'] as ExperienceType[], // 🔄 CAMBIO: Array de tipos
     educationLevel: undefined as EducationLevel | undefined
   })
   
@@ -44,7 +44,7 @@ export default function ExpertiseAreaModal({
         name: editingArea.name,
         yearsExperience: editingArea.yearsExperience,
         proficiencyLevel: editingArea.proficiencyLevel,
-        experienceType: editingArea.experienceType,
+        experienceTypes: [editingArea.experienceType], // 🔄 CAMBIO: Convertir a array
         educationLevel: editingArea.educationLevel
       })
     } else {
@@ -53,7 +53,7 @@ export default function ExpertiseAreaModal({
         name: '',
         yearsExperience: 1,
         proficiencyLevel: 3,
-        experienceType: 'PROFESSIONAL',
+        experienceTypes: ['PROFESSIONAL'], // 🔄 CAMBIO: Array por defecto
         educationLevel: undefined
       })
     }
@@ -67,6 +67,26 @@ export default function ExpertiseAreaModal({
     }))
     
     // Limpiar errores cuando el usuario modifica
+    if (errors.length > 0) {
+      setErrors([])
+    }
+  }
+
+  // 🆕 NUEVA FUNCIÓN: Manejar checkboxes de experienceTypes
+  const handleExperienceTypeChange = (type: ExperienceType, checked: boolean) => {
+    setFormData(prev => {
+      const newTypes = checked 
+        ? [...prev.experienceTypes, type]
+        : prev.experienceTypes.filter(t => t !== type)
+      
+      // Al menos uno debe estar seleccionado
+      return {
+        ...prev,
+        experienceTypes: newTypes.length > 0 ? newTypes : [type]
+      }
+    })
+    
+    // Limpiar errores
     if (errors.length > 0) {
       setErrors([])
     }
@@ -104,24 +124,39 @@ export default function ExpertiseAreaModal({
   const handleSave = () => {
     if (!validateForm()) return
     
-    const expertiseArea = ExpertiseCalculator.createExpertiseArea(
-      formData.name.trim(),
-      {
-        yearsExperience: formData.yearsExperience,
-        proficiencyLevel: formData.proficiencyLevel,
-        experienceType: formData.experienceType,
-        educationLevel: formData.educationLevel
-      }
-    )
+    // 🆕 USAR NUEVA FUNCIÓN: Calcular con múltiples contextos
+    const calculation = ExpertiseCalculator.calculateMultiContextScore({
+      yearsExperience: formData.yearsExperience,
+      proficiencyLevel: formData.proficiencyLevel,
+      experienceTypes: formData.experienceTypes, // 🔄 Usar array completo
+      educationLevel: formData.educationLevel
+    })
+    
+    const now = new Date().toISOString()
+    
+    // Crear área de expertise manualmente con el cálculo correcto
+    const expertiseArea = {
+      name: formData.name.trim(),
+      yearsExperience: formData.yearsExperience,
+      proficiencyLevel: formData.proficiencyLevel,
+      experienceType: formData.experienceTypes[0], // Para compatibilidad con UI existente
+      educationLevel: formData.educationLevel,
+      calculatedScore: calculation.score,
+      level: calculation.level,
+      priority: calculation.priority,
+      createdAt: now,
+      updatedAt: now
+    }
     
     onSave(expertiseArea)
     onClose()
   }
   
-  const calculation = ExpertiseCalculator.calculateScore({
+  // 🔄 USAR NUEVA FUNCIÓN: Cálculo en tiempo real con múltiples contextos
+  const calculation = ExpertiseCalculator.calculateMultiContextScore({
     yearsExperience: formData.yearsExperience,
     proficiencyLevel: formData.proficiencyLevel,
-    experienceType: formData.experienceType,
+    experienceTypes: formData.experienceTypes, // 🔄 Usar array completo
     educationLevel: formData.educationLevel
   })
   
@@ -208,22 +243,33 @@ export default function ExpertiseAreaModal({
           </select>
         </div>
         
-        {/* Tipo de experiencia */}
+        {/* Tipos de experiencia - CHECKBOXES MÚLTIPLES */}
         <div>
-          <label className="block text-sm font-medium text-dark-text-primary mb-2">
-            ¿En qué contexto desarrollaste esta expertise?
+          <label className="block text-sm font-medium text-dark-text-primary mb-3">
+            ¿En qué contextos desarrollaste esta expertise? <span className="text-micmac-accent-400">(Puedes seleccionar varios)</span>
           </label>
-          <select
-            value={formData.experienceType}
-            onChange={(e) => handleInputChange('experienceType', e.target.value as ExperienceType)}
-            className="w-full px-3 py-2 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-lg text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-micmac-primary-500"
-          >
-            <option value="PROFESSIONAL">💼 Profesional (Trabajo/Empresa)</option>
-            <option value="ACADEMIC">🎓 Académico (Universidad/Docencia)</option>
-            <option value="RESEARCH">🔬 Investigación</option>
-            <option value="CONSULTING">💡 Consultoría</option>
-            <option value="PERSONAL">🛠️ Experiencia Personal</option>
-          </select>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: 'PROFESSIONAL', label: '💼 Profesional', short: 'Trabajo/Empresa' },
+              { value: 'ACADEMIC', label: '🎓 Académico', short: 'Universidad' },
+              { value: 'RESEARCH', label: '🔬 Investigación', short: 'Científica' },
+              { value: 'CONSULTING', label: '💡 Consultoría', short: 'Independiente' },
+              { value: 'PERSONAL', label: '🛠️ Personal', short: 'Proyectos propios' }
+            ].map((option) => (
+              <label key={option.value} className="flex items-center gap-2 p-2 bg-dark-bg-secondary rounded border border-dark-bg-tertiary hover:border-micmac-primary-500 transition-colors cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.experienceTypes.includes(option.value as ExperienceType)}
+                  onChange={(e) => handleExperienceTypeChange(option.value as ExperienceType, e.target.checked)}
+                  className="w-4 h-4 text-micmac-primary-500 bg-dark-bg-tertiary border-dark-bg-tertiary rounded focus:ring-micmac-primary-500"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-dark-text-primary text-sm">{option.label}</div>
+                  <div className="text-xs text-dark-text-secondary truncate">{option.short}</div>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
         
         {/* Nivel educativo (opcional) */}

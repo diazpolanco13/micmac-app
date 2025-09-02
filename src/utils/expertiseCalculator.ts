@@ -19,8 +19,78 @@ interface ExpertiseInput {
   educationLevel?: EducationLevel
 }
 
+// 🆕 NUEVA INTERFAZ: Para múltiples contextos
+interface MultiContextExpertiseInput {
+  yearsExperience: number
+  proficiencyLevel: 1 | 2 | 3 | 4 | 5
+  experienceTypes: ExperienceType[]
+  educationLevel?: EducationLevel
+}
+
 export class ExpertiseCalculator {
   
+  /**
+   * 🆕 Calcula score con múltiples contextos (NUEVO)
+   */
+  static calculateMultiContextScore(input: MultiContextExpertiseInput): ExpertiseCalculationResult {
+    // Base: años de experiencia (máximo 60 puntos)
+    const experienceScore = Math.min(60, input.yearsExperience * 3)
+    
+    // Multiplicador por nivel autopercibido (0.6 a 1.4)
+    const levelMultiplier = {
+      1: 0.6,  // Principiante
+      2: 0.8,  // Competente  
+      3: 1.0,  // Experimentado
+      4: 1.2,  // Experto
+      5: 1.4   // Maestro
+    }[input.proficiencyLevel]
+    
+    // 🔄 NUEVA LÓGICA: Sumar bonus de MÚLTIPLES contextos
+    const contextBonuses = {
+      'PERSONAL': 5,      // Reducido para múltiples
+      'ACADEMIC': 12,     // Académico sigue siendo valioso
+      'PROFESSIONAL': 18, // Profesional es el más valioso
+      'RESEARCH': 15,     // Investigación muy valiosa
+      'CONSULTING': 22    // Consultoría es premium
+    }
+    
+    // Sumar todos los contextos, pero con rendimiento decreciente
+    let totalContextBonus = 0
+    input.experienceTypes.forEach((type, index) => {
+      const baseBonus = contextBonuses[type]
+      // Rendimiento decreciente: 100%, 70%, 50%, 30%, 20%
+      const multiplier = index === 0 ? 1.0 : 
+                        index === 1 ? 0.7 : 
+                        index === 2 ? 0.5 : 
+                        index === 3 ? 0.3 : 0.2
+      totalContextBonus += baseBonus * multiplier
+    })
+    
+    // Bonus por diversidad (tener múltiples contextos)
+    const diversityBonus = input.experienceTypes.length > 1 ? 
+      Math.min(10, (input.experienceTypes.length - 1) * 3) : 0
+    
+    // Bonus por educación (0 a 15 puntos)
+    const educationBonus = {
+      'AUTODIDACTA': 5,
+      'TECNICO': 8,
+      'UNIVERSITARIO': 12,
+      'POSTGRADO': 15,
+      'DOCTORADO': 15
+    }[input.educationLevel || 'AUTODIDACTA']
+    
+    // Cálculo final
+    const baseScore = experienceScore * levelMultiplier
+    const finalScore = baseScore + totalContextBonus + diversityBonus + educationBonus
+    const score = Math.min(100, Math.max(10, Math.round(finalScore)))
+    
+    return {
+      score,
+      level: this.getLevel(score),
+      priority: this.getPriority(score)
+    }
+  }
+
   /**
    * 📊 Calcula el score de expertise (Fase 1 - Simple)
    */
