@@ -22,7 +22,10 @@ export default function Home() {
   useEffect(() => {
     if (!loading && user && !redirecting) {
       setRedirecting(true)
-      startLoading('/dashboard', true)
+      // 🔧 SOLO activar loading si no estamos ya en dashboard
+      if (window.location.pathname !== '/dashboard') {
+        startLoading('/dashboard', true)
+      }
       setTimeout(() => {
         router.push('/dashboard')
       }, 100)

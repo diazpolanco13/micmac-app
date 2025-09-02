@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { ExpertiseArea, Organization, UserRole, MultiOrgUser, UserOrganization } from '@/types/project'
 import { createMockUserProfile } from '@/utils/mockExpertiseData'
 import { mockOrganizations } from '@/lib/mockData'
@@ -356,7 +356,8 @@ const initializeDemoUsers = () => {
 }
 
 export function MockAuthProvider({ children }: { children: React.ReactNode }) {
-  console.log('🔄 [AUTH PROVIDER] COMPONENTE MONTADO/RE-RENDERIZADO')
+  const mountId = React.useRef(Math.random().toString(36).substr(2, 9))
+  console.log(`🔄 [AUTH PROVIDER] COMPONENTE MONTADO/RE-RENDERIZADO (ID: ${mountId.current})`)
   const [user, setUser] = useState<User | null>(null)
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null)
   const [loading, setLoading] = useState(true)
