@@ -169,7 +169,7 @@ const initializeDemoUsers = () => {
           status: 'ACTIVE' as const
         }
       ],
-      avatar: '👨‍💼',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
       bio: 'Director de Análisis Prospectivos en TechCorp Solutions. Especialista en transformación digital y análisis de escenarios tecnológicos con más de 15 años de experiencia.',
       organization: 'TechCorp Solutions',
       phone: '+34 666 123 456',
@@ -201,7 +201,7 @@ const initializeDemoUsers = () => {
           status: 'ACTIVE' as const
         }
       ],
-      avatar: '👩‍🔬',
+      avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
       bio: 'Experta Senior en IA y Machine Learning en TechCorp Solutions. Doctora en Ingeniería de Sistemas con especialización en análisis predictivo y modelado de variables complejas.',
       organization: 'TechCorp Solutions',
       phone: '+34 777 987 654',
@@ -235,7 +235,7 @@ const initializeDemoUsers = () => {
           status: 'ACTIVE' as const
         }
       ],
-      avatar: '👨‍⚕️',
+      avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face',
       bio: 'Director de Innovación en HealthPlus. Médico especialista en salud digital con experiencia en telemedicina y transformación digital hospitalaria.',
       organization: 'HealthPlus Innovations',
       phone: '+34 888 234 567',
@@ -269,7 +269,7 @@ const initializeDemoUsers = () => {
           status: 'ACTIVE' as const
         }
       ],
-      avatar: '👩‍💼',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b1e1?w=150&h=150&fit=crop&crop=face',
       bio: 'Fundadora y CEO de Startup Accelerator Hub. Emprendedora serial con experiencia en aceleración de startups tecnológicas y análisis de mercados emergentes.',
       organization: 'Startup Accelerator Hub',
       phone: '+34 999 345 678',
@@ -315,7 +315,7 @@ const initializeDemoUsers = () => {
           status: 'ACTIVE' as const
         }
       ],
-      avatar: '🌐',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
       bio: 'Usuario de prueba multi-organizacional. Participa en múltiples organizaciones con diferentes roles para demostrar las capacidades del sistema.',
       organization: 'TechCorp Solutions', // Organización activa
       phone: '+34 555 123 456',
