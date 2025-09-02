@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { MockAuthProvider } from '@/contexts/MockAuthContext';
-import { MockDataProvider } from '@/contexts/MockDataContext';
+// FASE 1: Contextos híbridos Mock/Supabase
+import { AuthProvider } from '@/contexts/AuthContext';
+import { DataProvider } from '@/contexts/DataContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { NavigationLoadingProvider, NavigationLoadingPortal } from '@/contexts/NavigationLoadingContext';
 import './globals.css';
@@ -60,14 +61,14 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ToastProvider>
-          <MockAuthProvider>
-            <MockDataProvider>
+          <AuthProvider>
+            <DataProvider>
               <NavigationLoadingProvider>
                 {children}
                 <NavigationLoadingPortal />
               </NavigationLoadingProvider>
-            </MockDataProvider>
-          </MockAuthProvider>
+            </DataProvider>
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>

@@ -1,70 +1,78 @@
 /**
- * 🗄️ Context de Datos Real
- * Contexto que maneja datos reales usando APIs de Prisma + Supabase
+ * 🔄 Contexto Híbrido de Datos
+ * FASE 1: Infraestructura dual Mock/Supabase
+ * Permite alternar entre Mock y Supabase sin romper la aplicación
  */
 
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { useProjectsApi, useExpertsApi } from '@/hooks/useApi'
-import { useAuth } from './SupabaseAuthContext'
+import React, { createContext, useContext, ReactNode } from 'react'
+import { MockDataProvider, useMockData as useMockDataOriginal } from './MockDataContext'
+// import { SupabaseDataProvider, useSupabaseData } from './SupabaseDataContext' // Para futuras fases
+
 import type { 
   Project,
   Variable,
-  Expert
+  Expert,
+  ProjectType,
+  ExpertFormData,
+  ExpertFilter,
+  ExpertStats,
+  VotingResponse,
+  VotingMatrix,
+  MicMacResults
 } from '@/types/project'
 
-interface DataContextType {
-  // Proyectos
+// Interfaz unificada para ambos contextos de datos
+export interface DataContextType {
+  // Projects
   projects: Project[]
   currentProject: Project | null
   loadingProjects: boolean
-  
-  // Expertos
-  experts: Expert[]
-  loadingExperts: boolean
-  
-  // Acciones
   refreshProjects: () => Promise<void>
-  refreshExperts: () => Promise<void>
-  setCurrentProject: (project: Project | null) => void
-  
-  // Operaciones CRUD
   createProject: (data: {
     name: string
     description: string
-    type: string
+    type: ProjectType
     expectedExperts: number
-  }) => Promise<{ success: boolean; data?: Project }>
-  
-  updateProject: (id: string, data: any) => Promise<{ success: boolean; data?: Project }>
-  deleteProject: (id: string) => Promise<{ success: boolean }>
-  
-  createVariable: (projectId: string, data: {
-    name: string
-    description?: string
-    category?: string
-    color?: string
-  }) => Promise<{ success: boolean; data?: Variable }>
-  
-  updateVariable: (id: string, data: any) => Promise<{ success: boolean; data?: Variable }>
-  deleteVariable: (id: string) => Promise<{ success: boolean }>
-  reorderVariables: (projectId: string, orders: { id: string; order: number }[]) => Promise<{ success: boolean }>
-  
-  createExpert: (data: {
-    name: string
-    email: string
-    organization?: string
-    expertiseAreas: string[]
-    avatar?: string
-    yearsExperience?: number
-    notes?: string
-  }) => Promise<{ success: boolean; data?: Expert }>
+  }) => Promise<Project>
+  updateProject: (id: string, data: Partial<Project>) => Promise<Project>
+  deleteProject: (id: string) => Promise<void>
+  setCurrentProject: (project: Project | null) => void
+
+  // Variables
+  addVariable: (projectId: string, name: string, description?: string) => Promise<Variable>
+  updateVariable: (projectId: string, variableId: string, data: { name?: string; description?: string }) => Promise<Variable>
+  deleteVariable: (projectId: string, variableId: string) => Promise<void>
+  reorderVariables: (projectId: string, variables: Variable[]) => Promise<void>
+
+  // Experts
+  experts: Expert[]
+  loadingExperts: boolean
+  refreshExperts: () => Promise<void>
+  createExpert: (data: ExpertFormData) => Promise<Expert>
+  updateExpert: (id: string, data: Partial<ExpertFormData>) => Promise<Expert>
+  deleteExpert: (id: string) => Promise<void>
+  getExpertStats: () => ExpertStats
+  filterExperts: (filter: ExpertFilter) => Expert[]
+  inviteExpert: (projectId: string, expertId: string) => Promise<void>
+  removeExpertFromProject: (projectId: string, expertId: string) => Promise<void>
+
+  // Voting
+  submitVote: (projectId: string, variableAId: string, variableBId: string, value: number) => Promise<void>
+  getVotingMatrix: (projectId: string) => Promise<VotingMatrix>
+  getVotingProgress: (projectId: string) => Promise<number>
+
+  // MIC MAC Results
+  getMicMacResults: (projectId: string) => MicMacResults | null
+  generateMicMacResults: (projectId: string, force?: boolean) => Promise<MicMacResults>
+  clearMicMacResults: (projectId: string) => void
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
-export function useData() {
+// Hook principal que decide qué contexto usar
+export function useData(): DataContextType {
   const context = useContext(DataContext)
   if (context === undefined) {
     throw new Error('useData must be used within a DataProvider')
@@ -72,204 +80,60 @@ export function useData() {
   return context
 }
 
+// Componente wrapper que decide qué proveedor usar
 interface DataProviderProps {
   children: ReactNode
 }
 
 export function DataProvider({ children }: DataProviderProps) {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [currentProject, setCurrentProject] = useState<Project | null>(null)
-  const [experts, setExperts] = useState<Expert[]>([])
-  
-  const { user } = useAuth()
-  const projectsApi = useProjectsApi()
-  const expertsApi = useExpertsApi()
+  // Leer flag de migración desde variables de entorno
+  const useSupabaseData = process.env.NEXT_PUBLIC_USE_SUPABASE_DATA === 'true' || 
+                          process.env.USE_SUPABASE_DATA === 'true'
 
-  // Estados de carga
-  const loadingProjects = projectsApi.loading
-  const loadingExperts = expertsApi.loading
+  console.log(`🔄 [DATA PROVIDER] Usando ${useSupabaseData ? 'SUPABASE' : 'MOCK'} Data (Fase ${process.env.MIGRATION_PHASE || '1'})`)
 
-  // Cargar proyectos
-  const refreshProjects = async () => {
-    const result = await projectsApi.getProjects()
-    if (result.success && result.data) {
-      setProjects(result.data)
-    }
+  if (useSupabaseData) {
+    // FASE 4+: Usar Supabase Data
+    return (
+      <div>
+        {/* TODO: Implementar SupabaseDataProvider en fases futuras */}
+        <div className="p-4 bg-yellow-100 border border-yellow-400 rounded">
+          <p className="text-yellow-800">⚠️ Supabase Data Provider aún no implementado (Fase 4+)</p>
+        </div>
+        <MockDataProvider>
+          <MockDataAdapter>
+            {children}
+          </MockDataAdapter>
+        </MockDataProvider>
+      </div>
+    )
+  } else {
+    // FASE 1-3: Usar Mock Data (comportamiento actual)
+    return (
+      <MockDataProvider>
+        <MockDataAdapter>
+          {children}
+        </MockDataAdapter>
+      </MockDataProvider>
+    )
   }
+}
 
-  // Cargar expertos
-  const refreshExperts = async () => {
-    const result = await expertsApi.getExperts()
-    if (result.success && result.data) {
-      setExperts(result.data)
-    }
-  }
+// Adaptador para Mock Data (mantiene interfaces compatibles)
+function MockDataAdapter({ children }: { children: ReactNode }) {
+  const mockData = useMockDataOriginal()
 
-  // Cargar datos iniciales cuando el usuario está autenticado
-  useEffect(() => {
-    if (user) {
-      refreshProjects()
-      refreshExperts()
-    } else {
-      // Limpiar datos cuando no hay usuario
-      setProjects([])
-      setExperts([])
-      setCurrentProject(null)
-    }
-  }, [user])
-
-  // Operaciones CRUD
-  const createProject = async (data: {
-    name: string
-    description: string
-    type: string
-    expectedExperts: number
-  }) => {
-    const result = await projectsApi.createProject(data)
-    if (result.success) {
-      await refreshProjects()
-    }
-    return result
-  }
-
-  const updateProject = async (id: string, data: any) => {
-    const result = await projectsApi.updateProject(id, data)
-    if (result.success) {
-      await refreshProjects()
-      // Actualizar proyecto actual si es el mismo
-      if (currentProject?.id === id) {
-        const updatedResult = await projectsApi.getProject(id)
-        if (updatedResult.success && updatedResult.data) {
-          setCurrentProject(updatedResult.data)
-        }
-      }
-    }
-    return result
-  }
-
-  const deleteProject = async (id: string) => {
-    const result = await projectsApi.deleteProject(id)
-    if (result.success) {
-      await refreshProjects()
-      // Limpiar proyecto actual si era el eliminado
-      if (currentProject?.id === id) {
-        setCurrentProject(null)
-      }
-    }
-    return result
-  }
-
-  const createVariable = async (projectId: string, data: {
-    name: string
-    description?: string
-    category?: string
-    color?: string
-  }) => {
-    const result = await projectsApi.createVariable(projectId, data)
-    if (result.success) {
-      await refreshProjects()
-      // Refrescar proyecto actual si es el mismo
-      if (currentProject?.id === projectId) {
-        const updatedResult = await projectsApi.getProject(projectId)
-        if (updatedResult.success && updatedResult.data) {
-          setCurrentProject(updatedResult.data)
-        }
-      }
-    }
-    return result
-  }
-
-  const updateVariable = async (id: string, data: any) => {
-    const result = await projectsApi.updateVariable(id, data)
-    if (result.success) {
-      await refreshProjects()
-      // Refrescar proyecto actual si corresponde
-      if (currentProject) {
-        const updatedResult = await projectsApi.getProject(currentProject.id)
-        if (updatedResult.success && updatedResult.data) {
-          setCurrentProject(updatedResult.data)
-        }
-      }
-    }
-    return result
-  }
-
-  const deleteVariable = async (id: string) => {
-    const result = await projectsApi.deleteVariable(id)
-    if (result.success) {
-      await refreshProjects()
-      // Refrescar proyecto actual si corresponde
-      if (currentProject) {
-        const updatedResult = await projectsApi.getProject(currentProject.id)
-        if (updatedResult.success && updatedResult.data) {
-          setCurrentProject(updatedResult.data)
-        }
-      }
-    }
-    return result
-  }
-
-  const reorderVariables = async (projectId: string, orders: { id: string; order: number }[]) => {
-    const result = await projectsApi.reorderVariables(projectId, orders)
-    if (result.success) {
-      await refreshProjects()
-      // Refrescar proyecto actual si es el mismo
-      if (currentProject?.id === projectId) {
-        const updatedResult = await projectsApi.getProject(projectId)
-        if (updatedResult.success && updatedResult.data) {
-          setCurrentProject(updatedResult.data)
-        }
-      }
-    }
-    return result
-  }
-
-  const createExpert = async (data: {
-    name: string
-    email: string
-    organization?: string
-    expertiseAreas: string[]
-    avatar?: string
-    yearsExperience?: number
-    notes?: string
-  }) => {
-    const result = await expertsApi.createExpert(data)
-    if (result.success) {
-      await refreshExperts()
-    }
-    return result
-  }
-
-  const value: DataContextType = {
-    // Estados
-    projects,
-    currentProject,
-    experts,
-    loadingProjects,
-    loadingExperts,
-    
-    // Acciones
-    refreshProjects,
-    refreshExperts,
-    setCurrentProject,
-    
-    // CRUD
-    createProject,
-    updateProject,
-    deleteProject,
-    createVariable,
-    updateVariable,
-    deleteVariable,
-    reorderVariables,
-    createExpert
+  // La interfaz de MockData ya es compatible, solo pasamos directamente
+  const adaptedData: DataContextType = {
+    ...mockData
   }
 
   return (
-    <DataContext.Provider value={value}>
+    <DataContext.Provider value={adaptedData}>
       {children}
     </DataContext.Provider>
   )
 }
 
-// Hook para usar solo cuando se necesite acceso directo a la API
-export { useProjectsApi, useExpertsApi }
+// Hook de compatibilidad para mantener código existente
+export { useData as useMockData } // Alias para compatibilidad hacia atrás
