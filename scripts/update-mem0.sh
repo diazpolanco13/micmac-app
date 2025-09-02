@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Script inteligente para actualizar Mem0 con commits
+# Script inteligente MEJORADO para actualizar Mem0 con commits
 # Uso: ./scripts/update-mem0.sh "mensaje del commit"
-# También sincroniza automáticamente el historial reciente
+# Captura contexto completo para el "yo del futuro" de la IA
 
 COMMIT_MSG="$1"
 DATE=$(date -Iseconds)
@@ -13,41 +13,81 @@ if [ -z "$COMMIT_MSG" ]; then
     exit 1
 fi
 
-echo "🧠 Actualizando Mem0 con información del commit..."
+echo "🧠 Actualizando Mem0 con información COMPLETA del commit..."
 
 # Extraer información del commit
 GIT_HASH=$(git rev-parse --short HEAD)
 GIT_BRANCH=$(git branch --show-current)
 AUTHOR=$(git config user.name)
 
-# Detectar tipo de cambio basado en el mensaje
+# DETECCIÓN AVANZADA de tipo de cambio (incluyendo emojis y contexto)
 TYPE="feature"
-if [[ $COMMIT_MSG =~ [Ff]ix|[Bb]ug|[Cc]orrec ]]; then
+PRIORITY="high"
+CONTEXT="development"
+
+# Debugging y correcciones (PRIORIDAD CRÍTICA)
+if [[ $COMMIT_MSG =~ [Dd]ebug|[Ee]rror|🐛|🔧|[Ff]ix|[Bb]ug|[Cc]orrec ]]; then
     TYPE="bugfix"
-elif [[ $COMMIT_MSG =~ [Rr]efactor|[Mm]ejor|[Oo]ptimiz ]]; then
+    PRIORITY="critical"
+    CONTEXT="debugging"
+# Migración y cambios críticos
+elif [[ $COMMIT_MSG =~ [Mm]igra|[Ss]upabase|[Dd]atabase|[Ss]chema|🚀 ]]; then
+    TYPE="migration"
+    PRIORITY="critical"
+    CONTEXT="migration"
+# Nuevas funcionalidades
+elif [[ $COMMIT_MSG =~ [Ff]eat|[Ii]mplement|[Aa]dd|✅|🎯 ]]; then
+    TYPE="feature"
+    PRIORITY="high"
+    CONTEXT="development"
+# Refactoring y mejoras
+elif [[ $COMMIT_MSG =~ [Rr]efactor|[Mm]ejor|[Oo]ptimiz|♻️ ]]; then
     TYPE="improvement"
-elif [[ $COMMIT_MSG =~ [Dd]oc|[Rr]eadme|[Gg]uía ]]; then
+    PRIORITY="medium"
+    CONTEXT="optimization"
+# Documentación
+elif [[ $COMMIT_MSG =~ [Dd]oc|[Rr]eadme|[Gg]uía|📝 ]]; then
     TYPE="documentation"
+    PRIORITY="low"
+    CONTEXT="documentation"
 fi
 
-# Actualizar Mem0 con el commit actual
+# Obtener archivos modificados (información clave para contexto)
+MODIFIED_FILES=$(git diff --name-only HEAD~1 HEAD | head -5 | tr '\n' ', ' | sed 's/,$//')
+FILE_COUNT=$(git diff --name-only HEAD~1 HEAD | wc -l)
+
+# Detectar estado del proyecto basado en archivos modificados
+PROJECT_STATE="normal_development"
+if [[ $MODIFIED_FILES =~ Context|Auth|Supabase ]]; then
+    PROJECT_STATE="migration_active"
+elif [[ $MODIFIED_FILES =~ test|spec ]]; then
+    PROJECT_STATE="testing_phase"
+elif [[ $MODIFIED_FILES =~ package\.json|dependencies ]]; then
+    PROJECT_STATE="dependency_update"
+fi
+
+# Actualizar Mem0 con INFORMACIÓN COMPLETA del commit
 curl -s -X POST http://localhost:8081/memory/add \
   -H "Content-Type: application/json" \
   -d "{
     \"messages\": [
-      {\"role\": \"user\", \"content\": \"¿Qué fue lo último que desarrollamos en MIC MAC Pro?\"},
-      {\"role\": \"assistant\", \"content\": \"Último desarrollo ($GIT_HASH): $COMMIT_MSG. Tipo: $TYPE. Rama: $GIT_BRANCH. Autor: $AUTHOR. Fecha: $DATE. Este es el progreso más reciente del proyecto.\"}
+      {\"role\": \"user\", \"content\": \"¿Qué fue lo último que desarrollamos en MIC MAC Pro? ¿En qué estado está el proyecto?\"},
+      {\"role\": \"assistant\", \"content\": \"ÚLTIMO DESARROLLO ($GIT_HASH): $COMMIT_MSG\\n\\n📊 CONTEXTO COMPLETO:\\n• Tipo: $TYPE (prioridad: $PRIORITY)\\n• Estado del proyecto: $PROJECT_STATE\\n• Archivos modificados: $MODIFIED_FILES ($FILE_COUNT archivos)\\n• Rama: $GIT_BRANCH | Autor: $AUTHOR\\n• Fecha: $DATE\\n\\n🎯 PARA EL FUTURO: Este commit representa $CONTEXT en el proyecto MIC MAC Pro. El estado actual es $PROJECT_STATE.\"}
     ],
     \"user_id\": \"micmac_user\",
     \"metadata\": {
       \"type\": \"latest_commit\",
       \"module\": \"development\",
       \"commit_type\": \"$TYPE\",
+      \"project_state\": \"$PROJECT_STATE\",
+      \"context\": \"$CONTEXT\",
+      \"modified_files\": \"$MODIFIED_FILES\",
+      \"file_count\": $FILE_COUNT,
       \"git_hash\": \"$GIT_HASH\",
       \"branch\": \"$GIT_BRANCH\",
       \"author\": \"$AUTHOR\",
       \"date\": \"$DATE\",
-      \"priority\": \"critical\"
+      \"priority\": \"$PRIORITY\"
     }
   }" > /dev/null
 
@@ -55,7 +95,10 @@ curl -s -X POST http://localhost:8081/memory/add \
 echo "🔄 Sincronizando historial reciente..."
 ./scripts/sync-commits-mem0.sh > /dev/null
 
-echo "✅ Mem0 actualizado completamente:"
-echo "   📝 Commit actual: $COMMIT_MSG"
+echo "✅ Mem0 actualizado con CONTEXTO COMPLETO:"
+echo "   📝 Commit: $COMMIT_MSG"
+echo "   🏷️  Tipo: $TYPE (prioridad: $PRIORITY)"
+echo "   📊 Estado proyecto: $PROJECT_STATE"
+echo "   📁 Archivos: $FILE_COUNT modificados"
 echo "   🔄 Historial reciente sincronizado"
-echo "   🎯 Contexto listo para próxima conversación"
+echo "   🎯 CONTEXTO RICO listo para 'yo del futuro'"
