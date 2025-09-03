@@ -149,12 +149,38 @@ export default function SettingsPage() {
 
     setIsLoading(true)
     try {
-      // Simular actualización (en el futuro será una API call)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      console.log('💾 [handleSaveOrganization] Guardando cambios de organización...')
       
+      // Importar supabase para hacer la actualización
+      const { supabase } = await import('@/lib/supabase')
+      
+      if (!user?.currentOrganizationId) {
+        throw new Error('No hay organización activa para actualizar')
+      }
+      
+      // Actualizar la organización en la tabla organizations
+      const { error } = await supabase
+        .from('organizations')
+        .update({ 
+          name: orgName.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.currentOrganizationId)
+
+      if (error) {
+        console.error('❌ Error actualizando organización:', error)
+        throw error
+      }
+
+      console.log('✅ Organización actualizada en BD')
       toast.success('Organización Actualizada', 'Los cambios se han guardado correctamente')
       setIsEditingOrg(false)
+      
+      // Triggear actualización reactiva
+      window.dispatchEvent(new CustomEvent('supabase-user-updated'))
+      
     } catch (error) {
+      console.error('💥 Error saving organization:', error)
       toast.error('Error', 'No se pudo actualizar la organización')
     } finally {
       setIsLoading(false)
@@ -489,7 +515,10 @@ function OrganizationTab({
           {!isEditingOrg ? (
             <Button
               ghost
-              onClick={() => setIsEditingOrg(true)}
+              onClick={() => {
+                console.log('🔧 [OrganizationTab] Activando modo edición')
+                setIsEditingOrg(true)
+              }}
               disabled={isLoading}
             >
               ✏️ Editar
@@ -498,14 +527,20 @@ function OrganizationTab({
             <div className="flex space-x-2">
               <Button
                 ghost
-                onClick={onCancelEditOrg}
+                onClick={() => {
+                  console.log('🔧 [OrganizationTab] Cancelando edición')
+                  onCancelEditOrg()
+                }}
                 disabled={isLoading}
               >
                 Cancelar
               </Button>
               <Button
                 color="primary"
-                onClick={onSaveOrganization}
+                onClick={() => {
+                  console.log('🔧 [OrganizationTab] Guardando cambios')
+                  onSaveOrganization()
+                }}
                 disabled={isLoading}
               >
                 {isLoading ? 'Guardando...' : 'Guardar'}
@@ -1122,29 +1157,7 @@ function MultiOrgTab() {
         </div>
       </div>
 
-      {/* Información de debugging (solo en desarrollo) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="card p-6 border-yellow-600">
-          <h4 className="text-yellow-400 font-medium mb-4">🐛 Debug Info (Solo Desarrollo)</h4>
-          <div className="bg-gray-800 rounded-lg p-4 text-xs font-mono">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-green-400 font-semibold mb-2">Usuario:</p>
-                <p>ID: {user.id}</p>
-                <p>Email: {user.email}</p>
-                <p>Org ID (legacy): N/A</p>
-                <p>Org Activa: {user.currentOrganizationId || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-blue-400 font-semibold mb-2">Membresías:</p>
-                <p>Total: {userOrganizations.length}</p>
-                <p>Rol Actual: {currentRole}</p>
-                <p>Puede Crear: Sí</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }
