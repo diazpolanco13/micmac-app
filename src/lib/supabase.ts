@@ -193,7 +193,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
       let expertiseAreas = []
       if (!expertiseError && expertiseData) {
-        expertiseAreas = expertiseData.map(item => ({
+        expertiseAreas = expertiseData.map((item: any) => ({
           id: item.expertise_areas.id,
           name: item.expertise_areas.name,
           description: item.expertise_areas.description,
@@ -210,7 +210,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       let effectiveRole = userRoleData?.role || 'EXPERT' // Rol por defecto
       
       if (!organizationsError && organizationsData && organizationsData.length > 0) {
-        organizations = organizationsData.map(membership => ({
+        organizations = organizationsData.map((membership: any) => ({
           id: membership.id,
           organizationId: membership.organizations.id,
           name: membership.organizations.name,
@@ -228,7 +228,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
         // Prioridad: current_organization_id del perfil > primera organización activa
         const currentOrgId = profileData?.current_organization_id
         if (currentOrgId) {
-          currentOrganization = organizations.find(org => org.organizationId === currentOrgId)
+          currentOrganization = organizations.find((org: any) => org.organizationId === currentOrgId)
         }
         
         if (!currentOrganization && organizations.length > 0) {
