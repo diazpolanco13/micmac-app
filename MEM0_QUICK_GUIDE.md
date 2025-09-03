@@ -70,6 +70,10 @@ curl -X POST http://localhost:8081/memory/add \
   git add . && git commit -m "mensaje descriptivo"
   cd scripts && ./sync-commits-mem0.sh
   ```
+- **Reiniciar desarrollo** cuando hay problemas de cache:
+  ```bash
+  ./dev  # o ./scripts/restart-dev.sh
+  ```
 
 ---
 
