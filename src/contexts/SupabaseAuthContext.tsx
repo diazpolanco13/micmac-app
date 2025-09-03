@@ -290,10 +290,22 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
         sessionError: sessionError?.message 
       })
       
-      const { error: profileError } = await supabase
+      // 🔄 Actualizar con timeout para evitar cuelgues
+      console.log('⏰ [SUPABASE] Iniciando UPDATE con timeout de 10s...')
+      
+      const updatePromise = supabase
         .from('profiles')
         .update(mappedData)
         .eq('id', user.id)
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout: UPDATE tardó más de 10s')), 10000)
+      )
+
+      const { error: profileError } = await Promise.race([
+        updatePromise,
+        timeoutPromise
+      ]) as any
 
       if (profileError) {
         console.error('❌ [SUPABASE] Error actualizando perfil:', profileError)
