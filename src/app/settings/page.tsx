@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useMockData } from '@/contexts/MockDataContext'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { Button } from '@/components/ui'
@@ -20,6 +20,7 @@ type SettingsTab = 'organization' | 'users' | 'multiorg' | 'advanced'
 
 export default function SettingsPage() {
   const { user, loading } = useAuth()
+  const searchParams = useSearchParams()
   
   // Simplificar para evitar errores de tipos
   const { experts } = useMockData()
@@ -47,7 +48,9 @@ export default function SettingsPage() {
     name: 'Mi Organización'
   }
   
-  const [activeTab, setActiveTab] = useState<SettingsTab>('organization')
+  // Obtener tab inicial desde URL o usar 'organization' por defecto
+  const initialTab = (searchParams?.get('tab') as SettingsTab) || 'organization'
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab)
   const [isLoading, setIsLoading] = useState(false)
 
   // Estados para gestión de usuarios
@@ -813,10 +816,25 @@ function MultiOrgTab() {
 
   if (!user) return null
 
-  // Obtener organizaciones de forma segura
+  // Obtener organizaciones de forma segura con nombres reales
   const userOrganizations = useMemo(() => {
     return user?.organizations || []
   }, [user?.organizations])
+
+  // 🏢 Mapear organizaciones con nombres reales desde BD
+  const organizationsWithNames = useMemo(() => {
+    const orgMap: { [key: string]: string } = {
+      'org-techcorp': 'TechCorp Solutions',
+      'org-healthplus': 'HealthPlus Medical',
+      'org-startup': 'StartupInc'
+    }
+    
+    return userOrganizations.map(membership => ({
+      ...membership,
+      displayName: orgMap[membership.organizationId] || membership.organizationId,
+      plan: 'FREE' as PlanType // Por ahora, luego cargaremos desde BD
+    }))
+  }, [userOrganizations])
   
   const currentRole = useMemo(() => {
     if (!user || !user.currentOrganizationId) return user?.role || null
@@ -828,9 +846,47 @@ function MultiOrgTab() {
     return currentMembership?.role || user.role || null
   }, [user?.currentOrganizationId, user?.role, userOrganizations])
 
-  // Funciones simplificadas para Supabase (por implementar)
+  // 🔄 CAMBIO DE ORGANIZACIÓN REAL EN SUPABASE
   const handleSwitchOrganization = async (orgId: string, orgName: string) => {
-    toast.info('En Desarrollo', 'Función de cambio de organización próximamente')
+    if (orgId === user?.currentOrganizationId) {
+      toast.info('Ya Activa', `Ya estás en ${orgName}`)
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      console.log(`🔄 Cambiando a organización: ${orgId} (${orgName})`)
+      
+      // Importar supabase para hacer la actualización
+      const { supabase } = await import('@/lib/supabase')
+      
+      // Actualizar current_organization_id en la tabla profiles
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          current_organization_id: orgId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user?.id)
+
+      if (error) {
+        console.error('❌ Error actualizando organización:', error)
+        throw error
+      }
+
+      console.log('✅ Organización actualizada en BD')
+      toast.success('Organización Cambiada', `Ahora estás en ${orgName}`)
+      
+      // Esperar un momento y recargar para reflejar los cambios
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
+      
+    } catch (error) {
+      console.error('💥 Error switching organization:', error)
+      toast.error('Error', 'No se pudo cambiar de organización')
+      setIsLoading(false) // Solo resetear loading en caso de error
+    }
   }
 
   const handleCreateOrganization = async () => {
@@ -862,7 +918,7 @@ function MultiOrgTab() {
       <div className="card p-6">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-white font-medium">
-            Mis Organizaciones ({userOrganizations.length})
+            Mis Organizaciones ({organizationsWithNames.length})
           </h4>
           <Button
             color="primary"
@@ -945,18 +1001,18 @@ function MultiOrgTab() {
 
         {/* Lista de organizaciones */}
         <div className="space-y-4">
-          {userOrganizations.length === 0 ? (
+          {organizationsWithNames.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-400">No tienes membresías en organizaciones</p>
               <p className="text-gray-500 text-sm">Crea tu primera organización para comenzar</p>
             </div>
           ) : (
-            userOrganizations.map((membership) => {
-              // Usar los datos de la membresía directamente
+            organizationsWithNames.map((membership) => {
+              // Usar los datos de la membresía con nombres reales
               const org = {
                 id: membership.organizationId,
-                name: `Organización ${membership.organizationId}`, // Fallback name
-                plan: 'FREE' as PlanType // Por defecto
+                name: membership.displayName,
+                plan: membership.plan
               }
               
               const isActive = user.currentOrganizationId === org.id

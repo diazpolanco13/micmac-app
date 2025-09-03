@@ -19,9 +19,30 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
-  const { user, signOut, currentOrganization } = useAuth()
+  const { user, signOut } = useAuth()
   const { startLoading } = useNavigationLoading()
   const router = useRouter()
+
+  // 🏢 Obtener organización actual del usuario
+  const currentOrganization = user?.organizations?.find(org => 
+    org.organizationId === user.currentOrganizationId
+  ) || null
+
+  // 🔧 Crear organización efectiva para el display con nombres reales
+  const effectiveOrganization = currentOrganization ? {
+    name: getOrganizationDisplayName(currentOrganization.organizationId),
+    plan: 'FREE' as 'FREE' | 'PRO' | 'ENTERPRISE' // Por ahora, luego cargaremos el plan real
+  } : null
+
+  // 🏢 Mapear IDs a nombres reales
+  function getOrganizationDisplayName(orgId: string): string {
+    const orgMap: { [key: string]: string } = {
+      'org-techcorp': 'TechCorp Solutions',
+      'org-healthplus': 'HealthPlus Medical', 
+      'org-startup': 'StartupInc'
+    }
+    return orgMap[orgId] || orgId
+  }
 
   const userNavigation = [
     { name: 'Tu Perfil', href: '/profile' },
@@ -81,23 +102,23 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
                 </div>
                 
                 {/* Organization Badge - Restaurado hermoso! */}
-                {currentOrganization && (
+                {effectiveOrganization && (
                   <div className="hidden md:flex items-center">
                     <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer" 
-                         onClick={() => window.location.href = '/settings'}
+                         onClick={() => router.push('/settings?tab=multiorg')}
                          title="Click para ir a configuración de organización">
                       <div className={`w-2 h-2 rounded-full ${
-                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
-                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                        effectiveOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        effectiveOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
                       }`}></div>
                       <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                        {currentOrganization.name}
+                        {effectiveOrganization.name}
                       </span>
                       <span className={`text-xs px-1.5 py-0.5 rounded text-white font-medium ${
-                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
-                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                        effectiveOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        effectiveOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
                       }`}>
-                        {currentOrganization.plan}
+                        {effectiveOrganization.plan}
                       </span>
                     </div>
                   </div>
@@ -159,22 +180,22 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
                       }`}>
                         {user.role === 'MODERATOR' ? '👨‍💼 Moderador' : '👨‍🔬 Experto'}
                       </div>
-                      {currentOrganization && (
+                      {effectiveOrganization && (
                         <div className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                           <div className="flex items-center space-x-2">
                             <div className={`w-2 h-2 rounded-full ${
-                              currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
-                              currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                              effectiveOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                              effectiveOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
                             }`}></div>
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {currentOrganization.name}
+                              {effectiveOrganization.name}
                             </span>
                           </div>
                           <span className={`text-xs px-2 py-1 rounded-md text-white font-medium ${
-                            currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
-                            currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                            effectiveOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                            effectiveOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
                           }`}>
-                            {currentOrganization.plan}
+                            {effectiveOrganization.plan}
                           </span>
                         </div>
                       )}
@@ -244,20 +265,20 @@ export default function Navbar({ onNewProject, onToggleSidebar }: NavbarProps) {
                   <div className="text-xs text-micmac-primary-500 dark:text-micmac-primary-400 font-medium">
                     {user.role === 'MODERATOR' ? '👨‍💼 Moderador' : '👨‍🔬 Experto'}
                   </div>
-                  {currentOrganization && (
+                  {effectiveOrganization && (
                     <div className="flex items-center space-x-1 mt-1">
                       <div className={`w-1.5 h-1.5 rounded-full ${
-                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
-                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                        effectiveOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        effectiveOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
                       }`}></div>
                       <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {currentOrganization.name}
+                        {effectiveOrganization.name}
                       </span>
                       <span className={`text-xs px-1 py-0.5 rounded text-white font-medium ${
-                        currentOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
-                        currentOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
+                        effectiveOrganization.plan === 'ENTERPRISE' ? 'bg-purple-500' :
+                        effectiveOrganization.plan === 'PRO' ? 'bg-blue-500' : 'bg-green-500'
                       }`}>
-                        {currentOrganization.plan}
+                        {effectiveOrganization.plan}
                       </span>
                     </div>
                   )}
