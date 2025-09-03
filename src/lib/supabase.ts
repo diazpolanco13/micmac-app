@@ -207,6 +207,8 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       // 🏢 PROCESAR ORGANIZACIONES
       let organizations = []
       let currentOrganization = null
+      let effectiveRole = userRoleData?.role || 'EXPERT' // Rol por defecto
+      
       if (!organizationsError && organizationsData && organizationsData.length > 0) {
         organizations = organizationsData.map(membership => ({
           id: membership.id,
@@ -232,6 +234,12 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
         if (!currentOrganization && organizations.length > 0) {
           currentOrganization = organizations[0] // Primera organización como fallback
         }
+
+        // 🔧 DETERMINAR ROL EFECTIVO: Usar rol de organización activa si existe
+        if (currentOrganization) {
+          effectiveRole = currentOrganization.role // Rol específico de la organización activa
+          console.log(`🏢 [getCurrentUser] Rol en organización ${currentOrganization.name}: ${effectiveRole}`)
+        }
       }
 
       console.log(`✅ [getCurrentUser] Datos cargados: ${expertiseAreas.length} areas de expertise, ${organizations.length} organizaciones`)
@@ -241,7 +249,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       return {
         id: user.id,
         email: profileData?.email || user.email || '',
-        role: userRoleData?.role || 'EXPERT',
+        role: effectiveRole,
         name: profileData?.name || userRoleData?.name || undefined,
         avatar: profileData?.avatar || undefined,
         bio: profileData?.bio || undefined,

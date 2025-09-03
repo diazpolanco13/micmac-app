@@ -860,6 +860,10 @@ function MultiOrgTab() {
       // Importar supabase para hacer la actualización
       const { supabase } = await import('@/lib/supabase')
       
+      if (!user?.id) {
+        throw new Error('Usuario no identificado')
+      }
+      
       // Actualizar current_organization_id en la tabla profiles
       const { error } = await supabase
         .from('profiles')
