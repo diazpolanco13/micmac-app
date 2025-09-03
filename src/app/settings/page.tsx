@@ -87,7 +87,7 @@ export default function SettingsPage() {
     }
   }, [user, loading]) // Removida dependencia de router
 
-  // Solo moderadores pueden acceder - SIMPLIFICADO PARA SUPABASE
+  // Control de acceso inteligente - Expertos pueden acceder a Multi-Org
   useEffect(() => {
     if (!loading && user) {
       // Obtener el rol actual (en Supabase es más simple)
@@ -96,15 +96,19 @@ export default function SettingsPage() {
       )
       const effectiveRole = currentOrgMembership?.role || user.role
       
-      // Permitir acceso a MODERATOR y roles organizacionales
-      const allowedRoles: (UserRole | OrgRole)[] = ['MODERATOR', 'ADMIN', 'OWNER']
-      if (!allowedRoles.includes(effectiveRole as any) && !hasShownAccessDenied) {
-        setHasShownAccessDenied(true)
-        toast.error('Acceso Denegado', 'Solo los moderadores pueden acceder a la configuración')
-        router.push('/dashboard')
+      // 🔧 NUEVA LÓGICA: Expertos pueden acceder pero con limitaciones
+      const fullAccessRoles: (UserRole | OrgRole)[] = ['MODERATOR', 'ADMIN', 'OWNER']
+      const isExpert = effectiveRole === 'EXPERT' || !fullAccessRoles.includes(effectiveRole as any)
+      
+      if (isExpert) {
+        // Los expertos solo pueden acceder a la pestaña Multi-Org
+        if (activeTab !== 'multiorg') {
+          console.log('🔒 [Settings] Experto redirigido a Multi-Org')
+          setActiveTab('multiorg')
+        }
       }
     }
-  }, [user?.currentOrganizationId, user?.organizations, loading])
+  }, [user?.currentOrganizationId, user?.organizations, loading, activeTab])
 
   // Estado local para miembros - SIMPLIFICADO PARA SUPABASE
   const [localMembers, setLocalMembers] = useState<any[]>([])
@@ -364,20 +368,38 @@ export default function SettingsPage() {
         <div className="mb-8">
           <div className="border-b border-gray-700">
             <nav className="flex space-x-8">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-micmac-primary-500 text-micmac-primary-400'
-                      : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.name}</span>
-                </button>
-              ))}
+              {tabs.map((tab) => {
+                // 🔒 Determinar si el usuario puede acceder a esta pestaña
+                const currentOrgMembership = user?.organizations?.find(org => 
+                  org.organizationId === user.currentOrganizationId
+                )
+                const effectiveRole = currentOrgMembership?.role || user.role
+                const fullAccessRoles: (UserRole | OrgRole)[] = ['MODERATOR', 'ADMIN', 'OWNER']
+                const hasFullAccess = fullAccessRoles.includes(effectiveRole as any)
+                
+                // Los expertos solo pueden acceder a Multi-Org
+                const canAccess = hasFullAccess || tab.id === 'multiorg'
+                
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => canAccess && setActiveTab(tab.id)}
+                    disabled={!canAccess}
+                    className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === tab.id
+                        ? 'border-micmac-primary-500 text-micmac-primary-400'
+                        : canAccess
+                        ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300 cursor-pointer'
+                        : 'border-transparent text-gray-600 cursor-not-allowed opacity-50'
+                    }`}
+                    title={!canAccess ? 'Solo disponible para moderadores y administradores' : ''}
+                  >
+                    <span>{tab.icon}</span>
+                    <span>{tab.name}</span>
+                    {!canAccess && <span className="text-xs">🔒</span>}
+                  </button>
+                )
+              })}
             </nav>
           </div>
         </div>
@@ -879,12 +901,19 @@ function MultiOrgTab() {
       }
 
       console.log('✅ Organización actualizada en BD')
+      
+      // 🚀 ACTUALIZACIÓN REACTIVA: Triggear refresh del contexto
+      console.log('🔄 Triggeando actualización reactiva del contexto...')
+      
       toast.success('Organización Cambiada', `Ahora estás en ${orgName}`)
       
-      // Esperar un momento y recargar para reflejar los cambios
+      // Forzar actualización del contexto de auth
+      window.dispatchEvent(new CustomEvent('supabase-user-updated'))
+      
+      // Pequeño delay para mostrar feedback visual
       setTimeout(() => {
-        window.location.reload()
-      }, 1500)
+        setIsLoading(false)
+      }, 500)
       
     } catch (error) {
       console.error('💥 Error switching organization:', error)
