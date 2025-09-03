@@ -64,6 +64,11 @@ export default function SettingsPage() {
   const [orgDescription, setOrgDescription] = useState('')
   const [isEditingOrg, setIsEditingOrg] = useState(false)
 
+  // 🔍 DEBUG: Monitorear cambios en isEditingOrg
+  useEffect(() => {
+    console.log('🔧 [Settings] isEditingOrg cambió a:', isEditingOrg)
+  }, [isEditingOrg])
+
   // Estados para invitaciones pendientes (simplificado para Supabase)
   const [pendingInvitations, setPendingInvitations] = useState<Array<{
     id: string
@@ -557,7 +562,10 @@ function OrganizationTab({
             <input
               type="text"
               value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
+              onChange={(e) => {
+                console.log('📝 [Input] Cambiando nombre org:', e.target.value, 'isEditing:', isEditingOrg)
+                setOrgName(e.target.value)
+              }}
               className={`w-full px-3 py-2 border rounded-lg text-white transition-colors ${
                 isEditingOrg 
                   ? 'bg-gray-700 border-gray-500 focus:border-micmac-primary-500 focus:outline-none' 
@@ -565,6 +573,7 @@ function OrganizationTab({
               }`}
               readOnly={!isEditingOrg}
               placeholder="Nombre de tu organización"
+              onFocus={() => console.log('🔍 [Input] Focus - isEditing:', isEditingOrg)}
             />
           </div>
           <div>
