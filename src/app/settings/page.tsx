@@ -530,26 +530,32 @@ function OrganizationTab({
             </Button>
           ) : (
             <div className="flex space-x-2">
-              <Button
-                ghost
-                onClick={() => {
-                  console.log('🔧 [OrganizationTab] Cancelando edición')
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  console.log('🔧 [OrganizationTab] Cancelando edición (button nativo)')
                   onCancelEditOrg()
                 }}
                 disabled={isLoading}
+                className="inline-flex items-center rounded-md border border-gray-600 bg-transparent px-3 py-2 text-sm font-semibold text-gray-300 shadow-sm hover:bg-gray-700 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
-              </Button>
-              <Button
-                color="primary"
-                onClick={() => {
-                  console.log('🔧 [OrganizationTab] Guardando cambios')
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  console.log('🔧 [OrganizationTab] Guardando cambios (button nativo)')
                   onSaveOrganization()
                 }}
                 disabled={isLoading}
+                className="inline-flex items-center rounded-md bg-micmac-primary-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-micmac-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-micmac-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Guardando...' : 'Guardar'}
-              </Button>
+              </button>
             </div>
           )}
         </div>
