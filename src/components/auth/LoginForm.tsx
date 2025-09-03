@@ -99,6 +99,7 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
               name="email"
               type="email"
               required
+              autoComplete="username"
               value={formData.email}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-xl text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 focus:border-transparent transition-all"
@@ -116,6 +117,7 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
               name="password"
               type="password"
               required
+              autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-xl text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 focus:border-transparent transition-all"
@@ -156,29 +158,43 @@ export default function LoginForm({ onToggleMode, className = '' }: LoginFormPro
           <p className="text-xs text-dark-text-secondary mb-3 font-medium">🚀 Acceso Rápido Demo:</p>
           <div className="space-y-2">
             <button
-              onClick={() => handleDemoLogin('demo@demo.com', 'demo123')}
+              onClick={() => handleDemoLogin('admin@demo.com', 'demo123')}
+              disabled={loading}
+              className="w-full text-left p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg border border-red-500/20 hover:border-red-500/40 transition-all disabled:opacity-50"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔑</span>
+                <div>
+                  <div className="text-sm font-medium text-red-300">Carlos Hernández - ADMIN</div>
+                  <div className="text-xs text-dark-text-muted">admin@demo.com (Todos los permisos)</div>
+                </div>
+              </div>
+            </button>
+            
+            <button
+              onClick={() => handleDemoLogin('moderator@demo.com', 'demo123')}
               disabled={loading}
               className="w-full text-left p-2 bg-micmac-primary-500/10 hover:bg-micmac-primary-500/20 rounded-lg border border-micmac-primary-500/20 hover:border-micmac-primary-500/40 transition-all disabled:opacity-50"
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">👨‍💼</span>
                 <div>
-                  <div className="text-sm font-medium text-micmac-primary-300">Moderador Demo</div>
-                  <div className="text-xs text-dark-text-muted">demo@demo.com</div>
+                  <div className="text-sm font-medium text-micmac-primary-300">Ana García - MODERADOR</div>
+                  <div className="text-xs text-dark-text-muted">moderator@demo.com (Gestionar proyectos)</div>
                 </div>
               </div>
             </button>
             
             <button
-              onClick={() => handleDemoLogin('expert@micmac.com', 'demo123')}
+              onClick={() => handleDemoLogin('expert@demo.com', 'demo123')}
               disabled={loading}
               className="w-full text-left p-2 bg-micmac-secondary-500/10 hover:bg-micmac-secondary-500/20 rounded-lg border border-micmac-secondary-500/20 hover:border-micmac-secondary-500/40 transition-all disabled:opacity-50"
             >
               <div className="flex items-center gap-2">
-                <span className="text-lg">👨‍🔬</span>
+                <span className="text-lg">🧑‍🔬</span>
                 <div>
-                  <div className="text-sm font-medium text-micmac-secondary-300">Experto Demo</div>
-                  <div className="text-xs text-dark-text-muted">expert@micmac.com</div>
+                  <div className="text-sm font-medium text-micmac-secondary-300">Dr. Luis Experto - EXPERTO</div>
+                  <div className="text-xs text-dark-text-muted">expert@demo.com (Participar en análisis)</div>
                 </div>
               </div>
             </button>

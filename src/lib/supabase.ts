@@ -70,37 +70,62 @@ export interface AuthUser {
   organization?: string
   organizationId?: string
   currentOrganizationId?: string
+  organizations?: Array<{
+    id: string
+    organizationId: string
+    name: string
+    slug: string
+    domain?: string
+    logo?: string
+    settings?: any
+    role: 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER'
+    status: 'ACTIVE' | 'INACTIVE' | 'PENDING'
+    joinedAt: string
+    isActive: boolean
+  }>
+  currentOrganization?: {
+    id: string
+    organizationId: string
+    name: string
+    slug: string
+    domain?: string
+    logo?: string
+    settings?: any
+    role: 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER'
+    status: 'ACTIVE' | 'INACTIVE' | 'PENDING'
+    joinedAt: string
+    isActive: boolean
+  }
   expertiseAreas?: ExpertiseArea[]
 }
 
 // Helper para obtener el usuario actual con perfil completo
 export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
+    console.log('🔍 [getCurrentUser] Iniciando obtención de usuario...')
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (error || !user) {
+      console.log('❌ [getCurrentUser] No hay usuario autenticado')
       return null
     }
 
-    // Obtener datos completos del usuario desde la tabla profiles
-    const { data: profileData, error: profileError } = await supabase
+    console.log('✅ [getCurrentUser] Usuario autenticado:', user.email)
+
+    // OPTIMIZACIÓN: Consultas en paralelo con timeout
+    const profilePromise = supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single()
 
-    if (profileError) {
-      console.error('Error fetching profile data:', profileError)
-      // Retornar usuario básico si no hay perfil
-      return {
-        id: user.id,
-        email: user.email || '',
-        role: 'EXPERT' // default role
-      }
-    }
+    const userRolePromise = supabase
+      .from('users')
+      .select('role, name')
+      .eq('id', user.id)
+      .maybeSingle()
 
-    // Obtener áreas de expertise del usuario
-    const { data: expertiseData, error: expertiseError } = await supabase
+    const expertisePromise = supabase
       .from('user_expertise')
       .select(`
         id,
@@ -116,35 +141,130 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       `)
       .eq('user_id', user.id)
 
-    let expertiseAreas = []
-    if (!expertiseError && expertiseData) {
-      expertiseAreas = expertiseData.map(item => ({
-        id: item.expertise_areas.id,
-        name: item.expertise_areas.name,
-        description: item.expertise_areas.description,
-        category: item.expertise_areas.category,
-        level: item.level,
-        yearsExperience: item.years_experience,
-        userDescription: item.description
-      }))
-    }
+    // 🏢 NUEVA CONSULTA: Organizaciones del usuario
+    const organizationsPromise = supabase
+      .from('user_organizations')
+      .select(`
+        id,
+        role,
+        status,
+        joined_at,
+        organizations (
+          id,
+          name,
+          slug,
+          domain,
+          logo,
+          settings,
+          is_active
+        )
+      `)
+      .eq('user_id', user.id)
+      .eq('status', 'ACTIVE')
 
-    return {
-      id: user.id,
-      email: profileData?.email || user.email || '',
-      role: 'EXPERT', // Por ahora default, luego podemos agregar role a profiles
-      name: profileData?.name || undefined,
-      avatar: profileData?.avatar || undefined,
-      bio: profileData?.bio || undefined,
-      phone: profileData?.phone || undefined,
-      linkedinUrl: profileData?.linkedin_url || undefined,
-      profession: profileData?.profession || undefined,
-      currentPosition: profileData?.current_position || undefined,
-      yearsExperience: profileData?.years_experience || 0,
-      organization: profileData?.organization || undefined,
-      organizationId: profileData?.organization_id || undefined,
-      currentOrganizationId: profileData?.current_organization_id || undefined,
-      expertiseAreas
+    // Ejecutar consultas en paralelo con timeout de 15 segundos
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout: Consultas BD tardaron más de 15s')), 15000)
+    )
+
+    try {
+      console.log('🔍 [getCurrentUser] Ejecutando consultas en paralelo...')
+      const [profileResult, userRoleResult, expertiseResult, organizationsResult] = await Promise.race([
+        Promise.all([profilePromise, userRolePromise, expertisePromise, organizationsPromise]),
+        timeoutPromise
+      ]) as any[]
+
+      const { data: profileData, error: profileError } = profileResult
+      let { data: userRoleData, error: userRoleError } = userRoleResult
+      const { data: expertiseData, error: expertiseError } = expertiseResult
+      const { data: organizationsData, error: organizationsError } = organizationsResult
+
+      if (profileError) {
+        console.error('⚠️ [getCurrentUser] Error profile:', profileError)
+      }
+
+      if (userRoleError) {
+        console.error('⚠️ [getCurrentUser] Error user role:', userRoleError)
+        console.log('🔍 [getCurrentUser] Intentando obtener rol de auth.users directamente...')
+        
+        // Fallback: usar rol por defecto pero continuar con el perfil
+        userRoleData = { role: 'EXPERT', name: null }
+      }
+
+      let expertiseAreas = []
+      if (!expertiseError && expertiseData) {
+        expertiseAreas = expertiseData.map(item => ({
+          id: item.expertise_areas.id,
+          name: item.expertise_areas.name,
+          description: item.expertise_areas.description,
+          category: item.expertise_areas.category,
+          level: item.level,
+          yearsExperience: item.years_experience,
+          userDescription: item.description
+        }))
+      }
+
+      // 🏢 PROCESAR ORGANIZACIONES
+      let organizations = []
+      let currentOrganization = null
+      if (!organizationsError && organizationsData && organizationsData.length > 0) {
+        organizations = organizationsData.map(membership => ({
+          id: membership.id,
+          organizationId: membership.organizations.id,
+          name: membership.organizations.name,
+          slug: membership.organizations.slug,
+          domain: membership.organizations.domain,
+          logo: membership.organizations.logo,
+          settings: membership.organizations.settings,
+          role: membership.role,
+          status: membership.status,
+          joinedAt: membership.joined_at,
+          isActive: membership.organizations.is_active
+        }))
+
+        // Determinar organización activa
+        // Prioridad: current_organization_id del perfil > primera organización activa
+        const currentOrgId = profileData?.current_organization_id
+        if (currentOrgId) {
+          currentOrganization = organizations.find(org => org.organizationId === currentOrgId)
+        }
+        
+        if (!currentOrganization && organizations.length > 0) {
+          currentOrganization = organizations[0] // Primera organización como fallback
+        }
+      }
+
+      console.log(`✅ [getCurrentUser] Datos cargados: ${expertiseAreas.length} areas de expertise, ${organizations.length} organizaciones`)
+      
+      console.log(`✅ [getCurrentUser] Usuario cargado: ${user.email} (${userRoleData?.role}) - Org actual: ${currentOrganization?.name || 'N/A'}`)
+      
+      return {
+        id: user.id,
+        email: profileData?.email || user.email || '',
+        role: userRoleData?.role || 'EXPERT',
+        name: profileData?.name || userRoleData?.name || undefined,
+        avatar: profileData?.avatar || undefined,
+        bio: profileData?.bio || undefined,
+        phone: profileData?.phone || undefined,
+        linkedinUrl: profileData?.linkedin_url || undefined,
+        profession: profileData?.profession || undefined,
+        currentPosition: profileData?.current_position || undefined,
+        yearsExperience: profileData?.years_experience || 0,
+        organization: profileData?.organization || currentOrganization?.name || undefined,
+        organizationId: profileData?.organization_id || currentOrganization?.organizationId || undefined,
+        currentOrganizationId: profileData?.current_organization_id || currentOrganization?.organizationId || undefined,
+        organizations,
+        currentOrganization,
+        expertiseAreas
+      }
+      
+    } catch (timeoutError) {
+      console.error('⏰ [getCurrentUser] TIMEOUT - Retornando usuario básico:', timeoutError)
+      return {
+        id: user.id,
+        email: user.email || '',
+        role: 'EXPERT' // default role
+      }
     }
   } catch (error) {
     console.error('Error getting current user:', error)

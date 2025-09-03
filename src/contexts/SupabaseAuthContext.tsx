@@ -7,6 +7,7 @@ import { useToast } from './ToastContext'
 
 interface AuthContextType {
   user: AuthUser | null
+  currentOrganization: any | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   signUp: (email: string, password: string, name?: string, role?: 'MODERATOR' | 'EXPERT') => Promise<{ success: boolean; error?: string }>
@@ -76,6 +77,7 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setLoading(true)
+      console.log('🔐 [signIn] Intentando login para:', email)
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -83,18 +85,22 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
       })
 
       if (error) {
+        console.error('❌ [signIn] Error de Supabase:', error.message)
         const errorMessage = getAuthErrorMessage(error.message)
         toast.error('Error de inicio de sesión', errorMessage)
         return { success: false, error: errorMessage }
       }
 
       if (data.user) {
+        console.log('✅ [signIn] Login exitoso para:', data.user.email)
         toast.success('¡Bienvenido!', 'Has iniciado sesión correctamente')
         return { success: true }
       }
 
+      console.error('❌ [signIn] No se recibió usuario en respuesta')
       return { success: false, error: 'Error desconocido' }
     } catch (error) {
+      console.error('❌ [signIn] Error crítico:', error)
       const errorMessage = 'Error de conexión'
       toast.error('Error', errorMessage)
       return { success: false, error: errorMessage }
@@ -160,18 +166,39 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async (): Promise<void> => {
     try {
+      console.log('🚪 [signOut] Iniciando cierre de sesión...')
+      
+      // Limpiar estado inmediatamente para UX rápida
+      setUser(null)
+      setLoading(false)
+      
+      // Intentar cerrar sesión en Supabase
       const { error } = await supabase.auth.signOut()
       
       if (error) {
-        toast.error('Error', 'No se pudo cerrar la sesión')
-        console.error('Error signing out:', error)
+        console.error('⚠️ [signOut] Error en Supabase signOut:', error)
+        toast.error('Advertencia', 'Sesión cerrada localmente, pero hubo un error en el servidor')
       } else {
+        console.log('✅ [signOut] Sesión cerrada correctamente')
         toast.info('Sesión cerrada', 'Has cerrado sesión correctamente')
-        setUser(null)
       }
+      
+      // Redireccionar a home independientemente del resultado
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 500)
+      
     } catch (error) {
-      console.error('Error signing out:', error)
-      toast.error('Error', 'Error de conexión al cerrar sesión')
+      console.error('❌ [signOut] Error crítico:', error)
+      
+      // Aún así limpiar estado local y redireccionar
+      setUser(null)
+      setLoading(false)
+      toast.info('Sesión cerrada', 'Sesión cerrada localmente')
+      
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 500)
     }
   }
 
@@ -283,6 +310,7 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
   return (
     <AuthContext.Provider value={{
       user,
+      currentOrganization: user?.currentOrganization || null,
       loading,
       signIn,
       signUp,

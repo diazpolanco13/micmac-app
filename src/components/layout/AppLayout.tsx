@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
-import MultiOrgDebugPanel from '@/components/ui/MultiOrgDebugPanel'
+
 import { useSidebarState, type SidebarState } from '@/hooks/useWindowSize'
 
 interface AppLayoutProps {
@@ -107,8 +107,7 @@ export default function AppLayout({ children, onNewProject }: AppLayoutProps) {
         </div>
       </div>
       
-      {/* Multi-Org Debug Panel (solo en desarrollo) */}
-      {process.env.NODE_ENV === 'development' && <MultiOrgDebugPanel />}
+
     </div>
   )
 }

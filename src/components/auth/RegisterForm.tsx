@@ -102,6 +102,7 @@ export default function RegisterForm({ onToggleMode, className = '' }: RegisterF
               name="name"
               type="text"
               required
+              autoComplete="name"
               value={formData.name}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-xl text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 focus:border-transparent transition-all"
@@ -119,6 +120,7 @@ export default function RegisterForm({ onToggleMode, className = '' }: RegisterF
               name="email"
               type="email"
               required
+              autoComplete="email"
               value={formData.email}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-xl text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 focus:border-transparent transition-all"
@@ -159,6 +161,7 @@ export default function RegisterForm({ onToggleMode, className = '' }: RegisterF
               name="password"
               type="password"
               required
+              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-xl text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 focus:border-transparent transition-all"
@@ -176,6 +179,7 @@ export default function RegisterForm({ onToggleMode, className = '' }: RegisterF
               name="confirmPassword"
               type="password"
               required
+              autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-xl text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-micmac-primary-500 focus:border-transparent transition-all"
