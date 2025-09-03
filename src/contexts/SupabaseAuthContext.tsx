@@ -69,26 +69,26 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
       }
     )
 
-    // 🔄 Escuchar eventos personalizados para actualización de usuario
-    const handleUserUpdate = async () => {
-      console.log('🔄 [AuthContext] Usuario actualizado por evento personalizado')
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          const authUser = await getCurrentUser()
-          setUser(authUser)
-          console.log('✅ [AuthContext] Usuario reactualizado exitosamente')
-        }
-      } catch (error) {
-        console.error('❌ [AuthContext] Error actualizando usuario:', error)
-      }
-    }
+    // 🔄 DESHABILITADO TEMPORALMENTE: Evento personalizado causa errores dataset
+    // const handleUserUpdate = async () => {
+    //   console.log('🔄 [AuthContext] Usuario actualizado por evento personalizado')
+    //   try {
+    //     const { data: { session } } = await supabase.auth.getSession()
+    //     if (session?.user) {
+    //       const authUser = await getCurrentUser()
+    //       setUser(authUser)
+    //       console.log('✅ [AuthContext] Usuario reactualizado exitosamente')
+    //     }
+    //   } catch (error) {
+    //     console.error('❌ [AuthContext] Error actualizando usuario:', error)
+    //   }
+    // }
 
-    window.addEventListener('supabase-user-updated', handleUserUpdate)
+    // window.addEventListener('supabase-user-updated', handleUserUpdate)
 
     return () => {
       subscription.unsubscribe()
-      window.removeEventListener('supabase-user-updated', handleUserUpdate)
+      // window.removeEventListener('supabase-user-updated', handleUserUpdate)
     }
   }, [])
 
