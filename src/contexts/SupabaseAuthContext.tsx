@@ -56,12 +56,14 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
     // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email)
+        console.log(`🔄 [AUTH] Estado cambió: ${event} | Usuario: ${session?.user?.email || 'ninguno'}`)
         
         if (session?.user) {
+          console.log('👤 [AUTH] Cargando perfil de usuario...')
           const authUser = await getCurrentUser()
           setUser(authUser)
         } else {
+          console.log('👋 [AUTH] Usuario desconectado - limpiando estado')
           setUser(null)
         }
         
@@ -190,21 +192,32 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
       setUser(null)
       setLoading(false)
       
-      // Intentar cerrar sesión en Supabase
-      const { error } = await supabase.auth.signOut()
+      // Limpiar sesión en Supabase con scope global para todas las pestañas
+      const { error } = await supabase.auth.signOut({ scope: 'global' })
       
       if (error) {
         console.error('⚠️ [signOut] Error en Supabase signOut:', error)
         toast.error('Advertencia', 'Sesión cerrada localmente, pero hubo un error en el servidor')
       } else {
-        console.log('✅ [signOut] Sesión cerrada correctamente')
+        console.log('✅ [signOut] Sesión cerrada correctamente en todas las pestañas')
         toast.info('Sesión cerrada', 'Has cerrado sesión correctamente')
       }
       
-      // Redireccionar a home independientemente del resultado
+      // Limpiar localStorage manualmente como medida extra
+      if (typeof window !== 'undefined') {
+        // Limpiar específicamente las claves de Supabase
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key)
+          }
+        })
+        console.log('🧹 [signOut] localStorage limpiado')
+      }
+      
+      // Redireccionar usando replace para no mantener historial
       setTimeout(() => {
-        window.location.href = '/'
-      }, 500)
+        window.location.replace('/')
+      }, 200)
       
     } catch (error) {
       console.error('❌ [signOut] Error crítico:', error)
@@ -212,11 +225,21 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
       // Aún así limpiar estado local y redireccionar
       setUser(null)
       setLoading(false)
+      
+      // Limpiar localStorage manualmente
+      if (typeof window !== 'undefined') {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key)
+          }
+        })
+      }
+      
       toast.info('Sesión cerrada', 'Sesión cerrada localmente')
       
       setTimeout(() => {
-        window.location.href = '/'
-      }, 500)
+        window.location.replace('/')
+      }, 200)
     }
   }
 

@@ -90,7 +90,7 @@ export function DataProvider({ children }: DataProviderProps) {
   const useSupabaseData = process.env.NEXT_PUBLIC_USE_SUPABASE_DATA === 'true' || 
                           process.env.USE_SUPABASE_DATA === 'true'
 
-  console.log(`🔄 [DATA PROVIDER] Usando ${useSupabaseData ? 'SUPABASE' : 'MOCK'} Data (Fase ${process.env.MIGRATION_PHASE || '1'})`)
+  console.log(`🔄 [DATA PROVIDER] Usando ${useSupabaseData ? 'SUPABASE' : 'MOCK'} Data (Fase ${process.env.NEXT_PUBLIC_MIGRATION_PHASE || '2'})`)
 
   if (useSupabaseData) {
     // FASE 4+: Usar Supabase Data

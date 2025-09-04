@@ -7,23 +7,12 @@
 'use client'
 
 import { createContext, useContext, ReactNode } from 'react'
-import { MockAuthProvider, useMockAuth as useMockAuthOriginal } from './MockAuthContext'
+// MockAuthProvider ya no se usa en Fase 2
 import { SupabaseAuthProvider, useAuth as useSupabaseAuth } from './SupabaseAuthContext'
+import { AuthUser as SupabaseAuthUser } from '@/lib/supabase'
 
-// Tipos unificados para ambos contextos
-export interface AuthUser {
-  id: string
-  email: string
-  role: 'MODERATOR' | 'EXPERT'
-  name?: string
-  avatar?: string
-  currentOrganizationId?: string
-  organizations?: Array<{
-    organizationId: string
-    role: 'MODERATOR' | 'EXPERT'
-    joinedAt: string
-  }>
-}
+// Usar directamente los tipos de Supabase (Fase 2)
+export type AuthUser = SupabaseAuthUser
 
 export interface AuthContextType {
   user: AuthUser | null
@@ -52,62 +41,19 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  // Leer flag de migración desde variables de entorno
-  const useSupabaseAuth = process.env.NEXT_PUBLIC_USE_SUPABASE_AUTH === 'true' || 
-                          process.env.USE_SUPABASE_AUTH === 'true'
-
-  console.log(`🔄 [AUTH PROVIDER] Usando ${useSupabaseAuth ? 'SUPABASE' : 'MOCK'} Auth (Fase ${process.env.MIGRATION_PHASE || '1'})`)
-
-  if (useSupabaseAuth) {
-    // FASE 2+: Usar Supabase Auth
-    return (
-      <SupabaseAuthProvider>
-        <SupabaseAuthAdapter>
-          {children}
-        </SupabaseAuthAdapter>
-      </SupabaseAuthProvider>
-    )
-  } else {
-    // FASE 1: Usar Mock Auth (comportamiento actual)
-    return (
-      <MockAuthProvider>
-        <MockAuthAdapter>
-          {children}
-        </MockAuthAdapter>
-      </MockAuthProvider>
-    )
-  }
-}
-
-// Adaptador para Mock Auth (mantiene interfaces compatibles)
-function MockAuthAdapter({ children }: { children: ReactNode }) {
-  const mockAuth = useMockAuthOriginal()
-
-  // Adaptar la interfaz de MockAuth a la interfaz unificada
-  const adaptedAuth: AuthContextType = {
-    user: mockAuth.user ? {
-      id: mockAuth.user.id,
-      email: mockAuth.user.email,
-      role: mockAuth.user.role,
-      name: mockAuth.user.name,
-      avatar: mockAuth.user.avatar,
-      currentOrganizationId: mockAuth.user.currentOrganizationId,
-      organizations: mockAuth.user.organizations
-    } : null,
-    loading: mockAuth.loading,
-    signIn: mockAuth.signIn,
-    signUp: mockAuth.signUp,
-    signOut: mockAuth.signOut,
-    updateProfile: mockAuth.updateProfile,
-    switchOrganization: mockAuth.switchOrganization
-  }
+  // FASE 2: Solo Supabase Auth (simplificado)
+  console.log('🔄 [AUTH PROVIDER] Usando SUPABASE Auth (Fase 2 - Simplificado)')
 
   return (
-    <AuthContext.Provider value={adaptedAuth}>
-      {children}
-    </AuthContext.Provider>
+    <SupabaseAuthProvider>
+      <SupabaseAuthAdapter>
+        {children}
+      </SupabaseAuthAdapter>
+    </SupabaseAuthProvider>
   )
 }
+
+// MockAuthAdapter eliminado - solo Supabase en Fase 2
 
 // Adaptador para Supabase Auth (para futuras fases)
 function SupabaseAuthAdapter({ children }: { children: ReactNode }) {

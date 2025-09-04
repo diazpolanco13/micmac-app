@@ -106,7 +106,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (error || !user) {
-      console.log('❌ [getCurrentUser] No hay usuario autenticado')
+      console.log('ℹ️ [getCurrentUser] No hay usuario autenticado (normal después de logout)')
       return null
     }
 
@@ -193,15 +193,65 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
       let expertiseAreas = []
       if (!expertiseError && expertiseData) {
-        expertiseAreas = expertiseData.map((item: any) => ({
-          id: item.expertise_areas.id,
-          name: item.expertise_areas.name,
-          description: item.expertise_areas.description,
-          category: item.expertise_areas.category,
-          level: item.level,
-          yearsExperience: item.years_experience,
-          userDescription: item.description
-        }))
+        console.log(`🔍 [getCurrentUser] Procesando ${expertiseData.length} áreas de expertise para ${user.email}`)
+        
+        // Identificar y limpiar registros corruptos automáticamente
+        const corruptedItems = expertiseData.filter((item: any) => !item.expertise_areas || !item.expertise_areas.id)
+        
+        if (corruptedItems.length > 0) {
+          console.warn(`🧹 [getCurrentUser] Encontrados ${corruptedItems.length} registros corruptos para ${user.email}, limpiando SINCRÓNICAMENTE...`)
+          
+          // Limpiar registros corruptos de forma SÍNCRONA para evitar que se muestren
+          try {
+            const corruptedIds = corruptedItems.map((item: any) => item.id).filter(Boolean)
+            if (corruptedIds.length > 0) {
+              const { error: deleteError } = await supabase
+                .from('user_expertise')
+                .delete()
+                .in('id', corruptedIds)
+              
+              if (deleteError) {
+                console.error(`❌ [getCurrentUser] Error limpiando registros corruptos:`, deleteError)
+              } else {
+                console.log(`✅ [getCurrentUser] ${corruptedIds.length} registros corruptos eliminados SINCRÓNICAMENTE para ${user.email}`)
+              }
+            }
+            
+            // También limpiar por user_id para casos edge
+            const { error: cleanupError } = await supabase
+              .from('user_expertise')
+              .delete()
+              .eq('user_id', user.id)
+              .is('expertise_area_id', null)
+            
+            if (!cleanupError) {
+              console.log(`🧹 [getCurrentUser] Limpieza adicional completada para ${user.email}`)
+            }
+            
+          } catch (error) {
+            console.error(`❌ [getCurrentUser] Error en limpieza síncrona:`, error)
+          }
+        }
+        
+        expertiseAreas = expertiseData
+          .filter((item: any) => {
+            if (!item.expertise_areas) {
+              console.warn(`⚠️ [getCurrentUser] Área de expertise sin datos para ${user.email} (será eliminada):`, item.id)
+              return false
+            }
+            return true
+          })
+          .map((item: any) => ({
+            id: item.expertise_areas?.id || 'unknown',
+            name: item.expertise_areas?.name || 'Área sin nombre',
+            description: item.expertise_areas?.description || '',
+            category: item.expertise_areas?.category || 'General',
+            level: item.level || 1,
+            yearsExperience: item.years_experience || 0,
+            userDescription: item.description || ''
+          }))
+        
+        console.log(`✅ [getCurrentUser] ${expertiseAreas.length} áreas de expertise válidas procesadas`)
       }
 
       // 🏢 PROCESAR ORGANIZACIONES
@@ -210,19 +260,33 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       let effectiveRole = userRoleData?.role || 'EXPERT' // Rol por defecto
       
       if (!organizationsError && organizationsData && organizationsData.length > 0) {
-        organizations = organizationsData.map((membership: any) => ({
-          id: membership.id,
-          organizationId: membership.organizations.id,
-          name: membership.organizations.name,
-          slug: membership.organizations.slug,
-          domain: membership.organizations.domain,
-          logo: membership.organizations.logo,
-          settings: membership.organizations.settings,
-          role: membership.role,
-          status: membership.status,
-          joinedAt: membership.joined_at,
-          isActive: membership.organizations.is_active
-        }))
+        console.log(`🔍 [getCurrentUser] Procesando ${organizationsData.length} organizaciones para ${user.email}`)
+        
+        organizations = organizationsData.map((membership: any, index: number) => {
+          console.log(`🔍 [getCurrentUser] Org ${index}:`, {
+            membershipId: membership?.id,
+            orgExists: !!membership.organizations,
+            orgId: membership.organizations?.id
+          })
+          
+          if (!membership.organizations) {
+            console.warn(`⚠️ [getCurrentUser] Membership sin organización para ${user.email}:`, membership)
+          }
+          
+          return {
+            id: membership.id || `fallback-${index}`,
+            organizationId: membership.organizations?.id || 'unknown',
+            name: membership.organizations?.name || 'Organización',
+            slug: membership.organizations?.slug || '',
+            domain: membership.organizations?.domain || '',
+            logo: membership.organizations?.logo || null,
+            settings: membership.organizations?.settings || {},
+            role: membership.role || 'MEMBER',
+            status: membership.status || 'ACTIVE',
+            joinedAt: membership.joined_at || new Date().toISOString(),
+            isActive: membership.organizations?.is_active ?? true
+          }
+        })
 
         // Determinar organización activa
         // Prioridad: current_organization_id del perfil > primera organización activa
