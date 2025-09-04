@@ -66,8 +66,8 @@ export default function ExpertiseAreasSection({
           expertise_area_id: areaId,
           level: formData.proficiencyLevel === 1 ? 'novice' :
                  formData.proficiencyLevel === 2 ? 'intermediate' :
-                 formData.proficiencyLevel === 3 ? 'intermediate' :
-                 formData.proficiencyLevel === 4 ? 'advanced' : 'expert',
+                 formData.proficiencyLevel === 3 ? 'advanced' :
+                 formData.proficiencyLevel === 4 ? 'expert' : 'expert',
           years_experience: formData.yearsExperience,
           description: `Experiencia en ${formData.name}`,
           context: formData.experienceTypes || ['PROFESSIONAL'],
@@ -89,8 +89,8 @@ export default function ExpertiseAreasSection({
         category: 'custom',
         level: formData.proficiencyLevel === 1 ? 'novice' :
                formData.proficiencyLevel === 2 ? 'intermediate' :
-               formData.proficiencyLevel === 3 ? 'intermediate' :
-               formData.proficiencyLevel === 4 ? 'advanced' : 'expert',
+               formData.proficiencyLevel === 3 ? 'advanced' :
+               formData.proficiencyLevel === 4 ? 'expert' : 'expert',
         yearsExperience: formData.yearsExperience,
         userDescription: `Experiencia en ${formData.name}`
       }
@@ -110,14 +110,32 @@ export default function ExpertiseAreasSection({
     
     setIsLoading(true)
     try {
-      // Actualizar en user_expertise
+      // 1. Actualizar nombre en expertise_areas si cambió
+      if (formData.name !== editingArea.name) {
+        console.log('📝 [EDIT] Actualizando nombre de área de expertise...')
+        const { error: nameError } = await supabase
+          .from('expertise_areas')
+          .update({
+            name: formData.name,
+            description: `Área de expertise: ${formData.name}`,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingArea.id)
+
+        if (nameError) {
+          console.error('❌ [EDIT] Error actualizando nombre:', nameError)
+          throw nameError
+        }
+      }
+
+      // 2. Actualizar datos de usuario en user_expertise
       const { error } = await supabase
         .from('user_expertise')
         .update({
           level: formData.proficiencyLevel === 1 ? 'novice' :
                  formData.proficiencyLevel === 2 ? 'intermediate' :
-                 formData.proficiencyLevel === 3 ? 'intermediate' :
-                 formData.proficiencyLevel === 4 ? 'advanced' : 'expert',
+                 formData.proficiencyLevel === 3 ? 'advanced' :
+                 formData.proficiencyLevel === 4 ? 'expert' : 'expert',
           years_experience: formData.yearsExperience,
           description: formData.description || `Experiencia en ${formData.name}`,
           context: formData.experienceTypes || ['PROFESSIONAL'],
@@ -133,20 +151,51 @@ export default function ExpertiseAreasSection({
       setEditingArea(null)
       setShowModal(false)
       
-      // 🔄 ACTUALIZAR ESTADO LOCAL (Editar área existente)
-      const updatedArea: ExpertiseArea = {
-        ...editingArea,
-        level: formData.proficiencyLevel === 1 ? 'novice' :
-               formData.proficiencyLevel === 2 ? 'intermediate' :
-               formData.proficiencyLevel === 3 ? 'intermediate' :
-               formData.proficiencyLevel === 4 ? 'advanced' : 'expert',
-        yearsExperience: formData.yearsExperience,
-        userDescription: formData.description || `Experiencia en ${formData.name}`
-      }
-      const updatedAreas = expertiseAreas.map(area => 
-        area.id === editingArea.id ? updatedArea : area
-      )
-      onAreasChange(updatedAreas)
+      // 🔄 SOLUCIÓN DEFINITIVA: Recargar datos completos desde BD
+      console.log('🔄 [EDIT] Recargando datos desde BD para reflejar todos los cambios...')
+      
+      // Forzar recarga completa del usuario para obtener datos actualizados
+      setTimeout(async () => {
+        try {
+          // Recargar áreas de expertise desde BD con datos completos
+          const { data: updatedExpertiseData, error: reloadError } = await supabase
+            .from('user_expertise')
+            .select(`
+              id,
+              level,
+              years_experience,
+              description,
+              context,
+              education_level,
+              expertise_areas (
+                id,
+                name,
+                description,
+                category
+              )
+            `)
+            .eq('user_id', user.id)
+          
+          if (!reloadError && updatedExpertiseData) {
+            const reloadedAreas = updatedExpertiseData
+              .filter((item: any) => item.expertise_areas)
+              .map((item: any) => ({
+                id: item.expertise_areas.id,
+                name: item.expertise_areas.name,
+                description: item.expertise_areas.description,
+                category: item.expertise_areas.category,
+                level: item.level,
+                yearsExperience: item.years_experience,
+                userDescription: item.description
+              }))
+            
+            onAreasChange(reloadedAreas)
+            console.log('✅ [EDIT] Datos recargados desde BD - UI actualizada')
+          }
+        } catch (reloadError) {
+          console.error('❌ [EDIT] Error recargando datos:', reloadError)
+        }
+      }, 500) // Pequeño delay para asegurar que BD se actualizó
       
     } catch (error) {
       console.error('Error actualizando área:', error)
@@ -251,8 +300,8 @@ export default function ExpertiseAreasSection({
           isOpen={showModal}
           onClose={closeModal}
           onSave={editingArea ? handleEditArea : handleAddArea}
-          editingArea={editingArea}
-          existingAreas={expertiseAreas}
+          editingArea={editingArea as any}
+          existingAreas={expertiseAreas as any}
           isLoading={isLoading}
         />
     </div>
@@ -278,15 +327,14 @@ function ExpertiseAreaCard({ area, isEditing, onEdit, onDelete }: ExpertiseAreaC
       const experienceScore = Math.min(60, area.yearsExperience * 3)
       
       // Multiplicador por nivel (mapear de string a número)
-      const levelToNumber = { 'novice': 1, 'intermediate': 2, 'advanced': 4, 'expert': 5 }
-      const proficiencyLevel = levelToNumber[area.level] || 3
+      const levelToNumber = { 'novice': 1, 'intermediate': 2, 'advanced': 3, 'expert': 4 }
+      const proficiencyLevel = levelToNumber[area.level] || 2
       
       const levelMultiplier = {
-        1: 0.6,  // Principiante
-        2: 0.8,  // Competente  
-        3: 1.0,  // Experimentado
-        4: 1.2,  // Experto
-        5: 1.4   // Maestro
+        1: 0.6,  // Principiante (novice)
+        2: 0.8,  // Competente (intermediate)
+        3: 1.0,  // Experimentado (advanced)
+        4: 1.2   // Experto (expert)
       }[proficiencyLevel] || 1.0
       
       // Bonus por contextos (estimar 1 contexto si no hay datos)

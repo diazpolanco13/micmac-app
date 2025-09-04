@@ -31,7 +31,7 @@ export default function ExpertiseAreaModal({
   const [formData, setFormData] = useState({
     name: '',
     yearsExperience: 1,
-    proficiencyLevel: 3 as 1 | 2 | 3 | 4 | 5,
+    proficiencyLevel: 3 as 1 | 2 | 3 | 4,
     experienceTypes: ['PROFESSIONAL'] as ExperienceType[], // 🔄 CAMBIO: Array de tipos
     educationLevel: undefined as EducationLevel | undefined
   })
@@ -44,15 +44,15 @@ export default function ExpertiseAreaModal({
       console.log('📝 [MODAL] Cargando datos para editar:', editingArea)
       
       // Mapear nivel de string a número
-      const levelMap = { 'novice': 1, 'intermediate': 2, 'advanced': 4, 'expert': 5 }
+      const levelMap = { 'novice': 1, 'intermediate': 2, 'advanced': 3, 'expert': 4 }
       const proficiencyLevel = levelMap[editingArea.level] || 3
       
       setFormData({
         name: editingArea.name,
         yearsExperience: editingArea.yearsExperience,
         proficiencyLevel,
-        experienceTypes: ['PROFESSIONAL'], // Volver al valor que funcionaba
-        educationLevel: undefined // Volver al valor que funcionaba
+        experienceTypes: ['PROFESSIONAL'], // Revertido por conflicto de tipos
+        educationLevel: undefined // Revertido por conflicto de tipos
       })
     } else {
       // Reset para nueva área
@@ -251,14 +251,13 @@ export default function ExpertiseAreaModal({
           </label>
           <select
             value={formData.proficiencyLevel}
-            onChange={(e) => handleInputChange('proficiencyLevel', parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5)}
+            onChange={(e) => handleInputChange('proficiencyLevel', parseInt(e.target.value) as 1 | 2 | 3 | 4)}
             className="w-full px-3 py-2 bg-dark-bg-tertiary border border-dark-bg-tertiary rounded-lg text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-micmac-primary-500"
           >
             <option value={1}>🌱 Principiante (1-2 años típicamente)</option>
             <option value={2}>📚 Competente (3-5 años típicamente)</option>
             <option value={3}>🔧 Experimentado (6-10 años típicamente)</option>
             <option value={4}>🎯 Experto (11-20 años típicamente)</option>
-            <option value={5}>🏆 Maestro (20+ años típicamente)</option>
           </select>
         </div>
         
