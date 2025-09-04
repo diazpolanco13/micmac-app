@@ -59,9 +59,15 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
         console.log(`🔄 [AUTH] Estado cambió: ${event} | Usuario: ${session?.user?.email || 'ninguno'}`)
         
         if (session?.user) {
-          console.log('👤 [AUTH] Cargando perfil de usuario...')
-          const authUser = await getCurrentUser()
-          setUser(authUser)
+          // 🔄 OPTIMIZACIÓN: Solo recargar usuario completo en login/signup, no en updates
+          if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+            console.log('👤 [AUTH] Cargando perfil completo de usuario...')
+            const authUser = await getCurrentUser()
+            setUser(authUser)
+          } else if (event === 'USER_UPDATED') {
+            console.log('⚡ [AUTH] Usuario actualizado - manteniendo datos existentes')
+            // No recargar todo, mantener el estado actual
+          }
         } else {
           console.log('👋 [AUTH] Usuario desconectado - limpiando estado')
           setUser(null)
@@ -265,16 +271,9 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: 'Usuario no autenticado' }
       }
 
-      // Actualizar en Supabase Auth si incluye metadata
-      if (data.name) {
-        const { error: authError } = await supabase.auth.updateUser({
-          data: { name: data.name }
-        })
-
-        if (authError) {
-          console.error('Error updating auth user:', authError)
-        }
-      }
+      // 🔄 OPTIMIZACIÓN: No actualizar Supabase Auth para evitar auth state change
+      // Solo actualizar la tabla profiles es suficiente
+      console.log('⚡ [SUPABASE] Saltando actualización de auth.users para evitar loops')
 
       // Mapear campos del formulario a campos de la tabla profiles
       const fieldMapping: { [key: string]: string } = {
@@ -313,22 +312,13 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
         sessionError: sessionError?.message 
       })
       
-      // 🔄 Actualizar con timeout para evitar cuelgues
-      console.log('⏰ [SUPABASE] Iniciando UPDATE con timeout de 10s...')
+      // 🔄 Actualizar directamente con RLS corregido (sin timeout)
+      console.log('⏰ [SUPABASE] Iniciando UPDATE directo con RLS corregido...')
       
-      const updatePromise = supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update(mappedData)
         .eq('id', user.id)
-
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout: UPDATE tardó más de 10s')), 10000)
-      )
-
-      const { error: profileError } = await Promise.race([
-        updatePromise,
-        timeoutPromise
-      ]) as any
 
       if (profileError) {
         console.error('❌ [SUPABASE] Error actualizando perfil:', profileError)
@@ -338,11 +328,50 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: errorMessage }
       }
 
-      // TODO: Actualizar expertiseAreas si se proporcionaron
-      if (expertiseAreasToUpdate) {
-        console.log('🎯 [SUPABASE] Actualizando áreas de expertise...')
-        // Por ahora solo loggeamos, implementaremos la actualización después
-        console.log('⚠️  [SUPABASE] Actualización de expertiseAreas pendiente de implementar')
+      // 🎯 Actualizar expertiseAreas si se proporcionaron
+      if (expertiseAreasToUpdate && Array.isArray(expertiseAreasToUpdate)) {
+        console.log('🎯 [SUPABASE] Actualizando áreas de expertise...', expertiseAreasToUpdate)
+        
+        try {
+          // 1. Eliminar áreas de expertise existentes del usuario
+          const { error: deleteError } = await supabase
+            .from('user_expertise')
+            .delete()
+            .eq('user_id', user.id)
+          
+          if (deleteError) {
+            console.error('❌ [SUPABASE] Error eliminando expertise areas existentes:', deleteError)
+          } else {
+            console.log('🧹 [SUPABASE] Áreas de expertise existentes eliminadas')
+          }
+          
+          // 2. Insertar nuevas áreas de expertise
+          if (expertiseAreasToUpdate.length > 0) {
+            const expertiseData = expertiseAreasToUpdate.map((area: any) => ({
+              user_id: user.id,
+              expertise_area_id: area.id,
+              level: area.level || 1,
+              years_experience: area.yearsExperience || 0,
+              description: area.userDescription || ''
+            }))
+            
+            const { error: insertError } = await supabase
+              .from('user_expertise')
+              .insert(expertiseData)
+            
+            if (insertError) {
+              console.error('❌ [SUPABASE] Error insertando expertise areas:', insertError)
+              toast.error('Error', 'No se pudieron guardar las áreas de expertise')
+            } else {
+              console.log('✅ [SUPABASE] Áreas de expertise guardadas exitosamente')
+              toast.success('Expertise actualizada', 'Las áreas de expertise se han guardado correctamente')
+            }
+          }
+          
+        } catch (expertiseError) {
+          console.error('💥 [SUPABASE] Error general actualizando expertise:', expertiseError)
+          toast.error('Error', 'Error actualizando áreas de expertise')
+        }
       }
 
       // Actualizar estado local con los datos originales

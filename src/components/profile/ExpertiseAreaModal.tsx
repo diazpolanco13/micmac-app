@@ -51,8 +51,8 @@ export default function ExpertiseAreaModal({
         name: editingArea.name,
         yearsExperience: editingArea.yearsExperience,
         proficiencyLevel,
-        experienceTypes: ['PROFESSIONAL'], // Default, se actualizará desde BD
-        educationLevel: undefined
+        experienceTypes: ['PROFESSIONAL'], // Volver al valor que funcionaba
+        educationLevel: undefined // Volver al valor que funcionaba
       })
     } else {
       // Reset para nueva área
