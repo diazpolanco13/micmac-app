@@ -51,8 +51,8 @@ export default function ExpertiseAreaModal({
         name: editingArea.name,
         yearsExperience: editingArea.yearsExperience,
         proficiencyLevel,
-        experienceTypes: ['PROFESSIONAL'], // Revertido por conflicto de tipos
-        educationLevel: undefined // Revertido por conflicto de tipos
+        experienceTypes: (editingArea as any).context || ['PROFESSIONAL'], // 🔄 CARGAR CONTEXTOS REALES
+        educationLevel: (editingArea as any).educationLevel || undefined // 🔄 CARGAR FORMACIÓN REAL
       })
     } else {
       // Reset para nueva área

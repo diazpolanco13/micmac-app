@@ -247,6 +247,8 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
             description: item.expertise_areas?.description || '',
             category: item.expertise_areas?.category || 'General',
             level: item.level || 1,
+            context: item.context || ['PROFESSIONAL'], // 🔄 INCLUIR CONTEXTOS
+            educationLevel: item.education_level || undefined, // 🔄 INCLUIR FORMACIÓN
             yearsExperience: item.years_experience || 0,
             userDescription: item.description || ''
           }))

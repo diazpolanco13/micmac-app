@@ -352,7 +352,9 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
               expertise_area_id: area.id,
               level: area.level || 1,
               years_experience: area.yearsExperience || 0,
-              description: area.userDescription || ''
+              description: area.userDescription || '',
+              context: area.experienceTypes || area.context || ['PROFESSIONAL'], // 🔄 GUARDAR CONTEXTOS
+              education_level: area.educationLevel?.toLowerCase() || null // 🔄 GUARDAR FORMACIÓN
             }))
             
             const { error: insertError } = await supabase

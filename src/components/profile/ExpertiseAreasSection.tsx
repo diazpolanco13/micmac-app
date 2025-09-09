@@ -71,7 +71,7 @@ export default function ExpertiseAreasSection({
           years_experience: formData.yearsExperience,
           description: `Experiencia en ${formData.name}`,
           context: formData.experienceTypes || ['PROFESSIONAL'],
-          education_level: formData.educationLevel?.toLowerCase()
+          education_level: formData.educationLevel?.toLowerCase() || null
         })
 
       if (insertError) throw insertError
@@ -139,7 +139,7 @@ export default function ExpertiseAreasSection({
           years_experience: formData.yearsExperience,
           description: formData.description || `Experiencia en ${formData.name}`,
           context: formData.experienceTypes || ['PROFESSIONAL'],
-          education_level: formData.educationLevel?.toLowerCase(),
+          education_level: formData.educationLevel?.toLowerCase() || null,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
@@ -154,8 +154,8 @@ export default function ExpertiseAreasSection({
       // 🔄 SOLUCIÓN DEFINITIVA: Recargar datos completos desde BD
       console.log('🔄 [EDIT] Recargando datos desde BD para reflejar todos los cambios...')
       
-      // Forzar recarga completa del usuario para obtener datos actualizados
-      setTimeout(async () => {
+      // 🚀 RECARGA INMEDIATA (sin timeout para mejor UX)
+      const reloadData = async () => {
         try {
           // Recargar áreas de expertise desde BD con datos completos
           const { data: updatedExpertiseData, error: reloadError } = await supabase
@@ -186,7 +186,9 @@ export default function ExpertiseAreasSection({
                 category: item.expertise_areas.category,
                 level: item.level,
                 yearsExperience: item.years_experience,
-                userDescription: item.description
+                userDescription: item.description,
+                context: item.context || ['PROFESSIONAL'], // 🔄 INCLUIR CONTEXTOS
+                educationLevel: item.education_level || undefined // 🔄 INCLUIR FORMACIÓN
               }))
             
             onAreasChange(reloadedAreas)
@@ -195,7 +197,11 @@ export default function ExpertiseAreasSection({
         } catch (reloadError) {
           console.error('❌ [EDIT] Error recargando datos:', reloadError)
         }
-      }, 500) // Pequeño delay para asegurar que BD se actualizó
+      }
+      
+      // Ejecutar recarga inmediata y también con delay como backup
+      reloadData()
+      setTimeout(reloadData, 200) // Backup con delay mínimo
       
     } catch (error) {
       console.error('Error actualizando área:', error)
@@ -337,11 +343,13 @@ function ExpertiseAreaCard({ area, isEditing, onEdit, onDelete }: ExpertiseAreaC
         4: 1.2   // Experto (expert)
       }[proficiencyLevel] || 1.0
       
-      // Bonus por contextos (estimar 1 contexto si no hay datos)
-      const contextBonus = 1 * 5 // Default: 1 contexto
+      // 🔄 BONUS POR CONTEXTOS REALES
+      const realContexts = (area as any).context || ['PROFESSIONAL']
+      const contextBonus = realContexts.length * 5
       
-      // Sin bonus de educación por ahora
-      const educationBonus = 0
+      // 🔄 BONUS POR EDUCACIÓN REAL
+      const realEducation = (area as any).educationLevel
+      const educationBonus = realEducation ? 10 : 0
       
       const finalScore = Math.min(100, Math.max(10, 
         Math.round(experienceScore * levelMultiplier + contextBonus + educationBonus)
@@ -369,10 +377,17 @@ function ExpertiseAreaCard({ area, isEditing, onEdit, onDelete }: ExpertiseAreaC
       calculatedPriority,
       colors
     }
-  }, [area.yearsExperience, area.level, area.name]) // Solo recalcular si cambian estos valores
+  }, [area.yearsExperience, area.level, area.name, (area as any).context, (area as any).educationLevel]) // 🔄 INCLUIR CONTEXTOS Y FORMACIÓN
   
-  // 🔍 DEBUG: Solo log cuando los datos cambien (no en cada render)
-  // console.log(`📊 [CARD] ${area.name}:`, calculatedData)
+  // 🔍 DEBUG: Verificar datos de contexto y formación
+  React.useEffect(() => {
+    console.log(`📊 [CARD DEBUG] ${area.name}:`, {
+      context: (area as any).context,
+      educationLevel: (area as any).educationLevel,
+      level: area.level,
+      yearsExperience: area.yearsExperience
+    })
+  }, [(area as any).context, (area as any).educationLevel])
   
   return (
     <div className="bg-dark-bg-tertiary rounded-lg p-4 border border-dark-bg-tertiary hover:border-micmac-primary-500/30 transition-colors">
@@ -429,9 +444,42 @@ function ExpertiseAreaCard({ area, isEditing, onEdit, onDelete }: ExpertiseAreaC
         </div>
         
         {/* Detalles de experiencia */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-dark-text-secondary">
-          <span>📅 {area.yearsExperience} años</span>
-          <span>📊 Nivel: {area.level}</span>
+        <div className="flex flex-col gap-2 text-xs sm:text-sm text-dark-text-secondary">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <span>📅 {area.yearsExperience} años</span>
+            <span>📊 Nivel: {area.level}</span>
+          </div>
+          
+          {/* 🆕 CONTEXTOS DE EXPERIENCIA */}
+          {(area as any).context && (area as any).context.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-dark-text-muted">Contextos:</span>
+              {(area as any).context.map((ctx: string, idx: number) => (
+                <span key={idx} className="px-2 py-1 bg-dark-bg-secondary rounded text-xs border border-dark-bg-tertiary">
+                  {ctx === 'PROFESSIONAL' ? '💼 Prof.' :
+                   ctx === 'ACADEMIC' ? '🎓 Acad.' :
+                   ctx === 'RESEARCH' ? '🔬 Inv.' :
+                   ctx === 'CONSULTING' ? '💡 Cons.' :
+                   ctx === 'PERSONAL' ? '🛠️ Pers.' : ctx}
+                </span>
+              ))}
+            </div>
+          )}
+          
+          {/* 🆕 FORMACIÓN */}
+          {(area as any).educationLevel && (
+            <div className="flex items-center gap-2">
+              <span className="text-dark-text-muted">Formación:</span>
+              <span className="px-2 py-1 bg-dark-bg-secondary rounded text-xs border border-dark-bg-tertiary">
+                {(area as any).educationLevel === 'autodidacta' ? '🎯 Autodidacta' :
+                 (area as any).educationLevel === 'tecnico' ? '🔧 Técnico' :
+                 (area as any).educationLevel === 'universitario' ? '🎓 Universitario' :
+                 (area as any).educationLevel === 'postgrado' ? '📜 Postgrado' :
+                 (area as any).educationLevel === 'doctorado' ? '🎓 Doctorado' : 
+                 (area as any).educationLevel}
+              </span>
+            </div>
+          )}
         </div>
         
         {/* Barra de progreso */}
